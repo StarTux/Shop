@@ -8,6 +8,7 @@ import com.winthier.shop.sql.*;
 import com.winthier.shop.vault.VaultHandler;
 import java.util.Arrays;
 import java.util.List;
+import javax.persistence.PersistenceException;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,6 +26,10 @@ public class ShopPlugin extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
             vaultHandler = new VaultHandler();
         }
+        if (!probeDatabase()) {
+            getLogger().info("Installing Chat database due to first time usage");
+            installDDL();
+        }
         getServer().getPluginManager().registerEvents(new SignListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
@@ -38,6 +43,17 @@ public class ShopPlugin extends JavaPlugin {
         return chestDataStore;
     }
 
+    boolean probeDatabase() {
+        try {
+            for (Class<?> clazz : getDatabaseClasses()) {
+                getDatabase().find(clazz).findRowCount();
+            }
+        } catch (PersistenceException ex) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public List<Class<?>> getDatabaseClasses() {
         return Arrays.asList(
@@ -45,4 +61,5 @@ public class ShopPlugin extends JavaPlugin {
             SQLLog.class
             );
     }
+    
 }

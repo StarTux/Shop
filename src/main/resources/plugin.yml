@@ -3,7 +3,7 @@ description: Make shop chests
 author: StarTux
 version: 0.1
 main: com.winthier.shop.ShopPlugin
-database: false
+database: true
 depend: [ Vault ]
 commands: {}
 permissions: {}
