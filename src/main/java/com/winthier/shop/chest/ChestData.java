@@ -3,26 +3,32 @@ package com.winthier.shop.chest;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
+import com.winthier.shop.util.Msg;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
 @Getter
 @RequiredArgsConstructor
 public class ChestData {
-    public enum Type { SIGN, INVENTORY_NAME; }
+    public enum Type { SIGN, NAMED_CHEST; }
     final Type type;
     final ShopType shopType;
     final BlockLocation location;
     final Shopper owner;
     final double price;
     final boolean adminShop;
+
+    @Setter transient boolean soldOut = false;
 
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();
@@ -53,5 +59,45 @@ public class ChestData {
     public boolean isOwner(Player player) {
         if (isAdminShop()) return false;
         return player.getUniqueId().equals(getOwner().getUuid());
+    }
+
+
+    // Real world
+
+    public Sign getSign() {
+        Block block = location.getBlock();
+        BlockState blockState = block.getState();
+        if (!(blockState instanceof Sign)) return null;
+        return (Sign)blockState;
+    }
+
+    public boolean updateInWorld() {
+        if (type == Type.SIGN) {
+            Sign sign = getSign();
+            if (sign == null) return false;
+            if (getShopType() == ShopType.BUY) {
+                if (sign.getLine(0).toLowerCase().contains("buy")) {
+                    sign.setLine(0, Msg.format("&r[&9Buy&r]"));
+                } else {
+                    sign.setLine(0, Msg.format("&r[&9Shop&r]"));
+                }
+            } else if (getShopType() == ShopType.SELL) {
+                sign.setLine(0, Msg.format("&r[&9Sell&r]"));
+            }
+            if (soldOut) {
+                sign.setLine(1, Msg.format("&4SOLD OUT"));
+            } else {
+                sign.setLine(1, Msg.format("&1%.02f", price));
+            }
+            sign.setLine(2, "");
+            if (adminShop) {
+                sign.setLine(3, Msg.format("&9The Bank"));
+            } else {
+                sign.setLine(3, getOwner().getName());
+            }
+            sign.update();
+            return true;
+        }
+        return false;
     }
 }

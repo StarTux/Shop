@@ -31,40 +31,26 @@ public class ChestListener implements Listener {
         ChestShop chestShop = ChestShop.getByChest(event.getClickedBlock());
         if (chestShop == null) chestShop = ChestShop.getBySign(event.getClickedBlock());
         if (chestShop == null) return;
-        if (chestShop.getChestData().isOwner(player) && player.hasPermission("shop.edit")) {
-            // Double price = ShopPlugin.getInstance().getPriceMap().get(player.getName());
-            // if (price != null) {
-            //     if (chestShop.setPrice(price)) {
-            //         Msg.send(player, "&bPrice of this shop chest is now %s.", ShopPlugin.getInstance().getVaultHandler().formatMoney(price));
-            //     } else {
-            //         Msg.send(player, "&cYou can't change the price of this chest");
-            //     }
-            //     ShopPlugin.getInstance().getPriceMap().remove(player.getName());
-            //     event.setCancelled(true);
-            //     return;
-            // }
-        }
         if (player.getGameMode() == GameMode.CREATIVE) return;
         // if (chestShop.isBlocked()) return;
+        double price = chestShop.getChestData().getPrice();
+        String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
         if (chestShop.getChestData().isOwner(player)) {
-            Msg.send(player, "&bYour Shop Chest");
+            if (chestShop.getChestData().getShopType() == ShopType.BUY) {
+                Msg.info(player, "Your shop chest sells items for %s.", priceFormat);
+            } else if (chestShop.getChestData().getShopType() == ShopType.SELL) {
+                Msg.info(player, "Your shop chest buys items for %s.", priceFormat);
+            }
+            chestShop.getChestData().setSoldOut(chestShop.isEmpty());
+            chestShop.getChestData().updateInWorld();
         } else {
-            // if (chestShop.isEmpty()) {
-            //     chestShop.getChestData().setSoldOut();
-            // }
-            Msg.send(player, "&b%s's Shop Chest", chestShop.getOwnerName());
-            double price = chestShop.getChestData().getPrice();
-            if (!Double.isNaN(price)) {
-                if (chestShop.getChestData().getShopType() == ShopType.BUY) {
-                    Msg.send(player, "&bYou can buy for %s.", ShopPlugin.getInstance().getVaultHandler().formatMoney(price));
-                }
-                if (chestShop.getChestData().getShopType() == ShopType.SELL) {
-                    Msg.send(player, "&bYou can sell for %s.", ShopPlugin.getInstance().getVaultHandler().formatMoney(price));
-                }
+            if (chestShop.getChestData().getShopType() == ShopType.BUY) {
+                Msg.info(player, "%s's shop sells items for %s.", chestShop.getOwnerName(), priceFormat);
+            } else if (chestShop.getChestData().getShopType() == ShopType.SELL) {
+                Msg.info(player, "%s's shop buys items for %s.", chestShop.getOwnerName(), priceFormat);
             }
         }
         event.setCancelled(true);
-        player.openInventory(chestShop.getInventory().getHolder().getInventory());
+        player.openInventory(chestShop.getInventory());
     }
-
 }

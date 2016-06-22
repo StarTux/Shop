@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Value;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 
 @Value
@@ -19,6 +21,12 @@ public class BlockLocation {
 
     public static BlockLocation of(Location loc) {
         return of(loc.getBlock());
+    }
+
+    public Block getBlock() {
+        World world = Bukkit.getServer().getWorld(this.world);
+        if (world == null) return null;
+        return world.getBlockAt(x, y, z);
     }
 
     public Map<String, Object> serialize() {

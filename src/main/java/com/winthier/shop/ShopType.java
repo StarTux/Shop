@@ -12,4 +12,12 @@ public enum ShopType {
         if ("sell".equalsIgnoreCase(name)) return ShopType.SELL;
         return null;
     }
+
+    public String gerund() {
+        switch (this) {
+        case BUY: return "buying";
+        case SELL: return "selling";
+        default: return "shopping"; // Should never happen!
+        }
+    }
 }

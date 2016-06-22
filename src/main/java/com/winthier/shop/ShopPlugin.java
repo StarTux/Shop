@@ -4,7 +4,10 @@ import com.winthier.shop.chest.ChestDataStore;
 import com.winthier.shop.listener.ChestListener;
 import com.winthier.shop.listener.InventoryListener;
 import com.winthier.shop.listener.SignListener;
+import com.winthier.shop.sql.*;
 import com.winthier.shop.vault.VaultHandler;
+import java.util.Arrays;
+import java.util.List;
 import lombok.Getter;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -33,5 +36,13 @@ public class ShopPlugin extends JavaPlugin {
             chestDataStore.load();
         }
         return chestDataStore;
+    }
+
+    @Override
+    public List<Class<?>> getDatabaseClasses() {
+        return Arrays.asList(
+            SQLOffer.class,
+            SQLLog.class
+            );
     }
 }

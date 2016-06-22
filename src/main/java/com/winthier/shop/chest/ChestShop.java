@@ -2,6 +2,7 @@ package com.winthier.shop.chest;
  
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
+import com.winthier.shop.util.Msg;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -70,6 +71,13 @@ public class ChestShop {
     public boolean isEmpty() {
         for (ItemStack item : getInventory().getContents()) {
             if (item != null) return false;
+        }
+        return true;
+    }
+
+    public boolean isFull() {
+        for (ItemStack item : getInventory().getContents()) {
+            if (item == null) return false;
         }
         return true;
     }
