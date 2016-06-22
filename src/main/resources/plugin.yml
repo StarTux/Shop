@@ -1,0 +1,9 @@
+name: Shop
+description: Make shop chests
+author: StarTux
+version: 0.1
+main: com.winthier.shop.ShopPlugin
+database: false
+depend: [ Vault ]
+commands: {}
+permissions: {}
