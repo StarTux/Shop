@@ -115,6 +115,7 @@ public class SignListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         if (null != ShopPlugin.getInstance().getChestDataStore().remove(event.getBlock())) {
             ShopPlugin.getInstance().getChestDataStore().save();
+            ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(event.getBlock()));
         }
     }
 
@@ -124,6 +125,7 @@ public class SignListener implements Listener {
         for (Block block: event.blockList()) {
             if (null != ShopPlugin.getInstance().getChestDataStore().remove(block)) {
                 shouldSave = true;
+                ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
             }
         }
         if (shouldSave) ShopPlugin.getInstance().getChestDataStore().save();
@@ -135,6 +137,7 @@ public class SignListener implements Listener {
         for (Block block: event.blockList()) {
             if (null != ShopPlugin.getInstance().getChestDataStore().remove(block)) {
                 shouldSave = true;
+                ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
             }
         }
         if (shouldSave) ShopPlugin.getInstance().getChestDataStore().save();

@@ -49,7 +49,10 @@ public class InventoryListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player)event.getWhoClicked();
         if (player.getGameMode() == GameMode.CREATIVE) return;
-        if (chestShop.getChestData().isOwner(player)) return;
+        if (chestShop.getChestData().isOwner(player)) {
+            ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
+            return;
+        }
         boolean isTopInventory = false;
         for (Integer slot : event.getRawSlots()) {
             if (slot < event.getView().getTopInventory().getSize()) {
@@ -79,7 +82,10 @@ public class InventoryListener implements Listener {
         if (chestShop == null) return;
         boolean isTopInventory = (event.getRawSlot() < event.getView().getTopInventory().getSize());
         boolean isOwner = chestShop.getChestData().isOwner(player);
-        if (isOwner) return;
+        if (isOwner) {
+            ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
+            return;
+        }
         // cancel everything
         ItemStack cursor = event.getCursor().clone();
         ItemStack current = event.getCurrentItem().clone();

@@ -72,7 +72,7 @@ public class SQLOffer {
         setPrice(chestData.getPrice());
     }
 
-    BlockLocation getBlockLocation() {
+    public BlockLocation getBlockLocation() {
         return new BlockLocation(getWorld(), getX(), getY(), getZ());
     }
 

@@ -17,6 +17,7 @@ public class ShopPlugin extends JavaPlugin {
     @Getter static ShopPlugin instance;
     ChestDataStore chestDataStore = null;
     VaultHandler vaultHandler = null;
+    OfferScanner offerScanner = new OfferScanner();
     
     public boolean debugMode;
 
@@ -33,6 +34,12 @@ public class ShopPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SignListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
+        offerScanner.start();
+    }
+
+    @Override
+    public void onDisable() {
+        offerScanner.stop();
     }
 
     public ChestDataStore getChestDataStore() {
