@@ -96,7 +96,7 @@ public class ChestData {
                 String ownerName = owner.getName();
                 if (ownerName.length() <= 13) {
                     sign.setLine(2, "");
-                    sign.setLine(3, Msg.format("&9%s", ownerName));
+                    sign.setLine(3, Msg.format("&8%s", ownerName));
                 } else {
                     int b = (ownerName.length() - 1) / 2 + 1;
                     sign.setLine(2, Msg.format("&8%s", ownerName.substring(0, b)));
