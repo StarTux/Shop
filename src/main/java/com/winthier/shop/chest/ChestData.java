@@ -94,12 +94,13 @@ public class ChestData {
                 sign.setLine(3, Msg.format("&9The Bank"));
             } else {
                 String ownerName = owner.getName();
-                if (ownerName.length() <= 15) {
+                if (ownerName.length() <= 13) {
                     sign.setLine(2, "");
-                    sign.setLine(3, getOwner().getName());
+                    sign.setLine(3, Msg.format("&9%s", ownerName));
                 } else {
-                    sign.setLine(2, ownerName.substring(0, 8));
-                    sign.setLine(3, ownerName.substring(8));
+                    int b = (ownerName.length() - 1) / 2 + 1;
+                    sign.setLine(2, Msg.format("&8%s", ownerName.substring(0, b)));
+                    sign.setLine(3, Msg.format("&8%s", ownerName.substring(b)));
                 }
             }
             sign.update();
