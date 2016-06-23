@@ -82,6 +82,14 @@ public class ChestShop {
         return true;
     }
 
+    public boolean isSoldOut() {
+        switch (getChestData().getShopType()) {
+        case BUY: return isEmpty();
+        case SELL: return isFull();
+        default: return false;
+        }
+    }
+
     public String getOwnerName() {
         if (getChestData().isAdminShop()) return "The Bank";
         return getChestData().getOwner().getName();

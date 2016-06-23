@@ -21,6 +21,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class InventoryListener implements Listener {
     /**
@@ -44,12 +45,18 @@ public class InventoryListener implements Listener {
      */
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onInventoryDrag(InventoryDragEvent event) {
-        ChestShop chestShop = ChestShop.getByInventory(event.getInventory());
+        final ChestShop chestShop = ChestShop.getByInventory(event.getInventory());
         if (chestShop == null) return;
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player)event.getWhoClicked();
         if (player.getGameMode() == GameMode.CREATIVE) return;
         if (chestShop.getChestData().isOwner(player)) {
+            new BukkitRunnable() {
+                @Override public void run() {
+                    chestShop.getChestData().setSoldOut(chestShop.isSoldOut());
+                    chestShop.getChestData().updateInWorld();
+                }
+            }.runTask(ShopPlugin.getInstance());
             ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
             return;
         }
@@ -78,11 +85,17 @@ public class InventoryListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player)event.getWhoClicked();
         if (player.getGameMode() == GameMode.CREATIVE) return;
-        ChestShop chestShop = ChestShop.getByInventory(event.getInventory());
+        final ChestShop chestShop = ChestShop.getByInventory(event.getInventory());
         if (chestShop == null) return;
         boolean isTopInventory = (event.getRawSlot() < event.getView().getTopInventory().getSize());
         boolean isOwner = chestShop.getChestData().isOwner(player);
         if (isOwner) {
+            new BukkitRunnable() {
+                @Override public void run() {
+                    chestShop.getChestData().setSoldOut(chestShop.isSoldOut());
+                    chestShop.getChestData().updateInWorld();
+                }
+            }.runTask(ShopPlugin.getInstance());
             ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
             return;
         }
