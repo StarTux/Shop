@@ -5,5 +5,15 @@ version: 0.1
 main: com.winthier.shop.ShopPlugin
 database: true
 depend: [ Vault ]
-commands: {}
-permissions: {}
+commands:
+  shop:
+    description: Shop user interface
+    usage: /<command>
+    permission: shop.shop
+permissions:
+  shop.shop:
+    description: Use /shop
+    default: op
+  shop.create:
+    description: Create your own shops
+    default: op

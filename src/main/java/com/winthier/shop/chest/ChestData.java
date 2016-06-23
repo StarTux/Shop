@@ -89,11 +89,18 @@ public class ChestData {
             } else {
                 sign.setLine(1, Msg.format("&1%.02f", price));
             }
-            sign.setLine(2, "");
             if (adminShop) {
+                sign.setLine(2, "");
                 sign.setLine(3, Msg.format("&9The Bank"));
             } else {
-                sign.setLine(3, getOwner().getName());
+                String ownerName = owner.getName();
+                if (ownerName.length() <= 15) {
+                    sign.setLine(2, "");
+                    sign.setLine(3, getOwner().getName());
+                } else {
+                    sign.setLine(2, ownerName.substring(0, 8));
+                    sign.setLine(3, ownerName.substring(8));
+                }
             }
             sign.update();
             return true;

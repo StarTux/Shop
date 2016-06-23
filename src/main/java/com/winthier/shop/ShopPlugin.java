@@ -34,6 +34,7 @@ public class ShopPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SignListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
+        getCommand("shop").setExecutor(new ShopCommand());
         offerScanner.start();
     }
 

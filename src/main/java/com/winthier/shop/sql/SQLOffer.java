@@ -129,5 +129,9 @@ public class SQLOffer {
         ShopPlugin.getInstance().getDatabase().save(list);
         getCache().put(location, offers);
     }
+
+    public double pricePerItem() {
+        return getPrice() / (double)getItemAmount();
+    }
 }
 
