@@ -3,6 +3,7 @@ package com.winthier.shop;
 import com.winthier.shop.chest.ChestDataStore;
 import com.winthier.shop.listener.ChestListener;
 import com.winthier.shop.listener.InventoryListener;
+import com.winthier.shop.listener.MarketListener;
 import com.winthier.shop.listener.SignListener;
 import com.winthier.shop.sql.*;
 import com.winthier.shop.vault.VaultHandler;
@@ -18,6 +19,8 @@ public class ShopPlugin extends JavaPlugin {
     ChestDataStore chestDataStore = null;
     VaultHandler vaultHandler = null;
     OfferScanner offerScanner = new OfferScanner();
+    Market market = null;
+    AdminCommand adminCommand = new AdminCommand();
     
     public boolean debugMode;
 
@@ -34,7 +37,9 @@ public class ShopPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SignListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
+        getServer().getPluginManager().registerEvents(new MarketListener(), this);
         getCommand("shop").setExecutor(new ShopCommand());
+        getCommand("shopadmin").setExecutor(adminCommand);
         offerScanner.start();
     }
 
@@ -49,6 +54,14 @@ public class ShopPlugin extends JavaPlugin {
             chestDataStore.load();
         }
         return chestDataStore;
+    }
+
+    public Market getMarket() {
+        if (market == null) {
+            market = new Market();
+            market.load();
+        }
+        return market;
     }
 
     boolean probeDatabase() {

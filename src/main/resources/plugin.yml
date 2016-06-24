@@ -10,10 +10,23 @@ commands:
     description: Shop user interface
     usage: /<command>
     permission: shop.shop
+  shopadmin:
+    description: Admin interface
+    usage: /<command>
+    permission: shop.admin
 permissions:
   shop.shop:
     description: Use /shop
     default: op
   shop.create:
     description: Create your own shops
+    default: op
+  shop.market:
+    description: Claim a plot on the market
+    default: false
+  shop.market.override:
+    description: Override market plot restrictions
+    default: op
+  shop.admin:
+    description: Use /shopadmin
     default: op

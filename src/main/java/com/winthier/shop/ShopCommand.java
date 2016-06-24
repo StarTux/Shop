@@ -53,6 +53,12 @@ public class ShopCommand implements CommandExecutor {
             }
         } else if (firstArg.equals("port")) {
             shopPort(player, args);
+        } else if (firstArg.equals("claim")) {
+            if (!player.hasPermission("shop.market")) {
+                Msg.warn(player, "You don't have permission.");
+                return true;
+            }
+            shopClaim(player, args);
         }
         return true;
     }
@@ -60,7 +66,7 @@ public class ShopCommand implements CommandExecutor {
     boolean shopSearch(Player player, String[] args) {
         if (args.length < 2) return false;
         boolean exact = args[0].endsWith("!");
-        String marketWorld = ShopPlugin.getInstance().getConfig().getString("MarketWorld", "world");
+        String marketWorld = ShopPlugin.getInstance().getMarket().getWorld();
         ShopType shopType = ShopType.BUY;
         List<String> patterns = new ArrayList<>();
         for (int i = 1; i < args.length; ++i) {
@@ -149,6 +155,28 @@ public class ShopCommand implements CommandExecutor {
             return false;
         }
         return true;
+    }
+
+    boolean shopClaim(Player player, String[] args) {
+        Block block = player.getLocation().getBlock();
+        if (ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId()) != null) {
+            Msg.warn(player, "You already have a plot.");
+            return true;
+        }
+        Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(block);
+        if (plot == null) {
+            Msg.warn(player, "There is no plot here.");
+            return true;
+        }
+        if (plot.getOwner() != null) {
+            Msg.warn(player, "This plot is already claimed by %s.", plot.getOwner().getName());
+            return true;
+        }
+        plot.setOwner(Shopper.of(player));
+        ShopPlugin.getInstance().getMarket().save();
+        Msg.info(player, "You claimed this plot. Get to it via &a/Shop Port&r.");
+        ShopPlugin.getInstance().getLogger().info(player.getName() + " claimed plot at " + plot.getNorth() + "," + plot.getWest());
+        return false;
     }
 
     void showPage(Player player, int index) {
