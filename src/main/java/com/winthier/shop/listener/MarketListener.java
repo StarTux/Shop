@@ -26,7 +26,6 @@ public class MarketListener implements Listener {
         if (player.hasPermission("shop.market.override")) return;
         Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(block);
         if (plot == null || !plot.isAllowed(player)) {
-            player.sendMessage("NUT UR PLOT!!!");
             event.setCancelled(true);
             return;
         }
