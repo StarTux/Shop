@@ -109,6 +109,15 @@ public class Market {
         return null;
     }
 
+    public Plot findPlayerPlotByName(String name) {
+        for (Plot plot: plots) {
+            if (plot.owner != null && plot.owner.getName().equalsIgnoreCase(name)) {
+                return plot;
+            }
+        }
+        return null;
+    }
+
     public boolean collides(Plot plot) {
         for (Plot other: plots) {
             if (plot != other && plot.collides(other)) return true;
