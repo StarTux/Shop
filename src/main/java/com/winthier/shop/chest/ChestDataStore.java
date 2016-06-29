@@ -68,10 +68,14 @@ public class ChestDataStore {
         store.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(getSaveFile());
         for (Map<?, ?> m: yaml.getMapList("store")) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>)m;
-            ChestData chestData = ChestData.deserialize(map);
-            store.put(chestData.getLocation(), chestData);
+            try {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> map = (Map<String, Object>)m;
+                ChestData chestData = ChestData.deserialize(map);
+                store.put(chestData.getLocation(), chestData);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

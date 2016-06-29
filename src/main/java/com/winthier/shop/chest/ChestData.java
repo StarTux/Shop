@@ -46,7 +46,9 @@ public class ChestData {
         Type type = Type.valueOf((String)map.get("type"));
         ShopType shopType = ShopType.valueOf((String)map.get("shopType"));
         BlockLocation location = BlockLocation.deserialize((Map<String, Object>)map.get("location"));
-        Shopper owner = Shopper.deserialize((Map<String, Object>)map.get("owner"));
+        if (map.containsKey("owner")) {
+            Shopper owner = Shopper.deserialize((Map<String, Object>)map.get("owner"));
+        }
         double price = (Double)map.get("price");
         boolean adminShop = map.containsKey("adminShop") ? (Boolean)map.get("adminShop") : false;
         return new ChestData(type, shopType, location, owner, price, adminShop);
