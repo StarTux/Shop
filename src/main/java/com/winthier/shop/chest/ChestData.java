@@ -35,7 +35,7 @@ public class ChestData {
         map.put("type", type.name());
         map.put("shopType", shopType.name());
         map.put("location", location.serialize());
-        map.put("owner", owner.serialize());
+        if (owner != null) map.put("owner", owner.serialize());
         map.put("price", price);
         if (adminShop) map.put("adminShop", adminShop);
         return map;
@@ -77,12 +77,12 @@ public class ChestData {
             if (sign == null) return false;
             if (getShopType() == ShopType.BUY) {
                 if (sign.getLine(0).toLowerCase().contains("buy")) {
-                    sign.setLine(0, Msg.format("&r[&9Buy&r]"));
+                    sign.setLine(0, Msg.format("&r[&9&lBuy&r]"));
                 } else {
-                    sign.setLine(0, Msg.format("&r[&9Shop&r]"));
+                    sign.setLine(0, Msg.format("&r[&9&lShop&r]"));
                 }
             } else if (getShopType() == ShopType.SELL) {
-                sign.setLine(0, Msg.format("&r[&9Sell&r]"));
+                sign.setLine(0, Msg.format("&r[&9&lSell&r]"));
             }
             if (soldOut) {
                 sign.setLine(1, Msg.format("&4SOLD OUT"));
