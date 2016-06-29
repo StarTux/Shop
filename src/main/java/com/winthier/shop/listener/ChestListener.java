@@ -37,17 +37,17 @@ public class ChestListener implements Listener {
         String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
         if (chestShop.getChestData().isOwner(player)) {
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
-                Msg.info(player, "Your shop chest sells items for %s.", priceFormat);
+                Msg.info(player, "Your shop chest sells items for &3%s&r.", priceFormat);
             } else if (chestShop.getChestData().getShopType() == ShopType.SELL) {
-                Msg.info(player, "Your shop chest buys items for %s.", priceFormat);
+                Msg.info(player, "Your shop chest buys items for &3%s&r.", priceFormat);
             }
             chestShop.getChestData().setSoldOut(chestShop.isEmpty());
             chestShop.getChestData().updateInWorld();
         } else {
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
-                Msg.info(player, "%s's shop sells items for %s.", chestShop.getOwnerName(), priceFormat);
+                Msg.info(player, "%s's shop sells items for &3%s&r.", chestShop.getOwnerName(), priceFormat);
             } else if (chestShop.getChestData().getShopType() == ShopType.SELL) {
-                Msg.info(player, "%s's shop buys items for %s.", chestShop.getOwnerName(), priceFormat);
+                Msg.info(player, "%s's shop buys items for &3%s&r.", chestShop.getOwnerName(), priceFormat);
             }
         }
         event.setCancelled(true);
