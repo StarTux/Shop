@@ -145,7 +145,7 @@ public class InventoryListener implements Listener {
                 int restStack = event.getCurrentItem().getAmount();
             buyLoop:
                 while (restStack >= buyItem.getAmount()) {
-                    if (!chestShop.getChestData().isAdminShop() && !ShopPlugin.getInstance().getVaultHandler().hasMoney(chestShop.getChestData().getOwner().getUuid(), price)) {
+                    if (!chestShop.getChestData().isAdminShop() && !ShopPlugin.getInstance().getVaultHandler().hasMoney(chestShop.getChestData().getOwner(), price)) {
                         Msg.warn(player, "%s has run out of money.", chestShop.getOwnerName());
                         break buyLoop;
                     }
@@ -213,7 +213,7 @@ public class InventoryListener implements Listener {
                 if (Double.isNaN(price)) {
                     Msg.warn(player, "You can't buy here.");
                     return;
-                } else if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(player.getUniqueId(), price)) {
+                } else if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(Shopper.of(player), price)) {
                     Msg.warn(player, "You don't have enough money");
                     return;
                 }

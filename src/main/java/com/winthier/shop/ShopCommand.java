@@ -200,9 +200,17 @@ public class ShopCommand implements CommandExecutor {
             Msg.warn(player, "This plot is already claimed by %s.", plot.getOwner().getName());
             return true;
         }
+        Shopper shopper = Shopper.of(player);
+        double price = ShopPlugin.getInstance().getConfig().getDouble("MarketPlotPrice", 2000.0);
+        String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
+        if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(shopper, price) ||
+            !ShopPlugin.getInstance().getVaultHandler().takeMoney(shopper, price)) {
+            Msg.warn(player, "You can't afford the %s.", priceFormat);
+            return true;
+        }
         plot.setOwner(Shopper.of(player));
         ShopPlugin.getInstance().getMarket().save();
-        Msg.info(player, "You claimed this plot. Get to it via &a/Shop Port&r.");
+        Msg.info(player, "You paid %s to claim this plot. Get to it via &a/Shop Port&r.", priceFormat);
         ShopPlugin.getInstance().getLogger().info(player.getName() + " claimed plot at " + plot.getNorth() + "," + plot.getWest());
         return false;
     }

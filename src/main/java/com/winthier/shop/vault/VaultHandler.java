@@ -37,9 +37,9 @@ public class VaultHandler {
 
     // Economy
 
-    public boolean hasMoney(UUID uuid, double money) {
+    public boolean hasMoney(Shopper player, double money) {
         if (money < 0.0) return false;
-        return getEconomy().has(Bukkit.getServer().getOfflinePlayer(uuid), money);
+        return getEconomy().has(Bukkit.getServer().getOfflinePlayer(player.getUuid()), money);
     }
 
     public boolean giveMoney(Shopper player, double money) {
