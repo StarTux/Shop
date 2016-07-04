@@ -7,9 +7,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -106,11 +108,21 @@ public class ShopCommand implements CommandExecutor {
             patterns.add(sb.toString());
         }
         List<SQLOffer> offers = new ArrayList<>();
+        Set<UUID> donePlayers = new HashSet<>();
     offerLoop: for (SQLOffer offer: SQLOffer.getAllOffersInWorld(marketWorld)) {
             if (offer.getShopType() != shopType) continue offerLoop;
             String desc = offer.getItemDescription().toLowerCase();
             for (String pattern: patterns) {
                 if (!desc.contains(pattern)) continue offerLoop;
+            }
+            // Only one mention per player
+            UUID owner = offer.getOwner();
+            if (owner != null) {
+                if (donePlayers.contains(owner)) {
+                    continue offerLoop;
+                } else {
+                    donePlayers.add(owner);
+                }
             }
             offers.add(offer);
         }
@@ -136,6 +148,8 @@ public class ShopCommand implements CommandExecutor {
             json.add("" + offer.getItemAmount());
             json.add(Msg.format("&8x&r"));
             json.add(offer.getItemDescription());
+            json.add(Msg.format(" &8for&r "));
+            json.add(Msg.button(ChatColor.BLUE, ShopPlugin.getInstance().getVaultHandler().formatMoney(offer.getPrice()), null, null));
             lines.add(json);
             getPlayerContext(player).locations.add(offer.getBlockLocation());
             offerIndex += 1;
