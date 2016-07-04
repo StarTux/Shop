@@ -111,7 +111,7 @@ public class SQLOffer {
     }
 
     public static boolean deleteAt(BlockLocation location) {
-        Offers result = getCache().get(location);
+        Offers result = getCache().remove(location);
         if (result == null) return false;
         ShopPlugin.getInstance().getDatabase().delete(result.list);
         return true;
