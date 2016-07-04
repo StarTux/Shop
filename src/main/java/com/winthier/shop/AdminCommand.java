@@ -57,6 +57,30 @@ public class AdminCommand implements CommandExecutor {
             MakePlotContext mpc = new MakePlotContext(player.getUniqueId());
             makePlotContexts.put(player.getUniqueId(), mpc);
             mpc.bump(player, null);
+        } else if (firstArg.equals("plotinfo")) {
+            Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(player.getLocation().getBlock());
+            if (plot == null) {
+                Msg.info(player, "There is no plot here.");
+                return true;
+            }
+            if (plot.getOwner() != null) {
+                Msg.info(player, "Plot belongs to %s.", plot.getOwner().getName());
+            } else {
+                Msg.info(player, "Plot without an owner.");
+            }
+        } else if (firstArg.equals("deleteplot")) {
+            Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(player.getLocation().getBlock());
+            if (plot == null) {
+                Msg.warn(player, "There is no plot here!");
+                return true;
+            }
+            ShopPlugin.getInstance().getMarket().getPlots().remove(plot);
+            ShopPlugin.getInstance().getMarket().save();
+            if (plot.getOwner() != null) {
+                Msg.info(player, "Plot of %s removed.", plot.getOwner().getName());
+            } else {
+                Msg.info(player, "Unowned plot removed.");
+            }
         } else if (firstArg.equals("showplots")) {
             if (player == null) return false;
             World world = player.getWorld();
@@ -76,6 +100,11 @@ public class AdminCommand implements CommandExecutor {
                 }
             }
             Msg.info(player, "%d plots highlighted", count);
+        } else if (firstArg.equals("reload")) {
+            ShopPlugin.getInstance().market = null;
+            ShopPlugin.getInstance().chestDataStore = null;
+            ShopPlugin.getInstance().reloadConfig();
+            sender.sendMessage("Shop configuration reloaded");
         }
         return true;
     }

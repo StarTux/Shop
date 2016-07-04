@@ -12,7 +12,12 @@ commands:
     permission: shop.shop
   shopadmin:
     description: Admin interface
-    usage: /<command>
+    usage: |-
+      /<command> Reload
+      /<command> PlotInfo
+      /<command> MakePlot
+      /<command> DeletePlot
+      /<command> ShowPlots
     permission: shop.admin
 permissions:
   shop.shop:

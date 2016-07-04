@@ -18,6 +18,7 @@ public class Market {
     String world;
     int skyLimit, bottomLimit;
     final List<Plot> plots = new ArrayList<>();
+    double plotPrice;
 
     @Getter @Setter
     public class Plot {
@@ -130,6 +131,7 @@ public class Market {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(getSaveFile());
         world = yaml.getString("World", "Market");
         skyLimit = yaml.getInt("SkyLimit", 95);
+        plotPrice = yaml.getDouble("PlotPrice", 2000.0);
         bottomLimit = yaml.getInt("BottomLimit", 1);
         for (Map<?, ?> m: yaml.getMapList("plots")) {
             @SuppressWarnings("unchecked")
@@ -143,6 +145,7 @@ public class Market {
         yaml.set("World", world);
         yaml.set("SkyLimit", skyLimit);
         yaml.set("BottomLimit", bottomLimit);
+        yaml.set("PlotPrice", plotPrice);
         List<Object> list = new ArrayList<>();
         for (Plot plot: plots) {
             list.add(plot.serialize());

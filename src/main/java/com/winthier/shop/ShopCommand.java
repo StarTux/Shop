@@ -67,6 +67,11 @@ public class ShopCommand implements CommandExecutor {
                 return true;
             }
             shopClaim(player, args);
+        } else if (firstArg.equals("market")) {
+            World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
+            if (world == null) return true;
+            player.teleport(world.getSpawnLocation());
+            Msg.info(player, "Teleported to the market.");
         } else {
             usage(player);
         }
@@ -201,7 +206,7 @@ public class ShopCommand implements CommandExecutor {
             return true;
         }
         Shopper shopper = Shopper.of(player);
-        double price = ShopPlugin.getInstance().getConfig().getDouble("MarketPlotPrice", 2000.0);
+        double price = ShopPlugin.getInstance().getMarket().getPlotPrice();
         String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
         if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(shopper, price) ||
             !ShopPlugin.getInstance().getVaultHandler().takeMoney(shopper, price)) {
@@ -339,6 +344,7 @@ public class ShopCommand implements CommandExecutor {
         Msg.info(player, "/Shop &7Usage");
         Msg.raw(player, " ", Msg.button("/Shop Search ...", "Search for items", "/shop search "), Msg.format(" &8-&r Search for items"));
         Msg.raw(player, " ", Msg.button("/Shop Port &7&o<Name>", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
+        Msg.raw(player, " ", Msg.button("/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
         Msg.raw(player, " ", Msg.button("/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
     }
 
