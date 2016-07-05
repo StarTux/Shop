@@ -244,7 +244,7 @@ public class ShopCommand implements CommandExecutor {
         }
         if (index+1 < pageCount) {
             Msg.raw(player,
-                Msg.button(ChatColor.BLUE, "&r[&9More&r]", "Next page", "/shop page " + (index+1))
+                Msg.button(ChatColor.BLUE, "&r[&9More&r]", "Next page", "/shop page " + (index+2))
                 );
         }
     }
@@ -374,6 +374,7 @@ public class ShopCommand implements CommandExecutor {
                 if (i == 5) {
                     result.add(page);
                     page = new Page();
+                    i = 0;
                 }
             }
             if (!page.lines.isEmpty()) result.add(page);
