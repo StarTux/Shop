@@ -42,4 +42,9 @@ public class BlockLocation {
         List<Integer> coords = (List<Integer>)map.get("coordinates");
         return new BlockLocation(world, coords.get(0), coords.get(1), coords.get(2));
     }
+
+    @Override
+    public String toString() {
+        return String.format("BlockLocation(%s,%d,%d,%d)", world, x, y, z);
+    }
 }
