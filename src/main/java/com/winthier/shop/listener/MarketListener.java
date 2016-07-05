@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 public class MarketListener implements Listener {
     void onMarketEvent(Player player, Block block, Cancellable event) {
+        if (event instanceof org.bukkit.event.Event) player.sendMessage(((org.bukkit.event.Event)event).getEventName());
         if (block == null) return;
         if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
         if (player.hasPermission("shop.admin")) {
@@ -50,8 +51,6 @@ public class MarketListener implements Listener {
             switch (event.getClickedBlock().getType()) {
             case ENCHANTMENT_TABLE:
             case ENDER_CHEST:
-            case CHEST:
-            case TRAPPED_CHEST:
             case ACACIA_DOOR:
             case BIRCH_DOOR:
             case DARK_OAK_DOOR:
