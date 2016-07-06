@@ -229,6 +229,14 @@ public class ShopCommand implements CommandExecutor {
         Shopper shopper = Shopper.of(player);
         double price = ShopPlugin.getInstance().getMarket().getPlotPrice();
         String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
+        if (args.length == 2 && args[1].equals("confirm")) {
+            // Clicked confirm. Fall through.
+        } else {
+            Msg.raw(player,
+                    Msg.format("Claiming this plot costs &a%s&r: ", priceFormat),
+                    Msg.button(ChatColor.GREEN, "&r[&aConfirm&r]", "&aConfirm this purchage", "/shop claim confirm"));
+            return true;
+        }
         if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(shopper, price) ||
             !ShopPlugin.getInstance().getVaultHandler().takeMoney(shopper, price)) {
             Msg.warn(player, "You can't afford the %s.", priceFormat);
