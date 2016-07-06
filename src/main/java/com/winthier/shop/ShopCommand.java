@@ -14,6 +14,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -35,6 +36,7 @@ public class ShopCommand implements CommandExecutor {
             return Double.compare(a.pricePerItem(), b.pricePerItem());
         }
     };
+    @Value static class DoneItem { UUID uuid; String name; }
     final Random random = new Random(System.currentTimeMillis());
     
     @Override
@@ -108,21 +110,11 @@ public class ShopCommand implements CommandExecutor {
             patterns.add(sb.toString());
         }
         List<SQLOffer> offers = new ArrayList<>();
-        Set<UUID> donePlayers = new HashSet<>();
     offerLoop: for (SQLOffer offer: SQLOffer.getAllOffersInWorld(marketWorld)) {
             if (offer.getShopType() != shopType) continue offerLoop;
             String desc = offer.getItemDescription().toLowerCase();
             for (String pattern: patterns) {
                 if (!desc.contains(pattern)) continue offerLoop;
-            }
-            // Only one mention per player
-            UUID owner = offer.getOwner();
-            if (owner != null) {
-                if (donePlayers.contains(owner)) {
-                    continue offerLoop;
-                } else {
-                    donePlayers.add(owner);
-                }
             }
             offers.add(offer);
         }
@@ -134,7 +126,18 @@ public class ShopCommand implements CommandExecutor {
         getPlayerContext(player).clear();
         int offerIndex = 0;
         List<List<Object>> lines = new ArrayList<>();
+        Set<DoneItem> doneItems = new HashSet<>();
         for (SQLOffer offer: offers) {
+            // Only one mention per player
+            UUID owner = offer.getOwner();
+            if (owner != null) {
+                DoneItem doneItem = new DoneItem(owner, offer.getItemDescription());
+                if (doneItems.contains(doneItem)) {
+                    continue;
+                } else {
+                    doneItems.add(doneItem);
+                }
+            }
             List<Object> json = new ArrayList<>();
             json.add(" ");
             json.add(Msg.button(ChatColor.BLUE, "&r[&9Port&r]", "Port to this shop chest", "/shop port " + offerIndex));
