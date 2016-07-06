@@ -49,7 +49,6 @@ public class AdminCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         final Player player = sender instanceof Player ? (Player)sender : null;
-        if (player == null) return false;
         if (args.length == 0) return false;
         String firstArg = args[0].toLowerCase();
         if (firstArg.equals("makeplot")) {
