@@ -17,13 +17,13 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 public class MarketListener implements Listener {
     void onMarketEvent(Player player, Block block, Cancellable event) {
-        if (event instanceof org.bukkit.event.Event) player.sendMessage(((org.bukkit.event.Event)event).getEventName());
         if (block == null) return;
         if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
         if (player.hasPermission("shop.admin")) {
@@ -108,5 +108,11 @@ public class MarketListener implements Listener {
             return;
         }
         onMarketEvent(player, event.getEntity().getLocation(), event);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onEntityExplode(EntityExplodeEvent event) {
+        if (!event.getEntity().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        event.setCancelled(true);
     }
 }
