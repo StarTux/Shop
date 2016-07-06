@@ -11,6 +11,7 @@ import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.util.Item;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.persistence.Entity;
@@ -73,5 +74,14 @@ public class SQLLog {
     public static void store(ChestData chestData, Shopper customer, ItemStack item) {
         SQLLog log = new SQLLog(new Date(), chestData, customer, item);
         ShopPlugin.getInstance().getDatabase().save(log);
+    }
+
+    public static List<SQLLog> find(UUID uuid, int days) {
+        Date minDate = new Date(System.currentTimeMillis() - 1000*60*60*60*24*days);
+        return ShopPlugin.getInstance().getDatabase().find(SQLLog.class).where()
+            .eq("owner", uuid)
+            .ge("time", minDate)
+            .orderBy("time desc")
+            .findList();
     }
 }

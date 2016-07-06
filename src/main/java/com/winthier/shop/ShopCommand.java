@@ -1,5 +1,6 @@
 package com.winthier.shop;
 
+import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.shop.util.Msg;
 import java.util.ArrayList;
@@ -65,6 +66,8 @@ public class ShopCommand implements CommandExecutor {
             }
         } else if (firstArg.equals("port")) {
             shopPort(player, args);
+        } else if (firstArg.equals("list")) {
+            shopList(player, args);
         } else if (firstArg.equals("claim")) {
             if (!player.hasPermission("shop.market")) {
                 Msg.warn(player, "You don't have permission.");
@@ -162,6 +165,7 @@ public class ShopCommand implements CommandExecutor {
             offerIndex += 1;
         }
         getPlayerContext(player).pages.addAll(Page.pagesOf(lines));
+        Msg.send(player, "&9&lShop Search");
         showPage(player, 0);
         return true;
     }
@@ -208,6 +212,35 @@ public class ShopCommand implements CommandExecutor {
         } else {
             return false;
         }
+        return true;
+    }
+
+    boolean shopList(Player player, String[] args) {
+        List<List<Object>> lines = new ArrayList<>();
+        for (SQLLog log: SQLLog.find(player.getUniqueId(), 30)) {
+            List<Object> json = new ArrayList<>();
+            json.add(" ");
+            json.add(log.getCustomerName());
+            if (log.getShopType() == ShopType.SELL) {
+                json.add(Msg.format(" &8sold&r "));
+            } else {
+                json.add(Msg.format(" &8bought&r "));
+            }
+            json.add("" + log.getItemAmount());
+            json.add(Msg.format("&8x"));
+            json.add(log.getItemDescription());
+            json.add(Msg.format(" &8for&r "));
+            json.add(Msg.format("&9%s&r.", ShopPlugin.getInstance().getVaultHandler().formatMoney(log.getPrice())));
+            lines.add(json);
+        }
+        if (lines.isEmpty()) {
+            Msg.warn(player, "Nothing found.");
+            return true;
+        }
+        getPlayerContext(player).clear();
+        getPlayerContext(player).pages.addAll(Page.pagesOf(lines));
+        Msg.send(player, "&9&lShop List");
+        showPage(player, 0);
         return true;
     }
 
@@ -372,6 +405,7 @@ public class ShopCommand implements CommandExecutor {
         if (player == null) return;
         Msg.info(player, "/Shop &7Usage");
         Msg.raw(player, " ", Msg.button("/Shop Search ...", "Search for items", "/shop search "), Msg.format(" &8-&r Search for items"));
+        Msg.raw(player, " ", Msg.button("/Shop List", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
         Msg.raw(player, " ", Msg.button("/Shop Port &7&o<Name>", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
         Msg.raw(player, " ", Msg.button("/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
         Msg.raw(player, " ", Msg.button("/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
