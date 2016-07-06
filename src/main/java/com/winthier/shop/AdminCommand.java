@@ -105,6 +105,10 @@ public class AdminCommand implements CommandExecutor {
             ShopPlugin.getInstance().chestDataStore = null;
             ShopPlugin.getInstance().reloadConfig();
             sender.sendMessage("Shop configuration reloaded");
+        } else if (firstArg.equals("debug")) {
+            for (BlockLocation loc: ShopPlugin.getInstance().getOfferScanner().dirties.keySet()) {
+                player.sendMessage(""+loc);
+            }
         }
         return true;
     }
