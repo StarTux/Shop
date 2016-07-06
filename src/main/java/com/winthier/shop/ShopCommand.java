@@ -114,7 +114,11 @@ public class ShopCommand implements CommandExecutor {
             if (offer.getShopType() != shopType) continue offerLoop;
             String desc = offer.getItemDescription().toLowerCase();
             for (String pattern: patterns) {
-                if (!desc.contains(pattern)) continue offerLoop;
+                if (exact) {
+                    if (!desc.equals(pattern)) continue offerLoop;
+                } else {
+                    if (!desc.contains(pattern)) continue offerLoop;
+                }
             }
             offers.add(offer);
         }
