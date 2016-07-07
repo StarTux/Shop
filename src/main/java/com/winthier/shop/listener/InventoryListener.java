@@ -49,10 +49,8 @@ public class InventoryListener implements Listener {
         if (chestShop == null) return;
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player)event.getWhoClicked();
-        if (player.getGameMode() == GameMode.CREATIVE) {
-            ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
-            return;
-        }
+        ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
+        if (player.getGameMode() == GameMode.CREATIVE) return;
         if (chestShop.getChestData().isOwner(player)) {
             new BukkitRunnable() {
                 @Override public void run() {
@@ -60,7 +58,6 @@ public class InventoryListener implements Listener {
                     chestShop.getChestData().updateInWorld();
                 }
             }.runTask(ShopPlugin.getInstance());
-            ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
             return;
         }
         boolean isTopInventory = false;
@@ -89,10 +86,8 @@ public class InventoryListener implements Listener {
         Player player = (Player)event.getWhoClicked();
         final ChestShop chestShop = ChestShop.getByInventory(event.getInventory());
         if (chestShop == null) return;
-        if (player.getGameMode() == GameMode.CREATIVE) {
-            ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
-            return;
-        }
+        ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
+        if (player.getGameMode() == GameMode.CREATIVE) return;
         boolean isTopInventory = (event.getRawSlot() < event.getView().getTopInventory().getSize());
         boolean isOwner = chestShop.getChestData().isOwner(player);
         if (isOwner) {
@@ -102,7 +97,6 @@ public class InventoryListener implements Listener {
                     chestShop.getChestData().updateInWorld();
                 }
             }.runTask(ShopPlugin.getInstance());
-            ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
             return;
         }
         // cancel everything
