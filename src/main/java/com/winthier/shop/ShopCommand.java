@@ -58,6 +58,7 @@ public class ShopCommand implements CommandExecutor {
                 Msg.send(player, "/Shop Search &7&o... &8-&r Search for items");
                 Msg.send(player, "/Shop Search! &7&o... &8-&r Search for exact word combo");
                 Msg.send(player, "/Shop Search -Sell &7&o... &8-&r Search for selling shops");
+                Msg.send(player, "/Shop Search -Owner &7&o<Name> &8-&r Search by shop owner");
             }
         } else if (firstArg.equals("page")) {
             if (!shopPage(player, args)) {
@@ -88,6 +89,7 @@ public class ShopCommand implements CommandExecutor {
     boolean shopSearch(Player player, String[] args) {
         if (args.length < 2) return false;
         boolean exact = args[0].endsWith("!");
+        boolean searchOwner = false;
         String marketWorld = ShopPlugin.getInstance().getMarket().getWorld();
         ShopType shopType = ShopType.BUY;
         List<String> patterns = new ArrayList<>();
@@ -99,11 +101,17 @@ public class ShopCommand implements CommandExecutor {
                 shopType = ShopType.BUY;
             } else if (arg.equalsIgnoreCase("-exact")) {
                 exact = true;
+            } else if (args.equals("-owner")) {
+                searchOwner = true;
             } else {
                 patterns.add(arg.toLowerCase());
             }
         }
         if (patterns.isEmpty()) return false;
+        if (searchOwner && patterns.size() != 1) {
+            Msg.warn(player, "Exactly one player name expected.");
+            return true;
+        }
         if (exact) {
             StringBuilder sb = new StringBuilder(patterns.get(0));
             for (int i = 1; i < patterns.size(); ++i) {
@@ -115,15 +123,22 @@ public class ShopCommand implements CommandExecutor {
         List<SQLOffer> offers = new ArrayList<>();
     offerLoop: for (SQLOffer offer: SQLOffer.getAllOffersInWorld(marketWorld)) {
             if (offer.getShopType() != shopType) continue offerLoop;
-            String desc = offer.getItemDescription().toLowerCase();
-            for (String pattern: patterns) {
-                if (exact) {
-                    if (!desc.equals(pattern)) continue offerLoop;
-                } else {
-                    if (!desc.contains(pattern)) continue offerLoop;
+            if (searchOwner) {
+                String ownerName = offer.getOwnerName();
+                if (ownerName == null || !ownerName.equalsIgnoreCase(patterns.get(0))) {
+                    continue offerLoop;
                 }
+            } else {
+                String desc = offer.getItemDescription().toLowerCase();
+                for (String pattern: patterns) {
+                    if (exact) {
+                        if (!desc.equals(pattern)) continue offerLoop;
+                    } else {
+                        if (!desc.contains(pattern)) continue offerLoop;
+                    }
+                }
+                offers.add(offer);
             }
-            offers.add(offer);
         }
         if (offers.isEmpty()) {
             Msg.warn(player, "Nothing found.");
