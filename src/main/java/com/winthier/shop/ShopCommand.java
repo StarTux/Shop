@@ -101,7 +101,7 @@ public class ShopCommand implements CommandExecutor {
                 shopType = ShopType.BUY;
             } else if (arg.equalsIgnoreCase("-exact")) {
                 exact = true;
-            } else if (args.equals("-owner")) {
+            } else if (arg.equalsIgnoreCase("-owner")) {
                 searchOwner = true;
             } else {
                 patterns.add(arg.toLowerCase());
@@ -419,11 +419,11 @@ public class ShopCommand implements CommandExecutor {
     void usage(Player player) {
         if (player == null) return;
         Msg.info(player, "/Shop &7Usage");
-        Msg.raw(player, " ", Msg.button("/Shop Search ...", "Search for items", "/shop search "), Msg.format(" &8-&r Search for items"));
-        Msg.raw(player, " ", Msg.button("/Shop List", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
-        Msg.raw(player, " ", Msg.button("/Shop Port &7&o<Name>", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
-        Msg.raw(player, " ", Msg.button("/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
-        Msg.raw(player, " ", Msg.button("/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
+        Msg.raw(player, " ", Msg.button("&a/Shop Search ...", "Search for items", "/shop search "), Msg.format(" &8-&r Search for items"));
+        Msg.raw(player, " ", Msg.button("&a/Shop List", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
+        Msg.raw(player, " ", Msg.button("&a/Shop Port &7&o[Name]", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
+        Msg.raw(player, " ", Msg.button("&a/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
+        Msg.raw(player, " ", Msg.button("&a/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
     }
 
     static class Page {
