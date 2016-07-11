@@ -125,8 +125,8 @@ public class ShopCommand implements CommandExecutor {
             if (offer.getShopType() != shopType) continue offerLoop;
             if (searchOwner) {
                 String ownerName = offer.getOwnerName();
-                if (ownerName == null || !ownerName.equalsIgnoreCase(patterns.get(0))) {
-                    continue offerLoop;
+                if (ownerName != null && ownerName.equalsIgnoreCase(patterns.get(0))) {
+                    offers.add(offer);
                 }
             } else {
                 String desc = offer.getItemDescription().toLowerCase();
