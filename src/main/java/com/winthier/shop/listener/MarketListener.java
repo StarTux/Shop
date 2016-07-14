@@ -15,6 +15,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -114,6 +116,23 @@ public class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityExplode(EntityExplodeEvent event) {
         if (!event.getEntity().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onBlockPistonExtend(BlockPistonExtendEvent event) {
+        if (!event.getBlock().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        for (Block block: event.getBlocks()) {
+            if (block != null && block.getType() != Material.AIR) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onBlockPistonRetract(BlockPistonRetractEvent event) {
+        if (!event.getBlock().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
         event.setCancelled(true);
     }
 }
