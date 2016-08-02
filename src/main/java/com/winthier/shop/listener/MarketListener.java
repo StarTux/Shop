@@ -18,6 +18,7 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -88,6 +89,14 @@ public class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockDamage(BlockDamageEvent event) {
         onMarketEvent(event.getPlayer(), event.getBlock(), event);
+    }
+
+    // Frost Walker
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onEntityBlockForm(EntityBlockFormEvent event) {
+        Player player = event.getEntity() instanceof Player ? (Player)event.getEntity() : null;
+        if (player == null) return;
+        onMarketEvent(player, event.getBlock(), event);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
