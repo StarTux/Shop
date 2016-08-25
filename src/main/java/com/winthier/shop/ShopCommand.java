@@ -233,13 +233,14 @@ public class ShopCommand implements CommandExecutor {
     boolean shopList(Player player, String[] args) {
         List<List<Object>> lines = new ArrayList<>();
         int days;
-        if (args.length >= 1) {
+        if (args.length >= 2) {
             try {
-                days = Integer.parseInt(args[0]);
+                days = Integer.parseInt(args[1]);
             } catch (NumberFormatException nfe) {
                 days = 0;
             }
-            if (days <= 0) days = 0;
+            if (days <= 0) days = 90;
+            if (days > 3650) days = 3650;
         } else {
             days = 90;
         }
