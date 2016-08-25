@@ -9,6 +9,7 @@ import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.util.Item;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -77,6 +78,7 @@ public class SQLLog {
     }
 
     public static List<SQLLog> find(UUID uuid, int days) {
+        if (days <= 0) return Collections.<SQLLog>emptyList();
         Date minDate = new Date(System.currentTimeMillis() - 1000*60*60*60*24*days);
         return ShopPlugin.getInstance().getDatabase().find(SQLLog.class).where()
             .eq("owner", uuid)

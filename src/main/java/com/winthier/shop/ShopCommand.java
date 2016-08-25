@@ -232,7 +232,18 @@ public class ShopCommand implements CommandExecutor {
 
     boolean shopList(Player player, String[] args) {
         List<List<Object>> lines = new ArrayList<>();
-        for (SQLLog log: SQLLog.find(player.getUniqueId(), 30)) {
+        int days;
+        if (args.length >= 1) {
+            try {
+                days = Integer.parseInt(args[0]);
+            } catch (NumberFormatException nfe) {
+                days = 0;
+            }
+            if (days <= 0) days = 0;
+        } else {
+            days = 90;
+        }
+        for (SQLLog log: SQLLog.find(player.getUniqueId(), days)) {
             List<Object> json = new ArrayList<>();
             json.add(" ");
             json.add(log.getCustomerName());
@@ -420,7 +431,7 @@ public class ShopCommand implements CommandExecutor {
         if (player == null) return;
         Msg.info(player, "/Shop &7Usage");
         Msg.raw(player, " ", Msg.button("&a/Shop Search ...", "Search for items", "/shop search "), Msg.format(" &8-&r Search for items"));
-        Msg.raw(player, " ", Msg.button("&a/Shop List", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
+        Msg.raw(player, " ", Msg.button("&a/Shop List &7&o[Days]", "See who used your shop chests", "/shop list "), Msg.format(" &8-&r See who used your shop chests"));
         Msg.raw(player, " ", Msg.button("&a/Shop Port &7&o[Name]", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
         Msg.raw(player, " ", Msg.button("&a/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
         Msg.raw(player, " ", Msg.button("&a/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
