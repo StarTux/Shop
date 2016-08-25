@@ -77,12 +77,9 @@ public class SQLLog {
         ShopPlugin.getInstance().getDatabase().save(log);
     }
 
-    public static List<SQLLog> find(UUID uuid, int days) {
-        if (days <= 0) return Collections.<SQLLog>emptyList();
-        Date minDate = new Date(System.currentTimeMillis() - 1000*60*60*60*24*days);
+    public static List<SQLLog> find(UUID uuid) {
         return ShopPlugin.getInstance().getDatabase().find(SQLLog.class).where()
             .eq("owner", uuid)
-            .ge("time", minDate)
             .orderBy("time desc")
             .findList();
     }
