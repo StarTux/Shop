@@ -11,11 +11,13 @@ import com.winthier.shop.util.Item;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.PersistenceException;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import lombok.Getter;
@@ -25,6 +27,7 @@ import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 @Entity
 @Table(name = "offers")
@@ -35,6 +38,7 @@ public class SQLOffer {
     // Cache
     static class Offers {
         final List<SQLOffer> list = new ArrayList<>();
+        boolean invalid = false;
     }
     static Map<BlockLocation, Offers> cache = null;
     // Payload
@@ -111,23 +115,54 @@ public class SQLOffer {
     }
 
     public static boolean deleteAt(BlockLocation location) {
-        Offers result = getCache().remove(location);
+        final Offers result = getCache().remove(location);
         if (result == null) return false;
-        ShopPlugin.getInstance().getDatabase().delete(result.list);
+        result.invalid = true;
+        Iterator<SQLOffer> iter = result.list.iterator();
+        new BukkitRunnable() {
+            @Override public void run() {
+                if (!iter.hasNext()) {
+                    cancel();
+                } else {
+                    try {
+                        ShopPlugin.getInstance().getDatabase().delete(iter.next());
+                    } catch (PersistenceException pe) {
+                        pe.printStackTrace();
+                    }
+                }
+            }
+        }.runTaskTimer(ShopPlugin.getInstance(), 1, 1);
         return true;
     }
 
     public static void store(BlockLocation location, ChestData chestData, List<ItemStack> items) {
         Date time = new Date();
         List<SQLOffer> list = new ArrayList<>();
+        List<ItemStack> doneItems = new ArrayList<>();
         for (ItemStack item: items) {
+            for (ItemStack doneItem: doneItems) if (doneItem.isSimilar(item)) continue;
+            doneItems.add(item);
             list.add(new SQLOffer(time, location, chestData, item));
         }
         deleteAt(location);
-        Offers offers = new Offers();
+        final Offers offers = new Offers();
         offers.list.addAll(list);
-        ShopPlugin.getInstance().getDatabase().save(list);
         getCache().put(location, offers);
+        final Iterator<SQLOffer> iter = list.iterator();
+        new BukkitRunnable() {
+            @Override public void run() {
+                if (offers.invalid || !iter.hasNext()) {
+                    cancel();
+                } else {
+                    try {
+                        ShopPlugin.getInstance().getDatabase().save(iter.next());
+                    } catch (PersistenceException pe) {
+                        pe.printStackTrace();
+                        cancel();
+                    }
+                }
+            }
+        }.runTaskTimer(ShopPlugin.getInstance(), 1, 1);
     }
 
     public double pricePerItem() {
