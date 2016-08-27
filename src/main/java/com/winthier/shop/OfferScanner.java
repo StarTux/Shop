@@ -66,7 +66,6 @@ public class OfferScanner {
             if (e.getValue() + 10000 < System.currentTimeMillis()) {
                 it.remove();
                 scan(e.getKey());
-                return;
             }
         }
     }
