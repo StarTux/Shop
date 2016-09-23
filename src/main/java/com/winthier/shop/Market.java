@@ -3,6 +3,7 @@ package com.winthier.shop;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -117,6 +118,16 @@ public class Market {
             }
         }
         return null;
+    }
+
+    public Plot randomEmptyPlot() {
+        List<Plot> emptyPlots = new ArrayList<>();
+        for (Plot plot: plots) {
+            if (plot.owner == null) emptyPlots.add(plot);
+        }
+        if (emptyPlots.isEmpty()) return null;
+        Collections.shuffle(emptyPlots);
+        return emptyPlots.get(0);
     }
 
     public boolean collides(Plot plot) {

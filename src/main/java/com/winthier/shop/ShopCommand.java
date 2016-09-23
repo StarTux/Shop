@@ -75,6 +75,12 @@ public class ShopCommand implements CommandExecutor {
                 return true;
             }
             shopClaim(player, args);
+        } else if (firstArg.equals("auto")) {
+            if (!player.hasPermission("shop.market")) {
+                Msg.warn(player, "You don't have permission.");
+                return true;
+            }
+            shopAuto(player, args);
         } else if (firstArg.equals("market")) {
             World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
             if (world == null) return true;
@@ -297,6 +303,24 @@ public class ShopCommand implements CommandExecutor {
         return false;
     }
 
+    boolean shopAuto(Player player, String[] args) {
+        if (ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId()) != null) {
+            Msg.warn(player, "You already have a plot.");
+            return true;
+        }
+        Market.Plot plot = ShopPlugin.getInstance().getMarket().randomEmptyPlot();
+        if (plot == null) {
+            Msg.warn(player, "All plots are occupied. Please make a ticket.");
+            return true;
+        }
+        portToPlot(player, plot);
+        Msg.raw(player,
+                Msg.button(ChatColor.WHITE, "Teleported to an empty plot. Claim it via ", null, null),
+                Msg.button(ChatColor.GREEN, "/shop claim", "/shop claim", "/shop claim "),
+                Msg.button(ChatColor.WHITE, ".", null, null));
+        return true;
+    }
+
     void showPage(Player player, int index) {
         int pageCount = getPlayerContext(player).pages.size();
         if (index < 0 || index >= pageCount) return;
@@ -423,6 +447,7 @@ public class ShopCommand implements CommandExecutor {
         Msg.raw(player, " ", Msg.button("&a/Shop List", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
         Msg.raw(player, " ", Msg.button("&a/Shop Port &7&o[Name]", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
         Msg.raw(player, " ", Msg.button("&a/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
+        Msg.raw(player, " ", Msg.button("&a/Shop Auto", "Find an unclaimed market plot", "/shop auto"), Msg.format(" &8-&r Find an unclaimed market plot"));
         Msg.raw(player, " ", Msg.button("&a/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
     }
 
