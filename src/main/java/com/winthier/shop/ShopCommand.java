@@ -81,6 +81,18 @@ public class ShopCommand implements CommandExecutor {
                 return true;
             }
             shopAuto(player, args);
+        } else if (firstArg.equals("trust")) {
+            if (!player.hasPermission("shop.market")) {
+                Msg.warn(player, "You don't have permission.");
+                return true;
+            }
+            shopTrust(player, true, args);
+        } else if (firstArg.equals("untrust")) {
+            if (!player.hasPermission("shop.market")) {
+                Msg.warn(player, "You don't have permission.");
+                return true;
+            }
+            shopTrust(player, false, args);
         } else if (firstArg.equals("market")) {
             World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
             if (world == null) return true;
@@ -321,6 +333,71 @@ public class ShopCommand implements CommandExecutor {
         return true;
     }
 
+    boolean shopTrust(Player player, boolean trust, String[] args) {
+        if (args.length > 2) return false;
+        Market.Plot plot = ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId());
+        if (plot == null) {
+            Msg.warn(player, "You don't own a plot.");
+            return true;
+        }
+        if (args.length == 1) {
+            // Just list all trusted players.
+            List<Object> json = new ArrayList<>();
+            json.add(Msg.button(ChatColor.WHITE, "Trusted (" + plot.trusted.size() + "):", null, "/shop trust "));
+            for (Shopper shopper: plot.trusted) {
+                json.add(" ");
+                json.add(Msg.button(ChatColor.GREEN, shopper.getName(), null, "/shop untrust " + shopper.getName() + " "));
+            }
+            Msg.raw(player, json);
+        } else if (args.length == 2) {
+            String targetName = args[1];
+            if (trust) {
+                Shopper alreadyTrusted = null;
+                for (Shopper shopper: plot.trusted) {
+                    if (shopper.getName().equalsIgnoreCase(targetName)) {
+                        alreadyTrusted = shopper;
+                        break;
+                    }
+                }
+                if (alreadyTrusted != null) {
+                    Msg.warn(player, "Player already trusted: %s." , alreadyTrusted.getName());
+                } else {
+                    Player target = Bukkit.getServer().getPlayer(targetName);
+                    if (target == null) {
+                        Msg.warn(player, "Player not online: %s.", targetName);
+                    } else {
+                        Shopper shopper = Shopper.of(target);
+                        plot.trusted.add(shopper);
+                        ShopPlugin.getInstance().getMarket().save();
+                        Msg.info(player, "Trusted player in your plot: %s.", shopper.getName());
+                    }
+                }
+            } else {
+                if (targetName.equals("*")) {
+                    plot.trusted.clear();
+                    ShopPlugin.getInstance().getMarket().save();
+                    Msg.info(player, "Trusted players cleared.");
+                } else {
+                    Shopper target = null;
+                    for (Shopper shopper: plot.trusted) {
+                        if (shopper.getName().equalsIgnoreCase(targetName)) {
+                            target = shopper;
+                            break;
+                        }
+                    }
+                    if (target == null) {
+                        Msg.warn(player, "Player not trusted: %s." , targetName);
+                    } else {
+                        plot.trusted.remove(target);
+                        ShopPlugin.getInstance().getMarket().save();
+                        Msg.info(player, "Player untrusted: %s.", target.getName());
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     void showPage(Player player, int index) {
         int pageCount = getPlayerContext(player).pages.size();
         if (index < 0 || index >= pageCount) return;
@@ -449,6 +526,8 @@ public class ShopCommand implements CommandExecutor {
         Msg.raw(player, " ", Msg.button("&a/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
         Msg.raw(player, " ", Msg.button("&a/Shop Auto", "Find an unclaimed market plot", "/shop auto"), Msg.format(" &8-&r Find an unclaimed market plot"));
         Msg.raw(player, " ", Msg.button("&a/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
+        Msg.raw(player, " ", Msg.button("&a/Shop Trust", "Trust someone in your plot", "/shop trust "), Msg.format(" &8-&r Trust someone in your plot"));
+        Msg.raw(player, " ", Msg.button("&a/Shop Untrust", "Untrust someone in your plot", "/shop untrust "), Msg.format(" &8-&r Untrust someone in your plot"));
     }
 
     static class Page {
