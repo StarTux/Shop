@@ -93,6 +93,24 @@ public class ShopCommand implements CommandExecutor {
                 return true;
             }
             shopTrust(player, false, args);
+        } else if (firstArg.equals("setspawn")) {
+            if (!player.hasPermission("shop.market")) {
+                Msg.warn(player, "You don't have permission.");
+                return true;
+            }
+            Market.Plot plot = ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId());
+            if (plot == null) {
+                Msg.warn(player, "You don't have a market plot.");
+                return true;
+            }
+            Location loc = player.getLocation();
+            if (!plot.isInside(loc)) {
+                Msg.warn(player, "The spawn location must be inside your plot.");
+                return true;
+            }
+            plot.setSpawnLocation(loc);
+            ShopPlugin.getInstance().getMarket().save();
+            Msg.info(player, "Spawn location of your plot was set.");
         } else if (firstArg.equals("market")) {
             World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
             if (world == null) return true;
@@ -426,31 +444,36 @@ public class ShopCommand implements CommandExecutor {
     }
 
     void portToPlot(Player player, Market.Plot plot) {
-        int x, z;
-        if (random.nextBoolean()) {
-            x = plot.getWest() + random.nextInt(plot.getEast() - plot.getWest() + 1);
+        Location loc;
+        if (plot.getSpawnLocation() == null) {
+            int x, z;
             if (random.nextBoolean()) {
-                z = plot.getNorth() - 1;
+                x = plot.getWest() + random.nextInt(plot.getEast() - plot.getWest() + 1);
+                if (random.nextBoolean()) {
+                    z = plot.getNorth() - 1;
+                } else {
+                    z = plot.getSouth() + 1;
+                }
             } else {
-                z = plot.getSouth() + 1;
-            }
-        } else {
-            z = plot.getNorth() + random.nextInt(plot.getSouth() - plot.getNorth() + 1);
-            if (random.nextBoolean()) {
-                x = plot.getWest() - 1;
-            } else {
-                x = plot.getEast() + 1;
-            }
+                z = plot.getNorth() + random.nextInt(plot.getSouth() - plot.getNorth() + 1);
+                if (random.nextBoolean()) {
+                    x = plot.getWest() - 1;
+                } else {
+                    x = plot.getEast() + 1;
+                }
             
+            }
+            World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
+            if (world == null) return;
+            int y = world.getHighestBlockYAt(x, z);
+            Block block = world.getBlockAt(x, y, z);
+            loc = block.getLocation().add(0.5, 0.0, 0.5);
+            block = world.getBlockAt((plot.getWest()+plot.getEast())/2, y, (plot.getNorth()+plot.getSouth())/2);
+            Vector vec = block.getLocation().add(0.5, 0.0, 0.5).toVector();
+            loc.setDirection(vec.subtract(loc.toVector()));
+        } else {
+            loc = plot.getSpawnLocation();
         }
-        World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
-        if (world == null) return;
-        int y = world.getHighestBlockYAt(x, z);
-        Block block = world.getBlockAt(x, y, z);
-        Location loc = block.getLocation().add(0.5, 0.0, 0.5);
-        block = world.getBlockAt((plot.getWest()+plot.getEast())/2, y, (plot.getNorth()+plot.getSouth())/2);
-        Vector vec = block.getLocation().add(0.5, 0.0, 0.5).toVector();
-        loc.setDirection(vec.subtract(loc.toVector()));
         player.teleport(loc);
     }
     
@@ -524,10 +547,13 @@ public class ShopCommand implements CommandExecutor {
         Msg.raw(player, " ", Msg.button("&a/Shop List", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
         Msg.raw(player, " ", Msg.button("&a/Shop Port &7&o[Name]", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
         Msg.raw(player, " ", Msg.button("&a/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
-        Msg.raw(player, " ", Msg.button("&a/Shop Auto", "Find an unclaimed market plot", "/shop auto"), Msg.format(" &8-&r Find an unclaimed market plot"));
-        Msg.raw(player, " ", Msg.button("&a/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
-        Msg.raw(player, " ", Msg.button("&a/Shop Trust", "Trust someone in your plot", "/shop trust "), Msg.format(" &8-&r Trust someone in your plot"));
-        Msg.raw(player, " ", Msg.button("&a/Shop Untrust", "Untrust someone in your plot", "/shop untrust "), Msg.format(" &8-&r Untrust someone in your plot"));
+        if (player.hasPermission("shop.market")) {
+            Msg.raw(player, " ", Msg.button("&a/Shop Auto", "Find an unclaimed market plot", "/shop auto"), Msg.format(" &8-&r Find an unclaimed market plot"));
+            Msg.raw(player, " ", Msg.button("&a/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
+            Msg.raw(player, " ", Msg.button("&a/Shop Trust", "Trust someone in your plot", "/shop trust "), Msg.format(" &8-&r Trust someone in your plot"));
+            Msg.raw(player, " ", Msg.button("&a/Shop Untrust", "Untrust someone in your plot", "/shop untrust "), Msg.format(" &8-&r Untrust someone in your plot"));
+            Msg.raw(player, " ", Msg.button("&a/Shop SetSpawn", "Set the spawn location of your plot", "/shop setspawn "), Msg.format(" &8-&r Set the spawn location of your plot"));
+        }
     }
 
     static class Page {

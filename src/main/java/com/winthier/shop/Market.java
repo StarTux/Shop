@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -26,6 +28,7 @@ public class Market {
         int west, east, north, south;
         Shopper owner = null;
         final List<Shopper> trusted = new ArrayList<>();
+        Location spawnLocation = null;
 
         public boolean isInside(int x, int y, int z) {
             return
@@ -35,6 +38,16 @@ public class Market {
                 z <= south &&
                 y >= bottomLimit &&
                 y <= skyLimit;
+        }
+
+        public boolean isInside(Block block) {
+            if (!block.getWorld().getName().equals(getWorld())) return false;
+            return isInside(block.getX(), block.getY(), block.getZ());
+        }
+
+        public boolean isInside(Location l) {
+            if (!l.getWorld().getName().equals(getWorld())) return false;
+            return isInside(l.getBlockX(), l.getBlockY(), l.getBlockZ());
         }
 
         public Map<String, Object> serialize() {
@@ -47,6 +60,15 @@ public class Market {
             List<Map<String, Object>> trusted = new ArrayList<>();
             for (Shopper shopper: this.trusted) trusted.add(shopper.serialize());
             map.put("trusted", trusted);
+            if (spawnLocation != null) {
+                Map<String, Object> section = new HashMap<>();
+                section.put("x", spawnLocation.getX());
+                section.put("y", spawnLocation.getY());
+                section.put("z", spawnLocation.getZ());
+                section.put("pitch", spawnLocation.getPitch());
+                section.put("yaw", spawnLocation.getYaw());
+                map.put("spawnLocation", section);
+            }
             return map;
         }
 
@@ -89,6 +111,19 @@ public class Market {
         }
         List<Object> trusted = (List<Object>)map.get("trusted");
         for (Object o: trusted) plot.trusted.add(Shopper.deserialize((Map<String, Object>)o));
+        if (map.containsKey("spawnLocation")) {
+            try {
+                Map<String, Object> section = (Map<String, Object>)map.get("spawnLocation");
+                double x = ((Number)section.get("x")).doubleValue();
+                double y = ((Number)section.get("y")).doubleValue();
+                double z = ((Number)section.get("z")).doubleValue();
+                float yaw = ((Number)section.get("yaw")).floatValue();
+                float pitch = ((Number)section.get("pitch")).floatValue();
+                plot.spawnLocation = new Location(Bukkit.getServer().getWorld(getWorld()), x, y, z, yaw, pitch);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
         return plot;
     }
 
