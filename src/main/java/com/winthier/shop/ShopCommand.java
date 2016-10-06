@@ -252,13 +252,18 @@ public class ShopCommand implements CommandExecutor {
                 }
             } catch (NumberFormatException nfe) {
                 String nameArg = args[1];
-                Market.Plot plot = ShopPlugin.getInstance().getMarket().findPlayerPlotByName(nameArg);
-                if (plot == null) {
+                final Shopper owner = ShopPlugin.getInstance().findShopper(nameArg);
+                if (owner == null) {
                     Msg.warn(player, "Market plot not found: %s.", nameArg);
                     return true;
                 }
+                Market.Plot plot = ShopPlugin.getInstance().getMarket().findPlayerPlot(owner.getUuid());
+                if (plot == null) {
+                    Msg.warn(player, "Market plot not found: %s.", owner.getName());
+                    return true;
+                }
                 portToPlot(player, plot);
-                Msg.info(player, "Ported to %s's market plot.", plot.getOwner().getName());
+                Msg.info(player, "Ported to %s's market plot.", owner.getName());
             }
         } else {
             return false;

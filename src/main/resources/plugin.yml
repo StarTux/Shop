@@ -5,6 +5,7 @@ version: 0.1
 main: com.winthier.shop.ShopPlugin
 database: true
 depend: [ Vault ]
+softdepend: [ PlayerCache ]
 commands:
   shop:
     description: Shop user interface

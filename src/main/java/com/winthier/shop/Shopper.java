@@ -25,6 +25,8 @@ public class Shopper {
     @SuppressWarnings("unchecked")
     public static Shopper deserialize(Map<String, Object> map) {
         UUID uuid = UUID.fromString((String)map.get("uuid"));
+        Shopper result = ShopPlugin.getInstance().findShopper(uuid);
+        if (result != null) return result;
         String name = (String)map.get("name");
         return new Shopper(uuid, name);
     }
