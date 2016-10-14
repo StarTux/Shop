@@ -18,7 +18,6 @@ public class OfferScanner {
     Map<BlockLocation, Long> dirties = new HashMap<>();
     BukkitRunnable task = null;
     final long INTERVAL = 10;
-    long counter = 0;
     
     public void setDirty(BlockLocation location) {
         dirties.put(location, System.currentTimeMillis());
@@ -50,16 +49,8 @@ public class OfferScanner {
     }
 
     void tick() {
-        long now = System.currentTimeMillis();
-        if (counter > 60*5) {
-            counter = 0;
-            for (SQLOffer offer: SQLOffer.getAllOffers()) {
-                if (offer.getTime().getTime() + 1000*60*60 > now) {
-                    setDirty(offer.getBlockLocation());
-                }
-            }
-        }
-        counter += INTERVAL;
+        BlockLocation loc = SQLOffer.findExpiredLocation();
+        if (loc != null) setDirty(loc);
         Iterator<Map.Entry<BlockLocation, Long>> it = dirties.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<BlockLocation, Long> e = it.next();

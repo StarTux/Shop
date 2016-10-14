@@ -39,6 +39,7 @@ public class SQLOffer {
     static class Offers {
         final List<SQLOffer> list = new ArrayList<>();
         boolean invalid = false;
+        long time = System.currentTimeMillis();
     }
     static Map<BlockLocation, Offers> cache = null;
     // Payload
@@ -88,6 +89,7 @@ public class SQLOffer {
                 Offers offers = cache.get(location);
                 if (offers == null) {
                     offers = new Offers();
+                    offers.time = offer.getTime().getTime();
                     cache.put(location, offers);
                 }
                 offers.list.add(offer);
@@ -102,6 +104,17 @@ public class SQLOffer {
             result.addAll(offers.list);
         }
         return result;
+    }
+
+    public static BlockLocation findExpiredLocation() {
+        long now = System.currentTimeMillis();
+        for (Map.Entry<BlockLocation, Offers> e: getCache().entrySet()) {
+            Offers offers = e.getValue();
+            if (offers.time + 1000*60*60*24 > now) {
+                return e.getKey();
+            }
+        }
+        return null;
     }
 
     public static List<SQLOffer> getAllOffersInWorld(String world) {
