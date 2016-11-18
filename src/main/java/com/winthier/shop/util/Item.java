@@ -88,7 +88,7 @@ public class Item {
                 PotionMeta potions = (PotionMeta)meta;
                 try {
                     PotionData data = potions.getBasePotionData();
-                    if (data != null) {
+                    if (data != null && data.getType() != PotionType.UNCRAFTABLE) {
                         desc.append(", ");
                         desc.append(niceEnumName(data.getType().name()));
                         if (data.isExtended()) desc.append(" Ext");
