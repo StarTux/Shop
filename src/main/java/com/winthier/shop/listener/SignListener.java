@@ -109,7 +109,10 @@ public class SignListener implements Listener {
         Shopper owner = Shopper.of(event.getPlayer());
         String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
         ChestData chestData = new ChestData(ChestData.Type.NAMED_CHEST, shopType, location, owner, price, false);
+        ShopPlugin.getInstance().getChestDataStore().store(chestData);
+        ShopPlugin.getInstance().getChestDataStore().save();
         Msg.info(player, "You created a shop chest %s items for %s.", shopType.gerund(), priceFormat);
+        ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
