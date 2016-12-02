@@ -70,6 +70,7 @@ public class SignListener implements Listener {
                 chestData.updateInWorld();
             }
         }.runTask(ShopPlugin.getInstance());
+        ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(event.getBlock().getRelative(0, -1, 0)));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
