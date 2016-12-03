@@ -64,7 +64,7 @@ public class SignListener implements Listener {
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
         ShopPlugin.getInstance().getChestDataStore().save();
         String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
-        Msg.info(player, "You created a shop %s items for %s.", shopType.gerund(), priceFormat);
+        Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         new BukkitRunnable() {
             @Override public void run() {
                 chestData.updateInWorld();
@@ -111,7 +111,7 @@ public class SignListener implements Listener {
         ChestData chestData = new ChestData(ChestData.Type.NAMED_CHEST, shopType, location, owner, price, false);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
         ShopPlugin.getInstance().getChestDataStore().save();
-        Msg.info(player, "You created a shop chest %s items for %s.", shopType.gerund(), priceFormat);
+        Msg.info(player, "You created a shop chest %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
     }
 
