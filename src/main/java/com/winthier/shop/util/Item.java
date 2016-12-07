@@ -3,12 +3,15 @@ package com.winthier.shop.util;
 import java.util.Map;
 import net.milkbowl.vault.item.ItemInfo;
 import net.milkbowl.vault.item.Items;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
@@ -30,11 +33,28 @@ public class Item {
     }
 
     public static String getItemName(ItemStack item) {
-        ItemInfo info = Items.itemByStack(item);
-        if (info == null) {
-            return niceEnumName(item.getType().name());
+        if (item.getType() == Material.MONSTER_EGG) {
+            SpawnEggMeta meta = (SpawnEggMeta)item.getItemMeta();
+            EntityType et = meta.getSpawnedType();
+            if (et != null) {
+                switch (et) {
+                case VINDICATOR:
+                case EVOKER:
+                case EVOKER_FANGS:
+                    return niceEnumName(et.name()) + " Spawn Egg";
+                default:
+                    return niceEnumName(et.getName()) + " Spawn Egg";
+                }
+            } else {
+                return "Spawn Egg";
+            }
+        } else {
+            ItemInfo info = Items.itemByStack(item);
+            if (info == null) {
+                return niceEnumName(item.getType().name());
+            }
+            return info.getName();
         }
-        return info.getName();
     }
 
     public static String getEnchantmentName(Enchantment enchantment) {
@@ -47,22 +67,32 @@ public class Item {
         case 5: return "Respiration";
         case 6: return "Aqua Affinity";
         case 7: return "Thorns";
+        case 8: return "Depth Strider";
+        case 9: return "Frost Walker";
+        case 10: return "Curse of Binding";
+            //
         case 16: return "Sharpness";
         case 17: return "Smite";
         case 18: return "Bane of Arthropods";
         case 19: return "Knockback";
         case 20: return "Fire Aspect";
         case 21: return "Looting";
-        case 48: return "Power";
-        case 49: return "Punch";
-        case 50: return "Flame";
-        case 51: return "Infinity";
+            //
         case 32: return "Efficiency";
         case 33: return "Silk Touch";
         case 34: return "Unbreaking";
         case 35: return "Fortune";
+            //
+        case 48: return "Power";
+        case 49: return "Punch";
+        case 50: return "Flame";
+        case 51: return "Infinity";
+            //
         case 61: return "Luck of the Sea";
         case 62: return "Lure";
+            //
+        case 70: return "Mending";
+        case 71: return "Curse of Vanishing";
         default: return niceEnumName(enchantment.getName());
         }
     }
