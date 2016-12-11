@@ -17,7 +17,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class OfferScanner {
     Map<BlockLocation, Long> dirties = new HashMap<>();
     BukkitRunnable task = null;
-    final long INTERVAL = 10;
     
     public void setDirty(BlockLocation location) {
         dirties.put(location, System.currentTimeMillis());
@@ -36,7 +35,7 @@ public class OfferScanner {
                 tick();
             }
         };
-        task.runTaskTimer(ShopPlugin.getInstance(), 20*INTERVAL, 20*INTERVAL);
+        task.runTaskTimer(ShopPlugin.getInstance(), 20, 20);
     }
 
     void stop() {
