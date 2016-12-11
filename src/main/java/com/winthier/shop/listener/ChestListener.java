@@ -1,5 +1,6 @@
 package com.winthier.shop.listener;
 
+import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.chest.ChestData;
@@ -26,13 +27,27 @@ public class ChestListener implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
         final Player player = event.getPlayer();
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getClickedBlock() == null) return;
+        Block block = event.getClickedBlock();
+        if (block == null) return;
         if (player.isSneaking()) return;
-        ChestShop chestShop = ChestShop.getByChest(event.getClickedBlock());
-        if (chestShop == null) chestShop = ChestShop.getBySign(event.getClickedBlock());
-        if (chestShop == null) return;
+        switch (block.getType()) {
+        case CHEST: case TRAPPED_CHEST:
+            ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
+        case SIGN: case WALL_SIGN:
+            break;
+        default:
+            return;
+        }
         if (player.getGameMode() == GameMode.CREATIVE) return;
-        // if (chestShop.isBlocked()) return;
+        ChestShop chestShop = ChestShop.getByChest(block);
+        if (chestShop == null) {
+            chestShop = ChestShop.getBySign(block);
+            if (chestShop != null) {
+                ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
+            } else {
+                return;
+            }
+        }
         double price = chestShop.getChestData().getPrice();
         String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
         if (chestShop.getChestData().isOwner(player)) {
