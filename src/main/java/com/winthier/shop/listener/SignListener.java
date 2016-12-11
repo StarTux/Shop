@@ -5,6 +5,7 @@ import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.chest.ChestData;
+import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.util.Msg;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -117,9 +118,8 @@ public class SignListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (null != ShopPlugin.getInstance().getChestDataStore().remove(event.getBlock())) {
+        if (checkBrokenBlock(event.getBlock())) {
             ShopPlugin.getInstance().getChestDataStore().save();
-            ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(event.getBlock()));
         }
     }
 
@@ -127,9 +127,8 @@ public class SignListener implements Listener {
     public void onBlockExplode(BlockExplodeEvent event) {
         boolean shouldSave = false;
         for (Block block: event.blockList()) {
-            if (null != ShopPlugin.getInstance().getChestDataStore().remove(block)) {
+            if (checkBrokenBlock(block)) {
                 shouldSave = true;
-                ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
             }
         }
         if (shouldSave) ShopPlugin.getInstance().getChestDataStore().save();
@@ -139,11 +138,22 @@ public class SignListener implements Listener {
     public void onEntityExplode(EntityExplodeEvent event) {
         boolean shouldSave = false;
         for (Block block: event.blockList()) {
-            if (null != ShopPlugin.getInstance().getChestDataStore().remove(block)) {
+            if (checkBrokenBlock(block)) {
                 shouldSave = true;
-                ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
             }
         }
         if (shouldSave) ShopPlugin.getInstance().getChestDataStore().save();
+    }
+
+    boolean checkBrokenBlock(Block block) {
+        ChestData data = ShopPlugin.getInstance().getChestDataStore().remove(block);
+        if (data == null) return false;
+        ChestShop shop = ChestShop.getByBlock(block);
+        if (shop != null) {
+            ShopPlugin.getInstance().getOfferScanner().setDirty(shop);
+        } else {
+            ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
+        }
+        return true;
     }
 }

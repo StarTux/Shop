@@ -58,6 +58,13 @@ public class ChestShop {
         return getByChest(block.getRelative(0, -1, 0));
     }
 
+    public static ChestShop getByBlock(Block block) {
+        ChestShop result = getByChest(block);
+        if (result != null) return result;
+        result = getBySign(block);
+        return result;
+    }
+
     public static ChestShop getByInventory(Inventory inventory) {
         if (inventory.getHolder() instanceof Chest) {
             return getByChest(((Chest)inventory.getHolder()).getBlock());

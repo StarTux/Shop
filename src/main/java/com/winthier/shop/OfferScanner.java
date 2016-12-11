@@ -49,14 +49,20 @@ public class OfferScanner {
     }
 
     void tick() {
-        BlockLocation loc = SQLOffer.findExpiredLocation();
-        if (loc != null) setDirty(loc);
-        Iterator<Map.Entry<BlockLocation, Long>> it = dirties.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<BlockLocation, Long> e = it.next();
-            if (e.getValue() + 10000 < System.currentTimeMillis()) {
-                it.remove();
-                scan(e.getKey());
+        if (dirties.isEmpty()) {
+            BlockLocation loc = SQLOffer.findExpiredLocation();
+            if (loc != null) setDirty(loc);
+        } else {
+            Iterator<Map.Entry<BlockLocation, Long>> it = dirties.entrySet().iterator();
+            int count = 0;
+            while (it.hasNext()) {
+                Map.Entry<BlockLocation, Long> e = it.next();
+                if (e.getValue() + 10000 < System.currentTimeMillis()) {
+                    it.remove();
+                    scan(e.getKey());
+                    count += 1;
+                    if (count >= 20) break;
+                }
             }
         }
     }

@@ -9,6 +9,7 @@ import com.winthier.shop.ShopType;
 import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.util.Item;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,11 +24,11 @@ import javax.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 @Entity
 @Table(name = "offers")
@@ -36,9 +37,10 @@ import org.bukkit.scheduler.BukkitRunnable;
 @NoArgsConstructor
 public class SQLOffer {
     // Cache
+    @RequiredArgsConstructor
     static class Offers {
+        final BlockLocation location;
         final List<SQLOffer> list = new ArrayList<>();
-        boolean invalid = false;
         long time = System.currentTimeMillis();
     }
     static Map<BlockLocation, Offers> cache = null;
@@ -88,7 +90,7 @@ public class SQLOffer {
                 BlockLocation location = offer.getBlockLocation();
                 Offers offers = cache.get(location);
                 if (offers == null) {
-                    offers = new Offers();
+                    offers = new Offers(location);
                     offers.time = offer.getTime().getTime();
                     cache.put(location, offers);
                 }
@@ -108,11 +110,15 @@ public class SQLOffer {
 
     public static BlockLocation findExpiredLocation() {
         long now = System.currentTimeMillis();
-        for (Map.Entry<BlockLocation, Offers> e: getCache().entrySet()) {
-            Offers offers = e.getValue();
-            if (offers.time + 1000*60*60*24 > now) {
-                return e.getKey();
-            }
+        List<Offers> list = new ArrayList<>(getCache().values());
+        long timeDiff = Math.max(1000*60*60*12, list.size() * 1000);
+        if (list.isEmpty()) return null;
+        Offers oldest = list.get(0);
+        for (Offers offers: list) {
+            if (offers.time < oldest.time) oldest = offers;
+        }
+        if (oldest.time + timeDiff < now) {
+            return oldest.location;
         }
         return null;
     }
@@ -128,23 +134,9 @@ public class SQLOffer {
     }
 
     public static boolean deleteAt(BlockLocation location) {
-        final Offers result = getCache().remove(location);
+        Offers result = getCache().remove(location);
         if (result == null) return false;
-        result.invalid = true;
-        Iterator<SQLOffer> iter = result.list.iterator();
-        new BukkitRunnable() {
-            @Override public void run() {
-                if (!iter.hasNext()) {
-                    cancel();
-                } else {
-                    try {
-                        ShopPlugin.getInstance().getDatabase().delete(iter.next());
-                    } catch (PersistenceException pe) {
-                        pe.printStackTrace();
-                    }
-                }
-            }
-        }.runTaskTimer(ShopPlugin.getInstance(), 1, 1);
+        ShopPlugin.getInstance().getDatabase().delete(result.list);
         return true;
     }
 
@@ -152,30 +144,18 @@ public class SQLOffer {
         Date time = new Date();
         List<SQLOffer> list = new ArrayList<>();
         List<ItemStack> doneItems = new ArrayList<>();
-        for (ItemStack item: items) {
-            for (ItemStack doneItem: doneItems) if (doneItem.isSimilar(item)) continue;
+    OUTER: for (ItemStack item: items) {
+            for (ItemStack doneItem: doneItems) {
+                if (doneItem.isSimilar(item)) continue OUTER;
+            }
             doneItems.add(item);
             list.add(new SQLOffer(time, location, chestData, item));
         }
         deleteAt(location);
-        final Offers offers = new Offers();
+        final Offers offers = new Offers(location);
         offers.list.addAll(list);
+        ShopPlugin.getInstance().getDatabase().save(list);
         getCache().put(location, offers);
-        final Iterator<SQLOffer> iter = list.iterator();
-        new BukkitRunnable() {
-            @Override public void run() {
-                if (offers.invalid || !iter.hasNext()) {
-                    cancel();
-                } else {
-                    try {
-                        ShopPlugin.getInstance().getDatabase().save(iter.next());
-                    } catch (PersistenceException pe) {
-                        pe.printStackTrace();
-                        cancel();
-                    }
-                }
-            }
-        }.runTaskTimer(ShopPlugin.getInstance(), 1, 1);
     }
 
     public double pricePerItem() {
