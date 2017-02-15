@@ -77,6 +77,12 @@ public class SQLLog {
         ShopPlugin.getInstance().getDatabase().save(log);
     }
 
+    public static void store(ChestData chestData, Shopper customer, ItemStack item, double price) {
+        SQLLog log = new SQLLog(new Date(), chestData, customer, item);
+        log.setPrice(price);
+        ShopPlugin.getInstance().getDatabase().save(log);
+    }
+
     public static List<SQLLog> find(UUID uuid) {
         return ShopPlugin.getInstance().getDatabase().find(SQLLog.class).where()
             .eq("owner", uuid)

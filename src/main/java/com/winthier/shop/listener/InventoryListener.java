@@ -175,7 +175,7 @@ public class InventoryListener implements Listener {
                     if (ownerPlayer != null) {
                         Msg.info(ownerPlayer, "%s sold %dx%s for %s to you.", player.getName(), soldItem.getAmount(), Item.getItemName(soldItem), ShopPlugin.getInstance().getVaultHandler().formatMoney(fullPrice));
                     }
-                    SQLLog.store(chestShop.getChestData(), Shopper.of(player), soldItem);
+                    SQLLog.store(chestShop.getChestData(), Shopper.of(player), soldItem, fullPrice);
                     if (chestShop.isFull()) {
                         chestShop.getChestData().setSoldOut(true);
                         chestShop.getChestData().updateInWorld();
