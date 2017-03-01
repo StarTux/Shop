@@ -14,16 +14,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class InventoryListener implements Listener {
+public final class InventoryListener implements Listener {
     /**
      * Protect against hoppers.
      */
@@ -108,6 +106,8 @@ public class InventoryListener implements Listener {
             case LEFT:
             case RIGHT:
                 return;
+            default:
+                break;
             }
         }
         event.setCancelled(true);

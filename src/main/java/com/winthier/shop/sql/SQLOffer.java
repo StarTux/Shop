@@ -1,7 +1,5 @@
 package com.winthier.shop.sql;
 
-import com.avaje.ebean.validation.Length;
-import com.avaje.ebean.validation.NotEmpty;
 import com.avaje.ebean.validation.NotNull;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
@@ -9,25 +7,18 @@ import com.winthier.shop.ShopType;
 import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.util.Item;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.PersistenceException;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 @Entity
@@ -35,29 +26,29 @@ import org.bukkit.inventory.ItemStack;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SQLOffer {
+public final class SQLOffer {
     // Cache
     @RequiredArgsConstructor
     static class Offers {
-        final BlockLocation location;
-        final List<SQLOffer> list = new ArrayList<>();
-        long time = System.currentTimeMillis();
+        protected final BlockLocation location;
+        protected final List<SQLOffer> list = new ArrayList<>();
+        protected long time = System.currentTimeMillis();
     }
-    static Map<BlockLocation, Offers> cache = null;
+    private static Map<BlockLocation, Offers> cache = null;
     // Payload
-    @Id Integer id;
-    @NotNull Date time;
-    @NotNull ShopType shopType;
-    UUID owner;
-    @NotNull String ownerName;
-    @NotNull String world;
-    @NotNull Integer x, y, z;
-    @NotNull Integer itemType, itemDamage, itemAmount;
-    @NotNull String itemName;
-    @NotNull String itemDescription;
-    @NotNull Double price;
+    @Id private Integer id;
+    @NotNull private Date time;
+    @NotNull private ShopType shopType;
+    private UUID owner;
+    @NotNull private String ownerName;
+    @NotNull private String world;
+    @NotNull private Integer x, y, z;
+    @NotNull private Integer itemType, itemDamage, itemAmount;
+    @NotNull private String itemName;
+    @NotNull private String itemDescription;
+    @NotNull private Double price;
 
-    SQLOffer(Date time, BlockLocation location, ChestData chestData, ItemStack item){
+    SQLOffer(Date time, BlockLocation location, ChestData chestData, ItemStack item) {
         setTime(time);
         setShopType(chestData.getShopType());
         if (chestData.isAdminShop()) {
@@ -111,7 +102,7 @@ public class SQLOffer {
     public static BlockLocation findExpiredLocation() {
         long now = System.currentTimeMillis();
         List<Offers> list = new ArrayList<>(getCache().values());
-        long timeDiff = Math.max(1000*60*60*12, list.size() * 1000);
+        long timeDiff = Math.max(1000 * 60 * 60 * 12, list.size() * 1000);
         if (list.isEmpty()) return null;
         Offers oldest = list.get(0);
         for (Offers offers: list) {

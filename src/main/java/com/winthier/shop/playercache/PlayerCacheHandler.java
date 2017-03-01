@@ -3,7 +3,7 @@ package com.winthier.shop.playercache;
 import com.winthier.playercache.PlayerCache;
 import java.util.UUID;
 
-public class PlayerCacheHandler {
+public final class PlayerCacheHandler {
     public String nameForUuid(UUID uuid) {
         return PlayerCache.nameForUuid(uuid);
     }

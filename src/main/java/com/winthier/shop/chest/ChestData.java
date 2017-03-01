@@ -4,9 +4,7 @@ import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.util.Msg;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +17,15 @@ import org.bukkit.entity.Player;
 
 @Getter
 @RequiredArgsConstructor
-public class ChestData {
+public final class ChestData {
     public enum Type { SIGN, NAMED_CHEST; }
-    final Type type;
-    final ShopType shopType;
-    final BlockLocation location;
-    final Shopper owner;
-    final double price;
-    final boolean adminShop;
-
-    @Setter transient boolean soldOut = false;
+    private final Type type;
+    private final ShopType shopType;
+    private final BlockLocation location;
+    private final Shopper owner;
+    private final double price;
+    private final boolean adminShop;
+    @Setter private transient boolean soldOut = false;
 
     public Map<String, Object> serialize() {
         Map<String, Object> map = new HashMap<>();

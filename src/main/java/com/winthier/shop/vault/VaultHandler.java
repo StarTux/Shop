@@ -9,28 +9,28 @@ import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
-public class VaultHandler {
-    Permission permission = null;
-    Economy economy = null;
+public final class VaultHandler {
+    private Permission vaultPermission = null;
+    private Economy vaultEconomy = null;
 
     public Permission getPermission() {
-        if (permission == null) {
+        if (vaultPermission == null) {
             RegisteredServiceProvider<Permission> permissionProvider = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
-            if (permissionProvider != null) permission = permissionProvider.getProvider();
+            if (permissionProvider != null) vaultPermission = permissionProvider.getProvider();
         }
-        return permission;
+        return vaultPermission;
     }
 
     public Economy getEconomy() {
-        if (economy == null) {
+        if (vaultEconomy == null) {
             RegisteredServiceProvider<Economy> economyProvider = Bukkit.getServer().getServicesManager().getRegistration(Economy.class);
-            if (economyProvider != null) economy = economyProvider.getProvider();
+            if (economyProvider != null) vaultEconomy = economyProvider.getProvider();
         }
-        return economy;
+        return vaultEconomy;
     }
 
     // Permission
-    
+
     public boolean hasPermission(UUID uuid, String permission) {
         return getPermission().playerHas((String)null, Bukkit.getServer().getOfflinePlayer(uuid), permission);
     }

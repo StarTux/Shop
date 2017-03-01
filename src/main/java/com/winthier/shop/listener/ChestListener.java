@@ -1,6 +1,5 @@
 package com.winthier.shop.listener;
 
-import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.chest.ChestShop;
@@ -14,7 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-public class ChestListener implements Listener {
+public final class ChestListener implements Listener {
     /**
      * When a right clicked chest or sign is identified as
      * part of a shop chest, we want to send an informative

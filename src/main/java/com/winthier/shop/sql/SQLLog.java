@@ -1,7 +1,5 @@
 package com.winthier.shop.sql;
 
-import com.avaje.ebean.validation.Length;
-import com.avaje.ebean.validation.NotEmpty;
 import com.avaje.ebean.validation.NotNull;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
@@ -9,22 +7,15 @@ import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.util.Item;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 @Entity
@@ -33,19 +24,19 @@ import org.bukkit.inventory.ItemStack;
 @Setter
 @NoArgsConstructor
 public class SQLLog {
-    @Id Integer id;
-    @NotNull Date time;
-    @NotNull ShopType shopType;
-    UUID owner;
-    @NotNull String ownerName;
-    @NotNull UUID customer;
-    @NotNull String customerName;
-    @NotNull String world;
-    @NotNull Integer x, y, z;
-    @NotNull Integer itemType, itemDamage, itemAmount;
-    @NotNull String itemName;
-    @NotNull String itemDescription;
-    @NotNull Double price;
+    @Id private Integer id;
+    @NotNull private Date time;
+    @NotNull private ShopType shopType;
+    private UUID owner;
+    @NotNull private String ownerName;
+    @NotNull private UUID customer;
+    @NotNull private String customerName;
+    @NotNull private String world;
+    @NotNull private Integer x, y, z;
+    @NotNull private Integer itemType, itemDamage, itemAmount;
+    @NotNull private String itemName;
+    @NotNull private String itemDescription;
+    @NotNull private Double price;
 
     SQLLog(Date time, ChestData chestData, Shopper customer, ItemStack item) {
         setTime(time);

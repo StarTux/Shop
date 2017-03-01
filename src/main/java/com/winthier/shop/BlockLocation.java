@@ -11,9 +11,9 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 
 @Value
-public class BlockLocation {
-    String world;
-    int x, y, z;
+public final class BlockLocation {
+    private String world;
+    private int x, y, z;
 
     public static BlockLocation of(Block block) {
         return new BlockLocation(block.getWorld().getName(), block.getX(), block.getY(), block.getZ());
@@ -24,9 +24,9 @@ public class BlockLocation {
     }
 
     public Block getBlock() {
-        World world = Bukkit.getServer().getWorld(this.world);
-        if (world == null) return null;
-        return world.getBlockAt(x, y, z);
+        World bWorld = Bukkit.getServer().getWorld(this.world);
+        if (bWorld == null) return null;
+        return bWorld.getBlockAt(x, y, z);
     }
 
     public Map<String, Object> serialize() {

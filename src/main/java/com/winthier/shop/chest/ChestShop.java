@@ -1,27 +1,16 @@
 package com.winthier.shop.chest;
- 
+
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
-import com.winthier.shop.util.Msg;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.material.MaterialData;
 
 /**
  * Holder of non-unique data related to one chest representing a
@@ -29,7 +18,7 @@ import org.bukkit.material.MaterialData;
  */
 @Getter
 @RequiredArgsConstructor
-public class ChestShop {
+public final class ChestShop {
     final Inventory inventory;
     final ChestData chestData;
     final Block left, right;
@@ -113,10 +102,10 @@ public class ChestShop {
     }
 
     public boolean addSlot(ItemStack item) {
-        Inventory inventory = getInventory();
-        for (int i = 0; i < inventory.getSize(); ++i) {
-            if (inventory.getItem(i) == null) {
-                inventory.setItem(i, item);
+        Inventory inv = getInventory();
+        for (int i = 0; i < inv.getSize(); ++i) {
+            if (inv.getItem(i) == null) {
+                inv.setItem(i, item);
                 return true;
             }
         }

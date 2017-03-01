@@ -14,11 +14,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class AdminCommand implements CommandExecutor {
+public final class AdminCommand implements CommandExecutor {
     @RequiredArgsConstructor
-    class MakePlotContext {
+    final class MakePlotContext {
         final UUID uuid;
-        BlockLocation a = null;
+        private BlockLocation a = null;
         void bump(Player player, Block block) {
             if (block == null) {
                 Msg.info(player, "Now touch a corner block in the market world");
@@ -44,8 +44,9 @@ public class AdminCommand implements CommandExecutor {
             }
         }
     }
+
     final Map<UUID, MakePlotContext> makePlotContexts = new HashMap<>();
-    
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         final Player player = sender instanceof Player ? (Player)sender : null;
@@ -100,13 +101,12 @@ public class AdminCommand implements CommandExecutor {
             }
             Msg.info(player, "%d plots highlighted", count);
         } else if (firstArg.equals("reload")) {
-            ShopPlugin.getInstance().market = null;
-            ShopPlugin.getInstance().chestDataStore = null;
+            ShopPlugin.getInstance().flush();
             ShopPlugin.getInstance().reloadConfig();
             sender.sendMessage("Shop configuration reloaded");
         } else if (firstArg.equals("debug")) {
-            for (BlockLocation loc: ShopPlugin.getInstance().getOfferScanner().dirties.keySet()) {
-                player.sendMessage(""+loc);
+            for (BlockLocation loc: ShopPlugin.getInstance().getOfferScanner().getDirties().keySet()) {
+                player.sendMessage("" + loc);
             }
         }
         return true;

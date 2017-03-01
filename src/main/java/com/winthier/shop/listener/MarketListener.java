@@ -11,7 +11,6 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
@@ -25,7 +24,7 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-public class MarketListener implements Listener {
+public final class MarketListener implements Listener {
     void onMarketEvent(Player player, Block block, Cancellable event) {
         if (block == null) return;
         if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
@@ -71,6 +70,8 @@ public class MarketListener implements Listener {
             case JUNGLE_FENCE_GATE:
             case SPRUCE_FENCE_GATE:
                 return;
+            default:
+                break;
             }
         }
         onMarketEvent(event.getPlayer(), event.getClickedBlock(), event);

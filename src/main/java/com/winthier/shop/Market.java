@@ -17,27 +17,27 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 @Getter @Setter
-public class Market {
-    String world;
-    int skyLimit, bottomLimit;
-    final List<Plot> plots = new ArrayList<>();
-    double plotPrice;
+public final class Market {
+    private String world;
+    private int skyLimit, bottomLimit;
+    private final List<Plot> plots = new ArrayList<>();
+    private double plotPrice;
 
     @Getter @Setter
-    public class Plot {
-        int west, east, north, south;
-        Shopper owner = null;
-        final List<Shopper> trusted = new ArrayList<>();
-        Location spawnLocation = null;
+    public final class Plot {
+        private int west, east, north, south;
+        private Shopper owner = null;
+        private final List<Shopper> trusted = new ArrayList<>();
+        private Location spawnLocation = null;
 
         public boolean isInside(int x, int y, int z) {
             return
-                x >= west &&
-                x <= east &&
-                z >= north &&
-                z <= south &&
-                y >= bottomLimit &&
-                y <= skyLimit;
+                x >= west
+                && x <= east
+                && z >= north
+                && z <= south
+                && y >= bottomLimit
+                && y <= skyLimit;
         }
 
         public boolean isInside(Block block) {
@@ -57,9 +57,9 @@ public class Market {
             map.put("south", south);
             map.put("north", north);
             if (owner != null) map.put("owner", owner.serialize());
-            List<Map<String, Object>> trusted = new ArrayList<>();
-            for (Shopper shopper: this.trusted) trusted.add(shopper.serialize());
-            map.put("trusted", trusted);
+            List<Map<String, Object>> trustedList = new ArrayList<>();
+            for (Shopper shopper: this.trusted) trustedList.add(shopper.serialize());
+            map.put("trusted", trustedList);
             if (spawnLocation != null) {
                 Map<String, Object> section = new HashMap<>();
                 section.put("x", spawnLocation.getX());
@@ -82,14 +82,14 @@ public class Market {
 
         public boolean collides(Plot other) {
             boolean hor =
-                (west >= other.west && west <= other.east) ||
-                (east >= other.west && east <= other.east) ||
-                (west < other.west && east > other.east);
+                (west >= other.west && west <= other.east)
+                || (east >= other.west && east <= other.east)
+                || (west < other.west && east > other.east);
             if (!hor) return false;
             boolean ver =
-                (north >= other.north && north <= other.south) ||
-                (south >= other.north && south <= other.south) ||
-                (north < other.north && south > other.south);
+                (north >= other.north && north <= other.south)
+                || (south >= other.north && south <= other.south)
+                || (north < other.north && south > other.south);
             if (!ver) return false;
             return true;
         }

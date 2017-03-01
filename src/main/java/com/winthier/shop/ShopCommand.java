@@ -30,16 +30,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
-public class ShopCommand implements CommandExecutor {
+public final class ShopCommand implements CommandExecutor {
     final Map<UUID, PlayerContext> contexts = new HashMap<>();
     final Comparator<SQLOffer> sqlOfferComparator = new Comparator<SQLOffer>() {
         @Override public int compare(SQLOffer a, SQLOffer b) {
             return Double.compare(a.pricePerItem(), b.pricePerItem());
         }
     };
-    @Value static class DoneItem { UUID uuid; String name; }
+    @Value static class DoneItem { private final UUID uuid; private final String name; }
     final Random random = new Random(System.currentTimeMillis());
-    
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         final Player player = sender instanceof Player ? (Player)sender : null;
@@ -49,10 +49,10 @@ public class ShopCommand implements CommandExecutor {
             return true;
         }
         String firstArg = args[0].toLowerCase();
-        if ((firstArg.equals("search")||
-             firstArg.equals("search!") ||
-             firstArg.equals("s") ||
-             firstArg.equals("s!"))) {
+        if ((firstArg.equals("search")
+             || firstArg.equals("search!")
+             || firstArg.equals("s")
+             || firstArg.equals("s!"))) {
             if (!shopSearch(player, args)) {
                 Msg.info(player, "/Shop Search &7Usage");
                 Msg.send(player, "/Shop Search &7&o... &8-&r Search for items");
@@ -319,23 +319,22 @@ public class ShopCommand implements CommandExecutor {
         double price = ShopPlugin.getInstance().getMarket().getPlotPrice();
         String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
         if (args.length == 2 && args[1].equals("confirm")) {
-            // Clicked confirm. Fall through.
+            // Clicked confirm.
+            if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(shopper, price)
+                || !ShopPlugin.getInstance().getVaultHandler().takeMoney(shopper, price)) {
+                Msg.warn(player, "You can't afford the %s.", priceFormat);
+            } else {
+                plot.setOwner(Shopper.of(player));
+                ShopPlugin.getInstance().getMarket().save();
+                Msg.info(player, "You paid %s to claim this plot. Get to it via &a/Shop Port&r.", priceFormat);
+                ShopPlugin.getInstance().getLogger().info(player.getName() + " claimed plot at " + plot.getNorth() + "," + plot.getWest());
+            }
         } else {
             Msg.raw(player,
                     Msg.format("Claiming this plot costs &a%s&r: ", priceFormat),
                     Msg.button(ChatColor.GREEN, "&r[&aConfirm&r]", "&aConfirm this purchage", "/shop claim confirm"));
-            return true;
         }
-        if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(shopper, price) ||
-            !ShopPlugin.getInstance().getVaultHandler().takeMoney(shopper, price)) {
-            Msg.warn(player, "You can't afford the %s.", priceFormat);
-            return true;
-        }
-        plot.setOwner(Shopper.of(player));
-        ShopPlugin.getInstance().getMarket().save();
-        Msg.info(player, "You paid %s to claim this plot. Get to it via &a/Shop Port&r.", priceFormat);
-        ShopPlugin.getInstance().getLogger().info(player.getName() + " claimed plot at " + plot.getNorth() + "," + plot.getWest());
-        return false;
+        return true;
     }
 
     boolean shopAuto(Player player, String[] args) {
@@ -366,8 +365,8 @@ public class ShopCommand implements CommandExecutor {
         if (args.length == 1) {
             // Just list all trusted players.
             List<Object> json = new ArrayList<>();
-            json.add(Msg.button(ChatColor.WHITE, "Trusted (" + plot.trusted.size() + "):", null, "/shop trust "));
-            for (Shopper shopper: plot.trusted) {
+            json.add(Msg.button(ChatColor.WHITE, "Trusted (" + plot.getTrusted().size() + "):", null, "/shop trust "));
+            for (Shopper shopper: plot.getTrusted()) {
                 json.add(" ");
                 json.add(Msg.button(ChatColor.GREEN, shopper.getName(), null, "/shop untrust " + shopper.getName() + " "));
             }
@@ -376,42 +375,42 @@ public class ShopCommand implements CommandExecutor {
             String targetName = args[1];
             if (trust) {
                 Shopper alreadyTrusted = null;
-                for (Shopper shopper: plot.trusted) {
+                for (Shopper shopper: plot.getTrusted()) {
                     if (shopper.getName().equalsIgnoreCase(targetName)) {
                         alreadyTrusted = shopper;
                         break;
                     }
                 }
                 if (alreadyTrusted != null) {
-                    Msg.warn(player, "Player already trusted: %s." , alreadyTrusted.getName());
+                    Msg.warn(player, "Player already trusted: %s.", alreadyTrusted.getName());
                 } else {
                     Player target = Bukkit.getServer().getPlayer(targetName);
                     if (target == null) {
                         Msg.warn(player, "Player not online: %s.", targetName);
                     } else {
                         Shopper shopper = Shopper.of(target);
-                        plot.trusted.add(shopper);
+                        plot.getTrusted().add(shopper);
                         ShopPlugin.getInstance().getMarket().save();
                         Msg.info(player, "Trusted player in your plot: %s.", shopper.getName());
                     }
                 }
             } else {
                 if (targetName.equals("*")) {
-                    plot.trusted.clear();
+                    plot.getTrusted().clear();
                     ShopPlugin.getInstance().getMarket().save();
                     Msg.info(player, "Trusted players cleared.");
                 } else {
                     Shopper target = null;
-                    for (Shopper shopper: plot.trusted) {
+                    for (Shopper shopper: plot.getTrusted()) {
                         if (shopper.getName().equalsIgnoreCase(targetName)) {
                             target = shopper;
                             break;
                         }
                     }
                     if (target == null) {
-                        Msg.warn(player, "Player not trusted: %s." , targetName);
+                        Msg.warn(player, "Player not trusted: %s.", targetName);
                     } else {
-                        plot.trusted.remove(target);
+                        plot.getTrusted().remove(target);
                         ShopPlugin.getInstance().getMarket().save();
                         Msg.info(player, "Player untrusted: %s.", target.getName());
                     }
@@ -425,13 +424,13 @@ public class ShopCommand implements CommandExecutor {
         int pageCount = getPlayerContext(player).pages.size();
         if (index < 0 || index >= pageCount) return;
         Page page = getPlayerContext(player).pages.get(index);
-        Msg.info(player, "Page %d/%d", index+1, pageCount);
+        Msg.info(player, "Page %d/%d", index + 1, pageCount);
         for (List<Object> json: page.lines) {
             Msg.raw(player, json);
         }
-        if (index+1 < pageCount) {
+        if (index + 1 < pageCount) {
             Msg.raw(player,
-                Msg.button(ChatColor.BLUE, "&r[&9More&r]", "Next page", "/shop page " + (index+2))
+                Msg.button(ChatColor.BLUE, "&r[&9More&r]", "Next page", "/shop page " + (index + 2))
                 );
         }
     }
@@ -466,14 +465,13 @@ public class ShopCommand implements CommandExecutor {
                 } else {
                     x = plot.getEast() + 1;
                 }
-            
             }
             World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
             if (world == null) return;
             int y = world.getHighestBlockYAt(x, z);
             Block block = world.getBlockAt(x, y, z);
             loc = block.getLocation().add(0.5, 0.0, 0.5);
-            block = world.getBlockAt((plot.getWest()+plot.getEast())/2, y, (plot.getNorth()+plot.getSouth())/2);
+            block = world.getBlockAt((plot.getWest() + plot.getEast()) / 2, y, (plot.getNorth() + plot.getSouth()) / 2);
             Vector vec = block.getLocation().add(0.5, 0.0, 0.5).toVector();
             loc.setDirection(vec.subtract(loc.toVector()));
         } else {
@@ -481,7 +479,7 @@ public class ShopCommand implements CommandExecutor {
         }
         player.teleport(loc);
     }
-    
+
     Location savePortLocation(BlockLocation location) {
         List<Block> nbors = new ArrayList<>();
         MaterialData md = location.getBlock().getState().getData();
@@ -504,8 +502,8 @@ public class ShopCommand implements CommandExecutor {
     nborLoop: for (Block nbor: nbors) {
             if (blocks(nbor)) {
                 int count = 0;
-                while (blocks(nbor.getRelative(BlockFace.UP, 1)) ||
-                       blocks(nbor.getRelative(BlockFace.UP, 2))) {
+                while (blocks(nbor.getRelative(BlockFace.UP, 1))
+                       || blocks(nbor.getRelative(BlockFace.UP, 2))) {
                     nbor = nbor.getRelative(BlockFace.UP);
                     count += 1;
                     if (count > 5) continue nborLoop;
@@ -518,8 +516,8 @@ public class ShopCommand implements CommandExecutor {
                     count += 1;
                     if (count > 5) continue nborLoop;
                 }
-                if (!blocks(nbor.getRelative(BlockFace.UP, 1)) &&
-                    !blocks(nbor.getRelative(BlockFace.UP, 2))) {
+                if (!blocks(nbor.getRelative(BlockFace.UP, 1))
+                    && !blocks(nbor.getRelative(BlockFace.UP, 2))) {
                     results.add(nbor.getRelative(BlockFace.UP));
                 }
             }

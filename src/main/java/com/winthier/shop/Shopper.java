@@ -7,9 +7,9 @@ import lombok.Value;
 import org.bukkit.entity.Player;
 
 @Value
-public class Shopper {
-    UUID uuid;
-    String name;
+public final class Shopper {
+    private final UUID uuid;
+    private final String name;
 
     public static Shopper of(Player player) {
         return new Shopper(player.getUniqueId(), player.getName());

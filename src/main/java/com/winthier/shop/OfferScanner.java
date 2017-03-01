@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
@@ -14,10 +15,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class OfferScanner {
-    Map<BlockLocation, Long> dirties = new HashMap<>();
-    BukkitRunnable task = null;
-    
+public final class OfferScanner {
+    @Getter private final Map<BlockLocation, Long> dirties = new HashMap<>();
+    private BukkitRunnable task = null;
+
     public void setDirty(BlockLocation location) {
         dirties.put(location, System.currentTimeMillis());
     }

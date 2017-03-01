@@ -16,7 +16,9 @@ import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
 
-public class Item {
+public final class Item {
+    private Item() { }
+
     private static boolean warnedAboutPotionData = false;
 
     public static String capitalName(String in) {
@@ -137,7 +139,7 @@ public class Item {
                         desc.append(niceEnumName(effect.getType().getName()));
                         int amp = effect.getAmplifier();
                         if (amp > 0) {
-                            desc.append(" ").append((amp+1));
+                            desc.append(" ").append((amp + 1));
                         }
                     }
                 }

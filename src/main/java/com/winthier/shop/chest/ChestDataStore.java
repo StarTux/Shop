@@ -10,11 +10,8 @@ import java.util.List;
 import java.util.Map;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.inventory.DoubleChestInventory;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 
-public class ChestDataStore {
+public final class ChestDataStore {
     final Map<BlockLocation, ChestData> store = new HashMap<>();
 
     // public static ChestData getByChest(Block block) {
