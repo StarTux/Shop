@@ -1,6 +1,5 @@
 package com.winthier.shop.sql;
 
-import com.avaje.ebean.validation.NotNull;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -12,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -37,16 +37,16 @@ public final class SQLOffer {
     private static Map<BlockLocation, Offers> cache = null;
     // Payload
     @Id private Integer id;
-    @NotNull private Date time;
-    @NotNull private ShopType shopType;
+    @Column(nullable = false) private Date time;
+    @Column(nullable = false) private ShopType shopType;
     private UUID owner;
-    @NotNull private String ownerName;
-    @NotNull private String world;
-    @NotNull private Integer x, y, z;
-    @NotNull private Integer itemType, itemDamage, itemAmount;
-    @NotNull private String itemName;
-    @NotNull private String itemDescription;
-    @NotNull private Double price;
+    @Column(nullable = false) private String ownerName;
+    @Column(nullable = false) private String world;
+    @Column(nullable = false) private Integer x, y, z;
+    @Column(nullable = false) private Integer itemType, itemDamage, itemAmount;
+    @Column(nullable = false) private String itemName;
+    @Column(nullable = false) private String itemDescription;
+    @Column(nullable = false) private Double price;
 
     SQLOffer(Date time, BlockLocation location, ChestData chestData, ItemStack item) {
         setTime(time);
@@ -77,7 +77,7 @@ public final class SQLOffer {
     static Map<BlockLocation, Offers> getCache() {
         if (cache == null) {
             cache = new HashMap<>();
-            for (SQLOffer offer: ShopPlugin.getInstance().getDatabase().find(SQLOffer.class).findList()) {
+            for (SQLOffer offer: ShopPlugin.getInstance().getDb().find(SQLOffer.class).findList()) {
                 BlockLocation location = offer.getBlockLocation();
                 Offers offers = cache.get(location);
                 if (offers == null) {
@@ -153,4 +153,3 @@ public final class SQLOffer {
         return getPrice() / (double)getItemAmount();
     }
 }
-

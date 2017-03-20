@@ -1,6 +1,5 @@
 package com.winthier.shop.sql;
 
-import com.avaje.ebean.validation.NotNull;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -10,6 +9,7 @@ import com.winthier.shop.util.Item;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
@@ -25,18 +25,18 @@ import org.bukkit.inventory.ItemStack;
 @NoArgsConstructor
 public class SQLLog {
     @Id private Integer id;
-    @NotNull private Date time;
-    @NotNull private ShopType shopType;
+    @Column(nullable = false) private Date time;
+    @Column(nullable = false) private ShopType shopType;
     private UUID owner;
-    @NotNull private String ownerName;
-    @NotNull private UUID customer;
-    @NotNull private String customerName;
-    @NotNull private String world;
-    @NotNull private Integer x, y, z;
-    @NotNull private Integer itemType, itemDamage, itemAmount;
-    @NotNull private String itemName;
-    @NotNull private String itemDescription;
-    @NotNull private Double price;
+    @Column(nullable = false) private String ownerName;
+    @Column(nullable = false) private UUID customer;
+    @Column(nullable = false) private String customerName;
+    @Column(nullable = false) private String world;
+    @Column(nullable = false) private Integer x, y, z;
+    @Column(nullable = false) private Integer itemType, itemDamage, itemAmount;
+    @Column(nullable = false) private String itemName;
+    @Column(nullable = false) private String itemDescription;
+    @Column(nullable = false) private Double price;
 
     SQLLog(Date time, ChestData chestData, Shopper customer, ItemStack item) {
         setTime(time);
@@ -65,7 +65,7 @@ public class SQLLog {
 
     public static void store(ChestData chestData, Shopper customer, ItemStack item) {
         SQLLog log = new SQLLog(new Date(), chestData, customer, item);
-        ShopPlugin.getInstance().getDatabase().save(log);
+        ShopPlugin.getInstance().getDb().save(log);
     }
 
     public static void store(ChestData chestData, Shopper customer, ItemStack item, double price) {
@@ -77,7 +77,7 @@ public class SQLLog {
     public static List<SQLLog> find(UUID uuid) {
         return ShopPlugin.getInstance().getDatabase().find(SQLLog.class).where()
             .eq("owner", uuid)
-            .orderBy("time desc")
+            .orderByDescending("time")
             .findList();
     }
 }
