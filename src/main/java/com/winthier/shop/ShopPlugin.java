@@ -31,6 +31,7 @@ public final class ShopPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        saveResource("market.yml", false);
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
             vaultHandler = new VaultHandler();
         }
