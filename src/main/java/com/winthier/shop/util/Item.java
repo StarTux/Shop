@@ -1,5 +1,6 @@
 package com.winthier.shop.util;
 
+import com.winthier.shop.ShopPlugin;
 import java.util.Map;
 import net.milkbowl.vault.item.ItemInfo;
 import net.milkbowl.vault.item.Items;
@@ -35,6 +36,10 @@ public final class Item {
     }
 
     public static String getItemName(ItemStack item) {
+        if (ShopPlugin.getInstance().getGenericEventsHandler() != null) {
+            String result = ShopPlugin.getInstance().getGenericEventsHandler().getItemName(item);
+            if (result != null) return result;
+        }
         if (item.getType() == Material.MONSTER_EGG) {
             SpawnEggMeta meta = (SpawnEggMeta)item.getItemMeta();
             EntityType et = meta.getSpawnedType();
@@ -100,6 +105,10 @@ public final class Item {
     }
 
     public static String getItemDescription(ItemStack item) {
+        if (ShopPlugin.getInstance().getGenericEventsHandler() != null) {
+            String result = ShopPlugin.getInstance().getGenericEventsHandler().getItemName(item);
+            if (result != null) return result;
+        }
         StringBuilder desc = new StringBuilder(getItemName(item));
         if (item.hasItemMeta()) {
             ItemMeta meta = item.getItemMeta();

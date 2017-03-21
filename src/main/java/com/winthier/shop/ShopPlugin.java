@@ -26,6 +26,7 @@ public final class ShopPlugin extends JavaPlugin {
     private AdminCommand adminCommand = new AdminCommand();
     private boolean debugMode;
     private SQLDatabase db;
+    private GenericEventsHandler genericEventsHandler;
 
     @Override
     public void onEnable() {
@@ -35,6 +36,9 @@ public final class ShopPlugin extends JavaPlugin {
         }
         if (getServer().getPluginManager().getPlugin("PlayerCache") != null) {
             playerCacheHandler = new PlayerCacheHandler();
+        }
+        if (getServer().getPluginManager().getPlugin("GenericEvents") != null) {
+            genericEventsHandler = new GenericEventsHandler();
         }
         db = new SQLDatabase(this);
         db.registerTables(SQLLog.class, SQLOffer.class);
