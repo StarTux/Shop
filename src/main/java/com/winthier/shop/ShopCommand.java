@@ -181,6 +181,7 @@ public final class ShopCommand implements CommandExecutor {
             return true;
         }
         Collections.sort(offers, sqlOfferComparator);
+        if (shopType == ShopType.SELL) Collections.reverse(offers);
         getPlayerContext(player).clear();
         int offerIndex = 0;
         List<List<Object>> lines = new ArrayList<>();
