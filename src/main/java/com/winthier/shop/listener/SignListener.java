@@ -39,6 +39,15 @@ public final class SignListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        switch (event.getBlock().getRelative(0, -1, 0).getType()) {
+        case CHEST:
+        case TRAPPED_CHEST:
+            break;
+        default:
+            Msg.warn(player, "There is no chest under this sign");
+            event.setCancelled(true);
+            return;
+        }
         double price = 10.0;
         try {
             String priceLine = event.getLine(1);
