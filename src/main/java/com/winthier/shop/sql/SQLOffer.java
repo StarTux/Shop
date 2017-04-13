@@ -30,9 +30,9 @@ public final class SQLOffer {
     // Cache
     @RequiredArgsConstructor
     static class Offers {
-        protected final BlockLocation location;
-        protected final List<SQLOffer> list = new ArrayList<>();
-        protected long time = System.currentTimeMillis();
+        private final BlockLocation location;
+        private final List<SQLOffer> list = new ArrayList<>();
+        private long time = System.currentTimeMillis();
     }
     private static Map<BlockLocation, Offers> cache = null;
     // Payload
