@@ -25,7 +25,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 public final class MarketListener implements Listener {
-    void onMarketEvent(Player player, Block block, Cancellable event) {
+    public void onMarketEvent(Player player, Block block, Cancellable event) {
         if (block == null) return;
         if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
         if (player.hasPermission("shop.admin")) {
@@ -42,7 +42,7 @@ public final class MarketListener implements Listener {
         }
     }
 
-    void onMarketEvent(Player player, Location location, Cancellable event) {
+    public void onMarketEvent(Player player, Location location, Cancellable event) {
         onMarketEvent(player, location.getBlock(), event);
     }
 

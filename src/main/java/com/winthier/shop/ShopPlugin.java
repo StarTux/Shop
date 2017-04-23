@@ -23,6 +23,7 @@ public final class ShopPlugin extends JavaPlugin {
     private PlayerCacheHandler playerCacheHandler = null;
     private OfferScanner offerScanner = new OfferScanner();
     private Market market = null;
+    private MarketListener marketListener;
     private AdminCommand adminCommand = new AdminCommand();
     private boolean debugMode;
     private SQLDatabase db;
@@ -39,7 +40,8 @@ public final class ShopPlugin extends JavaPlugin {
             playerCacheHandler = new PlayerCacheHandler();
         }
         if (getServer().getPluginManager().getPlugin("GenericEvents") != null) {
-            genericEventsHandler = new GenericEventsHandler();
+            genericEventsHandler = new GenericEventsHandler(this);
+            getServer().getPluginManager().registerEvents(genericEventsHandler, this);
         }
         db = new SQLDatabase(this);
         db.registerTables(SQLLog.class, SQLOffer.class);
@@ -47,7 +49,8 @@ public final class ShopPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SignListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
-        getServer().getPluginManager().registerEvents(new MarketListener(), this);
+        marketListener = new MarketListener();
+        getServer().getPluginManager().registerEvents(marketListener, this);
         getCommand("shop").setExecutor(new ShopCommand());
         getCommand("shopadmin").setExecutor(adminCommand);
         offerScanner.start();
