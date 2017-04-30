@@ -20,6 +20,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -144,5 +146,20 @@ public final class MarketListener implements Listener {
     public void onBlockPistonRetract(BlockPistonRetractEvent event) {
         if (!event.getBlock().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
         event.setCancelled(true);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+        if (!event.getEntity().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        if (event.getRemover() instanceof Player) {
+            onMarketEvent((Player)event.getRemover(), event.getEntity().getLocation(), event);
+        } else {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onHangingPlace(HangingPlaceEvent event) {
+        onMarketEvent(event.getPlayer(), event.getEntity().getLocation(), event);
     }
 }
