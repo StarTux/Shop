@@ -51,7 +51,6 @@ public final class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL) return;
-        if (event.isBlockInHand()) return;
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             switch (event.getClickedBlock().getType()) {
             case ENCHANTMENT_TABLE:
