@@ -16,27 +16,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public final class InventoryListener implements Listener {
-    /**
-     * Protect against hoppers.
-     */
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onInventoryMove(InventoryMoveItemEvent event) {
-        if (ChestShop.getByInventory(event.getSource()) != null) {
-            event.setCancelled(true);
-            return;
-        }
-        if (ChestShop.getByInventory(event.getDestination()) != null) {
-            event.setCancelled(true);
-            return;
-        }
-    }
-
     /**
      * Allow dragging if it's only in the bottom inventory.
      * Ignore if player is owner or in creative.
