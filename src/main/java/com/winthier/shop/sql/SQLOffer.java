@@ -43,7 +43,8 @@ public final class SQLOffer {
     @Column(nullable = false) private String ownerName;
     @Column(nullable = false) private String world;
     @Column(nullable = false) private Integer x, y, z;
-    @Column(nullable = false) private Integer itemType, itemDamage, itemAmount;
+    @Column(nullable = false) private String material;
+    @Column(nullable = false) private Integer itemAmount;
     @Column(nullable = false) private String itemName;
     @Column(nullable = false) private String itemDescription;
     @Column(nullable = false) private Double price;
@@ -62,8 +63,7 @@ public final class SQLOffer {
         setX(location.getX());
         setY(location.getY());
         setZ(location.getZ());
-        setItemType(item.getType().getId());
-        setItemDamage((int)item.getDurability());
+        setMaterial(item.getType().name().toLowerCase());
         setItemAmount(item.getAmount());
         setItemName(Item.getItemName(item));
         setItemDescription(Item.getItemDescription(item));

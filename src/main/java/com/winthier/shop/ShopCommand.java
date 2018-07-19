@@ -23,11 +23,11 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 public final class ShopCommand implements CommandExecutor {
@@ -483,10 +483,10 @@ public final class ShopCommand implements CommandExecutor {
 
     Location savePortLocation(BlockLocation location) {
         List<Block> nbors = new ArrayList<>();
-        MaterialData md = location.getBlock().getState().getData();
+        BlockData blockData = location.getBlock().getBlockData();
         BlockFace firstFace = BlockFace.NORTH;
-        if (md instanceof org.bukkit.material.Chest) {
-            firstFace = ((org.bukkit.material.Chest)md).getFacing();
+        if (blockData instanceof org.bukkit.block.data.Directional) {
+            firstFace = ((org.bukkit.block.data.Directional)blockData).getFacing();
         }
     faceLoop: for (BlockFace face: Arrays.<BlockFace>asList(firstFace, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST)) {
             Block block = location.getBlock().getRelative(face);

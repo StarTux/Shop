@@ -2,6 +2,7 @@ name: Shop
 description: Make shop chests
 author: StarTux
 version: 0.1
+api-version: 1.13
 main: com.winthier.shop.ShopPlugin
 depend: [ Vault, SQL ]
 softdepend: [ PlayerCache, GenericEvents ]

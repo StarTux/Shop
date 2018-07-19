@@ -91,12 +91,12 @@ public final class AdminCommand implements CommandExecutor {
             for (Market.Plot plot: ShopPlugin.getInstance().getMarket().getPlots()) {
                 count += 1;
                 for (int x = plot.getWest(); x <= plot.getEast(); ++x) {
-                    player.sendBlockChange(new Location(world, (double)x, (double)y, (double)plot.getNorth()), mat, (byte)0);
-                    player.sendBlockChange(new Location(world, (double)x, (double)y, (double)plot.getSouth()), mat, (byte)0);
+                    player.sendBlockChange(new Location(world, (double)x, (double)y, (double)plot.getNorth()), mat.createBlockData());
+                    player.sendBlockChange(new Location(world, (double)x, (double)y, (double)plot.getSouth()), mat.createBlockData());
                 }
                 for (int z = plot.getNorth(); z <= plot.getSouth(); ++z) {
-                    player.sendBlockChange(new Location(world, (double)plot.getWest(), (double)y, (double)z), mat, (byte)0);
-                    player.sendBlockChange(new Location(world, (double)plot.getEast(), (double)y, (double)z), mat, (byte)0);
+                    player.sendBlockChange(new Location(world, (double)plot.getWest(), (double)y, (double)z), mat.createBlockData());
+                    player.sendBlockChange(new Location(world, (double)plot.getEast(), (double)y, (double)z), mat.createBlockData());
                 }
             }
             Msg.info(player, "%d plots highlighted", count);
