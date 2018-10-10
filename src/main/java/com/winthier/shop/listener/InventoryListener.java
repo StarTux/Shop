@@ -1,5 +1,6 @@
 package com.winthier.shop.listener;
 
+import com.winthier.generic_events.GenericEvents;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
@@ -129,7 +130,7 @@ public final class InventoryListener implements Listener {
                 int restStack = event.getCurrentItem().getAmount();
             buyLoop:
                 while (restStack >= buyItem.getAmount()) {
-                    if (!chestShop.getChestData().isAdminShop() && !ShopPlugin.getInstance().getVaultHandler().hasMoney(chestShop.getChestData().getOwner(), price)) {
+                    if (!chestShop.getChestData().isAdminShop() && GenericEvents.getPlayerBalance(chestShop.getChestData().getOwner().getUuid()) < price) {
                         Msg.warn(player, "%s has run out of money.", chestShop.getOwnerName());
                         break buyLoop;
                     }
@@ -141,23 +142,23 @@ public final class InventoryListener implements Listener {
                     sold += 1;
                     restStack -= buyItem.getAmount();
                     if (!chestShop.getChestData().isAdminShop()) {
-                        ShopPlugin.getInstance().getVaultHandler().takeMoney(chestShop.getChestData().getOwner(), price);
+                        GenericEvents.takePlayerMoney(chestShop.getChestData().getOwner().getUuid(), price, ShopPlugin.getInstance(), player.getName() + " sold " + buyItem.getAmount() + "x" + Item.getItemName(buyItem) + " to chest");
                     }
                 }
                 if (sold > 0) {
                     double fullPrice = price * (double)sold;
                     ItemStack soldItem = buyItem.clone();
                     soldItem.setAmount(sold * buyItem.getAmount());
-                    ShopPlugin.getInstance().getVaultHandler().giveMoney(Shopper.of(player), fullPrice);
+                    GenericEvents.givePlayerMoney(player.getUniqueId(), fullPrice, ShopPlugin.getInstance(), "Sell " + soldItem.getAmount() + "x" + Item.getItemName(soldItem) + " to " + chestShop.getChestData().getOwner().getName() + " via chest shop");
                     if (restStack == 0) {
                         event.setCurrentItem(null);
                     } else {
                         event.getCurrentItem().setAmount(restStack);
                     }
-                    Msg.info(player, "Sold for %s.", ShopPlugin.getInstance().getVaultHandler().formatMoney(fullPrice));
+                    Msg.info(player, "Sold for %s.", GenericEvents.formatMoney(fullPrice));
                     Player ownerPlayer = chestShop.getChestData().getPlayer();
                     if (ownerPlayer != null) {
-                        Msg.info(ownerPlayer, "%s sold %dx%s for %s to you.", player.getName(), soldItem.getAmount(), Item.getItemName(soldItem), ShopPlugin.getInstance().getVaultHandler().formatMoney(fullPrice));
+                        Msg.info(ownerPlayer, "%s sold %dx%s for %s to you.", player.getName(), soldItem.getAmount(), Item.getItemName(soldItem), GenericEvents.formatMoney(fullPrice));
                     }
                     SQLLog.store(chestShop.getChestData(), Shopper.of(player), soldItem, fullPrice);
                     if (chestShop.isFull()) {
@@ -181,10 +182,10 @@ public final class InventoryListener implements Listener {
                 }
             } else {
                 if (chestShop.getChestData().getShopType() == ShopType.BUY) {
-                    Msg.info(player, "Buy this for %s by shift clicking.", ShopPlugin.getInstance().getVaultHandler().formatMoney(price));
+                    Msg.info(player, "Buy this for %s by shift clicking.", GenericEvents.formatMoney(price));
                 }
                 if (chestShop.getChestData().getShopType() == ShopType.SELL) {
-                    Msg.info(player, "Will pay %s for this item type.", ShopPlugin.getInstance().getVaultHandler().formatMoney(price));
+                    Msg.info(player, "Will pay %s for this item type.", GenericEvents.formatMoney(price));
                 }
             }
             return;
@@ -197,31 +198,22 @@ public final class InventoryListener implements Listener {
                 if (Double.isNaN(price)) {
                     Msg.warn(player, "You can't buy here.");
                     return;
-                } else if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(Shopper.of(player), price)) {
-                    Msg.warn(player, "You don't have enough money");
-                    return;
                 }
-                if (!ShopPlugin.getInstance().getVaultHandler().takeMoney(Shopper.of(player), chestShop.getChestData().getPrice())) {
-                    Msg.warn(player, "Payment error");
+                ItemStack item = event.getCurrentItem();
+                if (!GenericEvents.takePlayerMoney(player.getUniqueId(), chestShop.getChestData().getPrice(), ShopPlugin.getInstance(), "Buy " + item.getAmount() + "x" + Item.getItemName(item) + " from " + chestShop.getChestData().getOwner().getName() + " via chest shop")) {
+                    Msg.warn(player, "You don't have enough money");
                     return;
                 } else {
                     // purchase made
-                    ItemStack item = event.getCurrentItem();
                     Map<Integer, ItemStack> retours;
-                    retours = player.getInventory().addItem(item.clone());
-                    if (!retours.isEmpty()) {
-                        ItemStack retour = item.clone();
-                        for (ItemStack is : retours.values()) retour.setAmount(retour.getAmount() - is.getAmount());
-                        if (retour.getAmount() > 0) player.getInventory().removeItem(retour);
-                        Msg.warn(player, "Your inventory is full.");
-                        ShopPlugin.getInstance().getVaultHandler().giveMoney(Shopper.of(player), price);
-                        return;
+                    for (ItemStack drop: player.getInventory().addItem(item.clone()).values()) {
+                        player.getWorld().dropItem(player.getEyeLocation(), drop);
                     }
-                    Msg.info(player, "Bought for %s.", ShopPlugin.getInstance().getVaultHandler().formatMoney(price));
+                    Msg.info(player, "Bought for %s.", GenericEvents.formatMoney(price));
                     if (!chestShop.getChestData().isAdminShop()) {
-                        ShopPlugin.getInstance().getVaultHandler().giveMoney(chestShop.getChestData().getOwner(), price);
+                        GenericEvents.givePlayerMoney(chestShop.getChestData().getOwner().getUuid(), price, ShopPlugin.getInstance(), player.getName() + " bought " + item.getAmount() + "x" + Item.getItemName(item) + " via chest shop");
                         Player ownerPlayer = chestShop.getChestData().getPlayer();
-                        if (ownerPlayer != null) Msg.info(ownerPlayer, "%s bought %dx%s for %s from you.", player.getName(), item.getAmount(), Item.getItemName(item), ShopPlugin.getInstance().getVaultHandler().formatMoney(price));
+                        if (ownerPlayer != null) Msg.info(ownerPlayer, "%s bought %dx%s for %s from you.", player.getName(), item.getAmount(), Item.getItemName(item), GenericEvents.formatMoney(price));
                         event.setCurrentItem(null);
                     } else {
                         event.setCurrentItem(event.getCurrentItem());

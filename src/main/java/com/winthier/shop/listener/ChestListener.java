@@ -1,10 +1,10 @@
 package com.winthier.shop.listener;
 
+import com.winthier.generic_events.GenericEvents;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.util.Msg;
-import org.bukkit.GameMode;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,12 +28,11 @@ public final class ChestListener implements Listener {
         Block block = event.getClickedBlock();
         if (block == null) return;
         if (player.isSneaking()) return;
-        if (player.getGameMode() == GameMode.CREATIVE) return;
         ChestShop chestShop = ChestShop.getByBlock(block);
         if (chestShop == null) return;
         ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
         double price = chestShop.getChestData().getPrice();
-        String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
+        String priceFormat = GenericEvents.formatMoney(price);
         if (chestShop.getChestData().isOwner(player)) {
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
                 Msg.info(player, "Your shop chest sells items for &3%s&r.", priceFormat);

@@ -1,5 +1,6 @@
 package com.winthier.shop;
 
+import com.winthier.generic_events.GenericEvents;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.shop.util.Msg;
@@ -211,7 +212,7 @@ public final class ShopCommand implements CommandExecutor {
             json.add(Msg.format("&8x&r"));
             json.add(offer.getItemDescription());
             json.add(Msg.format(" &8for&r "));
-            json.add(Msg.button(ChatColor.BLUE, ShopPlugin.getInstance().getVaultHandler().formatMoney(offer.getPrice()), null, null));
+            json.add(Msg.button(ChatColor.BLUE, GenericEvents.formatMoney(offer.getPrice()), null, null));
             lines.add(json);
             getPlayerContext(player).locations.add(offer.getBlockLocation());
             offerIndex += 1;
@@ -287,7 +288,7 @@ public final class ShopCommand implements CommandExecutor {
             json.add(Msg.format("&8x"));
             json.add(log.getItemDescription());
             json.add(Msg.format(" &8for&r "));
-            json.add(Msg.format("&9%s&r.", ShopPlugin.getInstance().getVaultHandler().formatMoney(log.getPrice())));
+            json.add(Msg.format("&9%s&r.", GenericEvents.formatMoney(log.getPrice())));
             lines.add(json);
         }
         if (lines.isEmpty()) {
@@ -318,11 +319,10 @@ public final class ShopCommand implements CommandExecutor {
         }
         Shopper shopper = Shopper.of(player);
         double price = ShopPlugin.getInstance().getMarket().getPlotPrice();
-        String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
+        String priceFormat = GenericEvents.formatMoney(price);
         if (args.length == 2 && args[1].equals("confirm")) {
             // Clicked confirm.
-            if (!ShopPlugin.getInstance().getVaultHandler().hasMoney(shopper, price)
-                || !ShopPlugin.getInstance().getVaultHandler().takeMoney(shopper, price)) {
+            if (!GenericEvents.takePlayerMoney(shopper.getUuid(), price, ShopPlugin.getInstance(), "Claim market plot")) {
                 Msg.warn(player, "You can't afford the %s.", priceFormat);
             } else {
                 plot.setOwner(Shopper.of(player));

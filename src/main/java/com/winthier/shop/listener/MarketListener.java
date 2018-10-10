@@ -30,12 +30,6 @@ public final class MarketListener implements Listener {
     public void onMarketEvent(Player player, Block block, Cancellable event) {
         if (block == null) return;
         if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
-        if (player.hasPermission("shop.admin")) {
-            if (ShopPlugin.getInstance().getAdminCommand().bump(player, block)) {
-                event.setCancelled(true);
-                return;
-            }
-        }
         if (player.hasPermission("shop.market.override")) return;
         Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(block);
         if (plot == null || !plot.isAllowed(player)) {

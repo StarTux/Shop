@@ -1,5 +1,6 @@
 package com.winthier.shop.listener;
 
+import com.winthier.generic_events.GenericEvents;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -7,7 +8,7 @@ import com.winthier.shop.Shopper;
 import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.util.Msg;
-import org.bukkit.GameMode;
+import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -27,7 +28,6 @@ public final class SignListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onSignChange(SignChangeEvent event) {
         final Player player = event.getPlayer();
-        if (player.getGameMode() == GameMode.CREATIVE) return;
         String title = event.getLine(0);
         if (!title.startsWith("[")) return;
         if (!title.endsWith("]")) return;
@@ -58,22 +58,35 @@ public final class SignListener implements Listener {
         } catch (NumberFormatException nfe) {
         }
         String nameLine = event.getLine(3);
-        boolean adminShop = false;
+        Shopper owner;
         if ("admin".equalsIgnoreCase(nameLine)) {
             if (!player.hasPermission("shop.create.admin")) {
                 Msg.warn(player, "You don't have permission");
                 event.setCancelled(true);
                 return;
-            } else {
-                adminShop = true;
             }
+            owner = null;
+        } else if (nameLine != null && !nameLine.isEmpty() && !nameLine.equalsIgnoreCase(player.getName())) {
+            if (!player.hasPermission("shop.create.other")) {
+                Msg.warn(player, "You don't have permission");
+                event.setCancelled(true);
+                return;
+            }
+            UUID uuid = GenericEvents.cachedPlayerUuid(nameLine);
+            if (uuid == null) {
+                event.setCancelled(true);
+                Msg.warn(player, "Not found: " + nameLine);
+                return;
+            }
+            owner = new Shopper(uuid, nameLine);
+        } else {
+            owner = Shopper.of(player);
         }
-        Shopper owner = adminShop ? null : Shopper.of(player);
         BlockLocation location = BlockLocation.of(event.getBlock());
-        final ChestData chestData = new ChestData(ChestData.Type.SIGN, shopType, location, owner, price, adminShop);
+        final ChestData chestData = new ChestData(ChestData.Type.SIGN, shopType, location, owner, price, owner == null);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
         ShopPlugin.getInstance().getChestDataStore().save();
-        String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
+        String priceFormat = GenericEvents.formatMoney(price);
         Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         new BukkitRunnable() {
             @Override public void run() {
@@ -86,7 +99,6 @@ public final class SignListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockPlace(BlockPlaceEvent event) {
         final Player player = event.getPlayer();
-        if (player.getGameMode() == GameMode.CREATIVE) return;
         Block block = event.getBlock();
         if (block.getType() != Material.CHEST && block.getType() != Material.TRAPPED_CHEST) return;
         ItemStack item = event.getItemInHand();
@@ -117,7 +129,7 @@ public final class SignListener implements Listener {
         }
         BlockLocation location = BlockLocation.of(event.getBlock());
         Shopper owner = Shopper.of(event.getPlayer());
-        String priceFormat = ShopPlugin.getInstance().getVaultHandler().formatMoney(price);
+        String priceFormat = GenericEvents.formatMoney(price);
         ChestData chestData = new ChestData(ChestData.Type.NAMED_CHEST, shopType, location, owner, price, false);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
         ShopPlugin.getInstance().getChestDataStore().save();

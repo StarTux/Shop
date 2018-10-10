@@ -1,62 +1,50 @@
 package com.winthier.shop;
 
 import com.winthier.shop.util.Msg;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public final class AdminCommand implements CommandExecutor {
-    @RequiredArgsConstructor
-    final class MakePlotContext {
-        final UUID uuid;
-        private BlockLocation a = null;
-        void bump(Player player, Block block) {
-            if (block == null) {
-                Msg.info(player, "Now touch a corner block in the market world");
-            } else if (a == null) {
-                a = BlockLocation.of(block);
-                Msg.info(player, "Now touch another corner block in the market world");
-            } else {
-                BlockLocation b = BlockLocation.of(block);
-                Market.Plot plot = ShopPlugin.getInstance().getMarket().makePlot();
-                plot.setWest(Math.min(a.getX(), b.getX()));
-                plot.setEast(Math.max(a.getX(), b.getX()));
-                plot.setNorth(Math.min(a.getZ(), b.getZ()));
-                plot.setSouth(Math.max(a.getZ(), b.getZ()));
-                plot.setOwner(null);
-                if (ShopPlugin.getInstance().getMarket().collides(plot)) {
-                    Msg.warn(player, "This plot would collide with another one.");
-                } else {
-                    ShopPlugin.getInstance().getMarket().getPlots().add(plot);
-                    ShopPlugin.getInstance().getMarket().save();
-                    Msg.info(player, "Plot created");
-                }
-                makePlotContexts.remove(uuid);
-            }
-        }
-    }
-
-    final Map<UUID, MakePlotContext> makePlotContexts = new HashMap<>();
-
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         final Player player = sender instanceof Player ? (Player)sender : null;
         if (args.length == 0) return false;
         String firstArg = args[0].toLowerCase();
         if (firstArg.equals("makeplot")) {
-            if (player == null) return false;
-            MakePlotContext mpc = new MakePlotContext(player.getUniqueId());
-            makePlotContexts.put(player.getUniqueId(), mpc);
-            mpc.bump(player, null);
+            if (player == null) {
+                sender.sendMessage("Player expected");
+                return true;
+            }
+            int ax, ay, az, bx, by, bz;
+            try {
+                ax = player.getMetadata("SelectionAX").get(0).asInt();
+                ay = player.getMetadata("SelectionAY").get(0).asInt();
+                az = player.getMetadata("SelectionAZ").get(0).asInt();
+                bx = player.getMetadata("SelectionBX").get(0).asInt();
+                by = player.getMetadata("SelectionBY").get(0).asInt();
+                bz = player.getMetadata("SelectionBZ").get(0).asInt();
+            } catch (Exception e) {
+                player.sendMessage("Make a selection first.");
+                return true;
+            }
+            Market.Plot plot = ShopPlugin.getInstance().getMarket().makePlot();
+            plot.setWest(Math.min(ax, bx));
+            plot.setEast(Math.max(ax, bx));
+            plot.setNorth(Math.min(az, bz));
+            plot.setSouth(Math.max(az, bz));
+            plot.setOwner(null);
+            if (ShopPlugin.getInstance().getMarket().collides(plot)) {
+                Msg.warn(player, "This plot would collide with another one.");
+            } else {
+                ShopPlugin.getInstance().getMarket().getPlots().add(plot);
+                ShopPlugin.getInstance().getMarket().save();
+                Msg.info(player, "Plot created");
+            }
         } else if (firstArg.equals("plotinfo")) {
             Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(player.getLocation().getBlock());
             if (plot == null) {
@@ -110,14 +98,5 @@ public final class AdminCommand implements CommandExecutor {
             }
         }
         return true;
-    }
-
-    public boolean bump(Player player, Block block) {
-        MakePlotContext mpc = makePlotContexts.get(player.getUniqueId());
-        if (mpc != null) {
-            mpc.bump(player, block);
-            return true;
-        }
-        return false;
     }
 }

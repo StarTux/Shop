@@ -1,18 +1,13 @@
 package com.winthier.shop.util;
 
-import com.winthier.shop.ShopPlugin;
+import com.winthier.generic_events.GenericEvents;
 import java.util.Map;
-import net.milkbowl.vault.item.ItemInfo;
-import net.milkbowl.vault.item.Items;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
@@ -36,15 +31,9 @@ public final class Item {
     }
 
     public static String getItemName(ItemStack item) {
-        if (ShopPlugin.getInstance().getGenericEventsHandler() != null) {
-            String result = ShopPlugin.getInstance().getGenericEventsHandler().getItemName(item);
-            if (result != null) return result;
-        }
-        ItemInfo info = Items.itemByStack(item);
-        if (info == null) {
-            return niceEnumName(item.getType().name());
-        }
-        return info.getName();
+        String result = GenericEvents.getItemName(item);
+        if (result != null) return result;
+        return Msg.camelCase(item.getType().name());
     }
 
     public static String getEnchantmentName(Enchantment enchantment) {
@@ -52,10 +41,8 @@ public final class Item {
     }
 
     public static String getItemDescription(ItemStack item) {
-        if (ShopPlugin.getInstance().getGenericEventsHandler() != null) {
-            String result = ShopPlugin.getInstance().getGenericEventsHandler().getItemName(item);
-            if (result != null) return result;
-        }
+        String result = GenericEvents.getItemName(item);
+        if (result != null) return result;
         StringBuilder desc = new StringBuilder(getItemName(item));
         if (item.hasItemMeta()) {
             ItemMeta meta = item.getItemMeta();
