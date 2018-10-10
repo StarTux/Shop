@@ -11,6 +11,8 @@ import com.winthier.shop.sql.SQLOffer;
 import com.winthier.sql.SQLDatabase;
 import java.util.UUID;
 import lombok.Getter;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
@@ -38,6 +40,14 @@ public final class ShopPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(marketListener, this);
         getCommand("shop").setExecutor(new ShopCommand());
         getCommand("shopadmin").setExecutor(adminCommand);
+        getCommand("market").setExecutor((s, c, l, a) -> {
+                if (!(s instanceof Player)) return true;
+                if (market == null) return true;
+                World world = getServer().getWorld(market.getWorld());
+                if (world == null) return true;
+                ((Player)s).teleport(world.getSpawnLocation());
+                return true;
+            });
         offerScanner.start();
     }
 

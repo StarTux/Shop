@@ -8,6 +8,10 @@ website: https://cavetale.com
 depend: [SQL, GenericEvents]
 softdepend: []
 commands:
+  market:
+    description: Warp to the market
+    usage: /<command>
+    permission: shop.market
   shop:
     description: Shop user interface
     usage: /<command>
@@ -29,6 +33,9 @@ permissions:
     description: Create your own shops
     default: op
   shop.market:
+    description: Visit the market via /market
+    default: false
+  shop.market.claim:
     description: Claim a plot on the market
     default: false
   shop.market.override:

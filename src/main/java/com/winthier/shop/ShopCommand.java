@@ -71,31 +71,31 @@ public final class ShopCommand implements CommandExecutor {
         } else if (firstArg.equals("list")) {
             shopList(player, args);
         } else if (firstArg.equals("claim")) {
-            if (!player.hasPermission("shop.market")) {
+            if (!player.hasPermission("shop.market.claim")) {
                 Msg.warn(player, "You don't have permission.");
                 return true;
             }
             shopClaim(player, args);
         } else if (firstArg.equals("auto")) {
-            if (!player.hasPermission("shop.market")) {
+            if (!player.hasPermission("shop.market.claim")) {
                 Msg.warn(player, "You don't have permission.");
                 return true;
             }
             shopAuto(player, args);
         } else if (firstArg.equals("trust")) {
-            if (!player.hasPermission("shop.market")) {
+            if (!player.hasPermission("shop.market.claim")) {
                 Msg.warn(player, "You don't have permission.");
                 return true;
             }
             shopTrust(player, true, args);
         } else if (firstArg.equals("untrust")) {
-            if (!player.hasPermission("shop.market")) {
+            if (!player.hasPermission("shop.market.claim")) {
                 Msg.warn(player, "You don't have permission.");
                 return true;
             }
             shopTrust(player, false, args);
         } else if (firstArg.equals("setspawn")) {
-            if (!player.hasPermission("shop.market")) {
+            if (!player.hasPermission("shop.market.claim")) {
                 Msg.warn(player, "You don't have permission.");
                 return true;
             }
@@ -551,7 +551,7 @@ public final class ShopCommand implements CommandExecutor {
         Msg.raw(player, " ", Msg.button("&a/Shop List", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
         Msg.raw(player, " ", Msg.button("&a/Shop Port &7&o[Name]", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
         Msg.raw(player, " ", Msg.button("&a/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
-        if (player.hasPermission("shop.market")) {
+        if (player.hasPermission("shop.market.claim")) {
             Msg.raw(player, " ", Msg.button("&a/Shop Auto", "Find an unclaimed market plot", "/shop auto"), Msg.format(" &8-&r Find an unclaimed market plot"));
             Msg.raw(player, " ", Msg.button("&a/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
             Msg.raw(player, " ", Msg.button("&a/Shop Trust", "Trust someone in your plot", "/shop trust "), Msg.format(" &8-&r Trust someone in your plot"));
