@@ -14,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -159,5 +160,16 @@ public final class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onHangingPlace(HangingPlaceEvent event) {
         onMarketEvent(event.getPlayer(), event.getEntity().getLocation(), event);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onBlockFromTo(BlockFromToEvent event) {
+        Block block = event.getBlock();
+        if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        Market.Plot fromPlot = ShopPlugin.getInstance().getMarket().plotAt(block);
+        Market.Plot toPlot = ShopPlugin.getInstance().getMarket().plotAt(event.getToBlock());
+        if (fromPlot != toPlot) {
+            event.setCancelled(true);
+        }
     }
 }
