@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.bukkit.Bukkit;
@@ -26,12 +27,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public final class ShopCommand implements CommandExecutor {
+public final class ShopCommand implements TabExecutor {
     final Map<UUID, PlayerContext> contexts = new HashMap<>();
     final Comparator<SQLOffer> sqlOfferComparator = new Comparator<SQLOffer>() {
         @Override public int compare(SQLOffer a, SQLOffer b) {
@@ -49,22 +50,24 @@ public final class ShopCommand implements CommandExecutor {
             usage(player);
             return true;
         }
-        String firstArg = args[0].toLowerCase();
-        if ((firstArg.equals("search")
-             || firstArg.equals("search!")
-             || firstArg.equals("s")
-             || firstArg.equals("s!"))) {
+        String firstArg = args[0];
+        if (firstArg.equals("search")
+            || firstArg.equals("search!")
+            || firstArg.equals("s")
+            || firstArg.equals("s!")
+            || firstArg.equals("sell")
+            || firstArg.equals("sell!")) {
             if (!shopSearch(player, args)) {
-                Msg.info(player, "/Shop Search &7Usage");
-                Msg.send(player, "/Shop Search &7&o... &8-&r Search for items");
-                Msg.send(player, "/Shop Search! &7&o... &8-&r Search for exact word combo");
-                Msg.send(player, "/Shop Search -Sell &7&o... &8-&r Search for selling shops");
-                Msg.send(player, "/Shop Search -Owner &7&o<Name> &8-&r Search by shop owner");
+                Msg.info(player, "/shop search &7Usage");
+                Msg.send(player, "/shop search &7&o... &8-&r Search for buying shops");
+                Msg.send(player, "/shop sell &7&o... &8-&r Search for selling shops");
+                Msg.send(player, "/shop search|sell! &7&o... &8-&r Search for exact word combo");
+                Msg.send(player, "/shop search|sell -Owner &7&o<Name> &8-&r Search by shop owner");
             }
         } else if (firstArg.equals("page")) {
             if (!shopPage(player, args)) {
-                Msg.info(player, "/Shop Page &7Usage");
-                Msg.send(player, "/Shop Page &7&o<Number> &8-&r View page of previous search");
+                Msg.info(player, "/shop page &7Usage");
+                Msg.send(player, "/shop page &7&o<Number> &8-&r View page of previous search");
             }
         } else if (firstArg.equals("port")) {
             shopPort(player, args);
@@ -123,22 +126,45 @@ public final class ShopCommand implements CommandExecutor {
         return true;
     }
 
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        String arg = args.length == 0 ? "" : args[args.length - 1];
+        String cmd = args.length == 0 ? "" : args[0];
+        if (args.length == 1) {
+            if (sender.hasPermission("shop.market.claim")) {
+                return tabMatch(arg, Arrays.asList("search", "sell", "port", "list", "claim", "auto", "trust", "untrust"));
+            } else {
+                return tabMatch(arg, Arrays.asList("search", "sell", "port"));
+            }
+        }
+        if (args.length >= 2) {
+            if (cmd.equals("port")) return null;
+            return Collections.emptyList();
+        }
+        return null;
+    }
+
+    List<String> tabMatch(String arg, List<String> inp) {
+        return inp.stream().filter(i -> i.startsWith(arg)).collect(Collectors.toList());
+    }
+
     boolean shopSearch(Player player, String[] args) {
         if (args.length < 2) return false;
         boolean exact = args[0].endsWith("!");
         boolean searchOwner = false;
         String marketWorld = ShopPlugin.getInstance().getMarket().getWorld();
         ShopType shopType = ShopType.BUY;
+        if (args[0].equals("sell")) shopType = ShopType.SELL;
         List<String> patterns = new ArrayList<>();
         for (int i = 1; i < args.length; ++i) {
             final String arg = args[i];
-            if (arg.equalsIgnoreCase("-sell")) {
+            if (arg.equals("-sell")) {
                 shopType = ShopType.SELL;
-            } else if (arg.equalsIgnoreCase("-buy")) {
+            } else if (arg.equals("-buy")) {
                 shopType = ShopType.BUY;
-            } else if (arg.equalsIgnoreCase("-exact")) {
+            } else if (arg.equals("-exact")) {
                 exact = true;
-            } else if (arg.equalsIgnoreCase("-owner")) {
+            } else if (arg.equals("-owner")) {
                 searchOwner = true;
             } else {
                 patterns.add(arg.toLowerCase());
@@ -199,22 +225,17 @@ public final class ShopCommand implements CommandExecutor {
                 }
             }
             List<Object> json = new ArrayList<>();
-            json.add(" ");
-            json.add(Msg.button(ChatColor.BLUE, "&r[&9Port&r]", "Port to this shop chest", "/shop port " + offerIndex));
-            json.add(" ");
-            json.add(Msg.format("%s", offer.getOwnerName()));
-            if (offer.getShopType() == ShopType.BUY) {
-                json.add(Msg.format(" &8sells&r "));
-            } else {
-                json.add(Msg.format(" &8buys&r "));
-            }
-            json.add("" + offer.getItemAmount());
-            json.add(Msg.format("&8x&r"));
-            json.add(offer.getItemDescription());
-            json.add(Msg.format(" &8for&r "));
-            json.add(Msg.button(ChatColor.BLUE, GenericEvents.formatMoney(offer.getPrice()), null, null));
+            json.add("");
+            json.add(Msg.button(ChatColor.BLUE, "&r[&9Port&r] ", "Port to " + offer.getOwnerName() + "'s shop chest", "/shop port " + offerIndex));
+            json.add(Msg.button(ChatColor.GREEN, GenericEvents.formatMoney(offer.getPrice()), null, null));
+            json.add(Msg.button(ChatColor.WHITE,
+                                " " + offer.getItemAmount() + "&8x&r" + offer.getItemDescription(),
+                                null, null));
+            json.add(Msg.button(ChatColor.DARK_GRAY, " by " + offer.getOwnerName(),
+                                "Port to " + offer.getOwnerName() + "'s shop chest", "/shop port " + offerIndex));
             lines.add(json);
             getPlayerContext(player).locations.add(offer.getBlockLocation());
+            getPlayerContext(player).searchType = shopType;
             offerIndex += 1;
         }
         getPlayerContext(player).pages.addAll(Page.pagesOf(lines));
@@ -327,7 +348,7 @@ public final class ShopCommand implements CommandExecutor {
             } else {
                 plot.setOwner(Shopper.of(player));
                 ShopPlugin.getInstance().getMarket().save();
-                Msg.info(player, "You paid %s to claim this plot. Get to it via &a/Shop Port&r.", priceFormat);
+                Msg.info(player, "You paid %s to claim this plot. Get to it via &a/shop port&r.", priceFormat);
                 ShopPlugin.getInstance().getLogger().info(player.getName() + " claimed plot at " + plot.getNorth() + "," + plot.getWest());
             }
         } else {
@@ -424,8 +445,14 @@ public final class ShopCommand implements CommandExecutor {
     void showPage(Player player, int index) {
         int pageCount = getPlayerContext(player).pages.size();
         if (index < 0 || index >= pageCount) return;
-        Page page = getPlayerContext(player).pages.get(index);
-        Msg.info(player, "Page %d/%d", index + 1, pageCount);
+        PlayerContext context = getPlayerContext(player);
+        if (context == null) return;
+        Page page = context.pages.get(index);
+        if (context.searchType == ShopType.SELL) {
+            Msg.info(player, "Sell Page %d/%d", index + 1, pageCount);
+        } else {
+            Msg.info(player, "Shop Page %d/%d", index + 1, pageCount);
+        }
         for (List<Object> json: page.lines) {
             Msg.raw(player, json);
         }
@@ -546,17 +573,18 @@ public final class ShopCommand implements CommandExecutor {
 
     void usage(Player player) {
         if (player == null) return;
-        Msg.info(player, "/Shop &7Usage");
-        Msg.raw(player, " ", Msg.button("&a/Shop Search ...", "Search for items", "/shop search "), Msg.format(" &8-&r Search for items"));
-        Msg.raw(player, " ", Msg.button("&a/Shop List", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
-        Msg.raw(player, " ", Msg.button("&a/Shop Port &7&o[Name]", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
-        Msg.raw(player, " ", Msg.button("&a/Shop Market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
+        Msg.info(player, "/shop &7Usage");
+        Msg.raw(player, " ", Msg.button("&a/shop search ...", "Search for items", "/shop search "), Msg.format(" &8-&r Search for items"));
+        Msg.raw(player, " ", Msg.button("&a/shop sell ...", "Sell items", "/shop sell "), Msg.format(" &8-&r Sell items"));
+        Msg.raw(player, " ", Msg.button("&a/shop list", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
+        Msg.raw(player, " ", Msg.button("&a/shop port &7&o[Name]", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
+        Msg.raw(player, " ", Msg.button("&a/shop market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
         if (player.hasPermission("shop.market.claim")) {
-            Msg.raw(player, " ", Msg.button("&a/Shop Auto", "Find an unclaimed market plot", "/shop auto"), Msg.format(" &8-&r Find an unclaimed market plot"));
-            Msg.raw(player, " ", Msg.button("&a/Shop Claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
-            Msg.raw(player, " ", Msg.button("&a/Shop Trust", "Trust someone in your plot", "/shop trust "), Msg.format(" &8-&r Trust someone in your plot"));
-            Msg.raw(player, " ", Msg.button("&a/Shop Untrust", "Untrust someone in your plot", "/shop untrust "), Msg.format(" &8-&r Untrust someone in your plot"));
-            Msg.raw(player, " ", Msg.button("&a/Shop SetSpawn", "Set the spawn location of your plot", "/shop setspawn "), Msg.format(" &8-&r Set the spawn location of your plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop auto", "Find an unclaimed market plot", "/shop auto"), Msg.format(" &8-&r Find an unclaimed market plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop trust", "Trust someone in your plot", "/shop trust "), Msg.format(" &8-&r Trust someone in your plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop untrust", "Untrust someone in your plot", "/shop untrust "), Msg.format(" &8-&r Untrust someone in your plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop setspawn", "Set the spawn location of your plot", "/shop setspawn "), Msg.format(" &8-&r Set the spawn location of your plot"));
         }
     }
 
@@ -585,6 +613,7 @@ public final class ShopCommand implements CommandExecutor {
         final UUID player;
         final List<Page> pages = new ArrayList<>();;
         final List<BlockLocation> locations = new ArrayList<>();
+        ShopType searchType;
         void clear() {
             pages.clear();
             locations.clear();

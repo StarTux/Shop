@@ -34,10 +34,10 @@ permissions:
     default: op
   shop.market:
     description: Visit the market via /market
-    default: false
+    default: op
   shop.market.claim:
     description: Claim a plot on the market
-    default: false
+    default: op
   shop.market.override:
     description: Override market plot restrictions
     default: op
