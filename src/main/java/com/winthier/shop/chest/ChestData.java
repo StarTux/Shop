@@ -63,6 +63,11 @@ public final class ChestData {
         return player.getUniqueId().equals(getOwner().getUuid());
     }
 
+    public String getOwnerName() {
+        if (adminShop) return "The Bank";
+        if (owner == null) return "N/A";
+        return owner.getName();
+    }
 
     // Real world
 

@@ -149,7 +149,7 @@ public final class InventoryListener implements Listener {
                     double fullPrice = price * (double)sold;
                     ItemStack soldItem = buyItem.clone();
                     soldItem.setAmount(sold * buyItem.getAmount());
-                    GenericEvents.givePlayerMoney(player.getUniqueId(), fullPrice, ShopPlugin.getInstance(), "Sell " + soldItem.getAmount() + "x" + Item.getItemName(soldItem) + " to " + chestShop.getChestData().getOwner().getName() + " via chest shop");
+                    GenericEvents.givePlayerMoney(player.getUniqueId(), fullPrice, ShopPlugin.getInstance(), "Sell " + soldItem.getAmount() + "x" + Item.getItemName(soldItem) + " to " + chestShop.getChestData().getOwnerName() + " via chest shop");
                     if (restStack == 0) {
                         event.setCurrentItem(null);
                     } else {
@@ -200,7 +200,7 @@ public final class InventoryListener implements Listener {
                     return;
                 }
                 ItemStack item = event.getCurrentItem();
-                if (!GenericEvents.takePlayerMoney(player.getUniqueId(), chestShop.getChestData().getPrice(), ShopPlugin.getInstance(), "Buy " + item.getAmount() + "x" + Item.getItemName(item) + " from " + chestShop.getChestData().getOwner().getName() + " via chest shop")) {
+                if (!GenericEvents.takePlayerMoney(player.getUniqueId(), chestShop.getChestData().getPrice(), ShopPlugin.getInstance(), "Buy " + item.getAmount() + "x" + Item.getItemName(item) + " from " + chestShop.getChestData().getOwnerName() + " via chest shop")) {
                     Msg.warn(player, "You don't have enough money");
                     return;
                 } else {

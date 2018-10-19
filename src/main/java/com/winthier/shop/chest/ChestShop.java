@@ -87,8 +87,7 @@ public final class ChestShop {
     }
 
     public String getOwnerName() {
-        if (getChestData().isAdminShop()) return "The Bank";
-        return getChestData().getOwner().getName();
+        return getChestData().getOwnerName();
     }
 
     // Selling Chests
