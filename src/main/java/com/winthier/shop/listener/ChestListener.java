@@ -11,9 +11,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 public final class ChestListener implements Listener {
+    private boolean allowEvent;
+
     /**
      * When a right clicked chest or sign is identified as
      * part of a shop chest, we want to send an informative
@@ -49,6 +52,16 @@ public final class ChestListener implements Listener {
             }
         }
         event.setCancelled(true);
+        allowEvent = true;
         player.openInventory(chestShop.getInventory());
+        allowEvent = false;
+    }
+
+    @EventHandler(ignoreCancelled = false, priority = EventPriority.HIGHEST)
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        if (allowEvent) {
+            allowEvent = false;
+            event.setCancelled(false);
+        }
     }
 }
