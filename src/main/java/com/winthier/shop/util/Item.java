@@ -2,6 +2,7 @@ package com.winthier.shop.util;
 
 import com.winthier.generic_events.GenericEvents;
 import java.util.Map;
+import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -101,7 +102,7 @@ public final class Item {
                 }
                 if (name != null) {
                     desc.append(" <");
-                    desc.append(name);
+                    desc.append(ChatColor.stripColor(name));
                     desc.append(">");
                 }
             }
