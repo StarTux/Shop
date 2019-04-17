@@ -89,7 +89,17 @@ public final class Item {
             }
             if (meta instanceof SkullMeta) {
                 SkullMeta skull = (SkullMeta)meta;
+                String name = null;
                 if (skull.hasOwner()) {
+                    name = skull.getOwningPlayer().getName();
+                    if (name == null) {
+                        name = skull.getOwner();
+                    }
+                }
+                if (name == null) {
+                    name = meta.getDisplayName();
+                }
+                if (name != null) {
                     desc.append(" <");
                     desc.append(skull.getOwningPlayer().getName());
                     desc.append(">");
