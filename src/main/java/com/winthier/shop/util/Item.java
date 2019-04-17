@@ -101,7 +101,7 @@ public final class Item {
                 }
                 if (name != null) {
                     desc.append(" <");
-                    desc.append(skull.getOwningPlayer().getName());
+                    desc.append(name);
                     desc.append(">");
                 }
             }
