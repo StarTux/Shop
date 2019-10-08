@@ -1,5 +1,6 @@
 package com.winthier.shop.listener;
 
+import com.winthier.generic_events.PlayerCanBuildEvent;
 import com.winthier.shop.Market;
 import com.winthier.shop.ShopPlugin;
 import org.bukkit.Location;
@@ -171,5 +172,10 @@ public final class MarketListener implements Listener {
         if (fromPlot != toPlot) {
             event.setCancelled(true);
         }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerCanBuild(PlayerCanBuildEvent event) {
+        onMarketEvent(event.getPlayer(), event.getBlock(), event);
     }
 }
