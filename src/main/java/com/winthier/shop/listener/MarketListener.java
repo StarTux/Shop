@@ -6,6 +6,7 @@ import com.winthier.shop.ShopPlugin;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.Cancellable;
@@ -25,9 +26,12 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.InventoryHolder;
 
 public final class MarketListener implements Listener {
     public void onMarketEvent(Player player, Block block, Cancellable event) {
@@ -39,7 +43,6 @@ public final class MarketListener implements Listener {
         if (event instanceof PlayerInteractEvent) {
             PlayerInteractEvent pie = (PlayerInteractEvent) event;
             if (pie.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                if (pie.isBlockInHand()) return;
                 switch (block.getType()) {
                 case ENCHANTING_TABLE:
                 case ENDER_CHEST:
@@ -182,5 +185,19 @@ public final class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPlayerCanBuild(PlayerCanBuildEvent event) {
         onMarketEvent(event.getPlayer(), event.getBlock(), event);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onInventoryOpen(InventoryOpenEvent event) {
+        if (!(event.getPlayer() instanceof Player)) return;
+        Player player = (Player) event.getPlayer();
+        InventoryHolder holder = event.getInventory().getHolder();
+        if (holder instanceof BlockInventoryHolder) {
+            BlockInventoryHolder bih = (BlockInventoryHolder) holder;
+            onMarketEvent(player, bih.getBlock(), event);
+        } else if (holder instanceof Entity) {
+            Entity entity = (Entity) holder;
+            onMarketEvent(player, entity.getLocation().getBlock(), event);
+        }
     }
 }
