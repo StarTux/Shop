@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -34,10 +35,43 @@ public final class MarketListener implements Listener {
         if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
         if (player.hasPermission("shop.market.override")) return;
         Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(block);
-        if (plot == null || !plot.isAllowed(player)) {
-            event.setCancelled(true);
+        if (plot != null && plot.isAllowed(player)) return;
+        if (event instanceof PlayerInteractEvent) {
+            PlayerInteractEvent pie = (PlayerInteractEvent) event;
+            if (pie.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                if (pie.isBlockInHand()) return;
+                switch (block.getType()) {
+                case ENCHANTING_TABLE:
+                case ENDER_CHEST:
+                case ACACIA_DOOR:
+                case BIRCH_DOOR:
+                case DARK_OAK_DOOR:
+                case IRON_DOOR:
+                case JUNGLE_DOOR:
+                case OAK_DOOR:
+                case SPRUCE_DOOR:
+                case ACACIA_BUTTON:
+                case BIRCH_BUTTON:
+                case DARK_OAK_BUTTON:
+                case JUNGLE_BUTTON:
+                case OAK_BUTTON:
+                case SPRUCE_BUTTON:
+                case STONE_BUTTON:
+                case ACACIA_FENCE_GATE:
+                case BIRCH_FENCE_GATE:
+                case DARK_OAK_FENCE_GATE:
+                case JUNGLE_FENCE_GATE:
+                case OAK_FENCE_GATE:
+                case SPRUCE_FENCE_GATE:
+                    return;
+                default:
+                    pie.setUseInteractedBlock(Event.Result.DENY);
+                }
+            }
             return;
         }
+        event.setCancelled(true);
+        return;
     }
 
     public void onMarketEvent(Player player, Location location, Cancellable event) {
@@ -47,35 +81,6 @@ public final class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL) return;
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            switch (event.getClickedBlock().getType()) {
-            case ENCHANTING_TABLE:
-            case ENDER_CHEST:
-            case ACACIA_DOOR:
-            case BIRCH_DOOR:
-            case DARK_OAK_DOOR:
-            case IRON_DOOR:
-            case JUNGLE_DOOR:
-            case OAK_DOOR:
-            case SPRUCE_DOOR:
-            case ACACIA_BUTTON:
-            case BIRCH_BUTTON:
-            case DARK_OAK_BUTTON:
-            case JUNGLE_BUTTON:
-            case OAK_BUTTON:
-            case SPRUCE_BUTTON:
-            case STONE_BUTTON:
-            case ACACIA_FENCE_GATE:
-            case BIRCH_FENCE_GATE:
-            case DARK_OAK_FENCE_GATE:
-            case JUNGLE_FENCE_GATE:
-            case OAK_FENCE_GATE:
-            case SPRUCE_FENCE_GATE:
-                return;
-            default:
-                break;
-            }
-        }
         onMarketEvent(event.getPlayer(), event.getClickedBlock(), event);
     }
 
