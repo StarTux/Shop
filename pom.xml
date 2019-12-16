@@ -1,29 +1,35 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project>
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>com.winthier.shop</groupId>
   <artifactId>shop</artifactId>
-  <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>Shop</name>
-  <url>http://cavetale.com</url>
+
+  <packaging>jar</packaging>
+  <url>https://cavetale.com</url>
   <properties>
+
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
   <repositories>
+
     <!-- Spigot Repo -->
     <repository>
       <id>spigot-repo</id>
       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
     </repository>
+
   </repositories>
   <dependencies>
+
     <!-- Spigot-API -->
     <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.13.1-R0.1-SNAPSHOT</version>
+      <version>1.15-R0.1-SNAPSHOT</version>
     </dependency>
+
     <!-- Lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -31,6 +37,8 @@
       <version>1.14.8</version>
       <scope>provided</scope>
     </dependency>
+
+
     <!-- SQL -->
     <dependency>
       <groupId>com.winthier.sql</groupId>
@@ -38,6 +46,7 @@
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+
     <!-- GenericEvents -->
     <dependency>
       <groupId>com.winthier.generic_events</groupId>
@@ -45,10 +54,12 @@
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
+
   </dependencies>
   <build>
     <finalName>${project.name}</finalName>
     <plugins>
+
       <!-- Java 8 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -64,6 +75,7 @@
           </compilerArgs>
         </configuration>
       </plugin>
+
     </plugins>
   </build>
 </project>

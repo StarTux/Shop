@@ -8,6 +8,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Sign;
+import org.bukkit.block.data.type.WallSign;
 import org.bukkit.inventory.DoubleChestInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -43,8 +46,11 @@ public final class ChestShop {
     }
 
     public static ChestShop getBySign(Block block) {
-        if (block.getType() != Material.SIGN && block.getType() != Material.WALL_SIGN) return null;
-        return getByChest(block.getRelative(0, -1, 0));
+        BlockData blockData = block.getBlockData();
+        if (blockData instanceof Sign || blockData instanceof WallSign) {
+            return getByChest(block.getRelative(0, -1, 0));
+        }
+        return null;
     }
 
     public static ChestShop getByBlock(Block block) {
