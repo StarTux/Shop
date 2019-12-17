@@ -9,6 +9,7 @@ import com.winthier.shop.util.Item;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -64,20 +65,22 @@ public class SQLLog {
     }
 
     public static void store(ChestData chestData, Shopper customer, ItemStack item) {
+        if (chestData.getPrice() == 0.0) return;
         SQLLog log = new SQLLog(new Date(), chestData, customer, item);
         ShopPlugin.getInstance().getDb().save(log);
     }
 
     public static void store(ChestData chestData, Shopper customer, ItemStack item, double price) {
+        if (price == 0.0) return;
         SQLLog log = new SQLLog(new Date(), chestData, customer, item);
         log.setPrice(price);
         ShopPlugin.getInstance().getDb().save(log);
     }
 
-    public static List<SQLLog> find(UUID uuid) {
-        return ShopPlugin.getInstance().getDb().find(SQLLog.class).where()
+    public static void find(UUID uuid, Consumer<List<SQLLog>> callback) {
+        ShopPlugin.getInstance().getDb().find(SQLLog.class).where()
             .eq("owner", uuid)
             .orderByDescending("time")
-            .findList();
+            .findListAsync(callback);
     }
 }

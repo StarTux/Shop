@@ -295,8 +295,17 @@ public final class ShopCommand implements TabExecutor {
     }
 
     boolean shopList(Player player, String[] args) {
+        SQLLog.find(player.getUniqueId(), logs -> {
+                if (!player.isValid()) return;
+                printShopList(player, logs);
+            });
+        return true;
+    }
+
+    void printShopList(Player player, List<SQLLog> logs) {
         List<List<Object>> lines = new ArrayList<>();
-        for (SQLLog log: SQLLog.find(player.getUniqueId())) {
+        logs.removeIf(log -> log.getPrice() == 0.0);
+        for (SQLLog log: logs) {
             List<Object> json = new ArrayList<>();
             json.add(" ");
             json.add(log.getCustomerName());
@@ -314,13 +323,12 @@ public final class ShopCommand implements TabExecutor {
         }
         if (lines.isEmpty()) {
             Msg.warn(player, "Nothing found.");
-            return true;
+            return;
         }
         getPlayerContext(player).clear();
         getPlayerContext(player).pages.addAll(Page.pagesOf(lines));
         Msg.send(player, "&9&lShop List");
         showPage(player, 0);
-        return true;
     }
 
     boolean shopClaim(Player player, String[] args) {
