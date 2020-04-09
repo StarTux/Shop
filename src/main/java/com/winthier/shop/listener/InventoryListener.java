@@ -55,6 +55,10 @@ public final class InventoryListener implements Listener {
         event.getView().setCursor(event.getOldCursor());
     }
 
+    private static boolean isAir(ItemStack item) {
+        return item == null || item.getType() == Material.AIR;
+    }
+
     /**
      * Shop activity is decided by click events in
      * inventories. As a general rule of thumb, when an event
@@ -82,9 +86,6 @@ public final class InventoryListener implements Listener {
             }.runTask(ShopPlugin.getInstance());
             return;
         }
-        // cancel everything
-        ItemStack cursor = event.getCursor().clone();
-        ItemStack current = event.getCurrentItem().clone();
         // allow left or right clicking in your own inventory
         if (!event.isShiftClick() && !isTopInventory) {
             switch (event.getClick()) {
@@ -97,7 +98,7 @@ public final class InventoryListener implements Listener {
         }
         event.setCancelled(true);
         // deny clicking items in for non-owners
-        if (!event.isShiftClick() && isTopInventory && event.getCursor().getType() != Material.AIR) {
+        if (!event.isShiftClick() && isTopInventory && !isAir(event.getCursor())) {
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
                 Msg.warn(player, "You can't sell here.");
             }
@@ -107,7 +108,7 @@ public final class InventoryListener implements Listener {
             return;
         }
         // shift click item into chest
-        if (event.isShiftClick() && !isTopInventory && event.getCurrentItem().getType() != Material.AIR) {
+        if (event.isShiftClick() && !isTopInventory && !isAir(event.getCurrentItem())) {
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
                 // deny shift clicking items in
                 Msg.warn(player, "You can't put items in.");
@@ -170,7 +171,7 @@ public final class InventoryListener implements Listener {
             }
         }
         // single click chest slot to try to take item out
-        if (!event.isShiftClick() && isTopInventory && event.getCurrentItem().getType() != Material.AIR) {
+        if (!event.isShiftClick() && isTopInventory && !isAir(event.getCurrentItem())) {
             // deny taking items via single click for non-owners to avoid accidents
             double price = chestShop.getChestData().getPrice();
             if (Double.isNaN(price)) {
@@ -191,7 +192,7 @@ public final class InventoryListener implements Listener {
             return;
         }
         // shift click item out of chest
-        if (event.isShiftClick() && isTopInventory && event.getCurrentItem().getType() != Material.AIR) {
+        if (event.isShiftClick() && isTopInventory && !isAir(event.getCurrentItem())) {
             // make a purchase
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
                 double price = chestShop.getChestData().getPrice();
