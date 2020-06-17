@@ -27,6 +27,8 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -99,6 +101,16 @@ public final class MarketListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockDamage(BlockDamageEvent event) {
+        onMarketEvent(event.getPlayer(), event.getBlock(), event);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onPlayerBucketEmpty(PlayerBucketEmptyEvent event) {
+        onMarketEvent(event.getPlayer(), event.getBlock(), event);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onPlayerBucketFill(PlayerBucketFillEvent event) {
         onMarketEvent(event.getPlayer(), event.getBlock(), event);
     }
 
