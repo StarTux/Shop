@@ -34,7 +34,9 @@ public final class InventoryListener implements Listener {
         Player player = (Player)event.getWhoClicked();
         ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
         if (player.getGameMode() == GameMode.CREATIVE) return;
-        if (chestShop.getChestData().isOwner(player)) {
+        boolean isOwner = chestShop.getChestData().isOwner(player);
+        boolean isAllowed = ShopPlugin.getInstance().getMarket().isAllowedAt(player, chestShop.getLeft());
+        if (isOwner || isAllowed) {
             new BukkitRunnable() {
                 @Override public void run() {
                     chestShop.getChestData().setSoldOut(chestShop.isSoldOut());
@@ -77,7 +79,8 @@ public final class InventoryListener implements Listener {
         if (player.getGameMode() == GameMode.CREATIVE) return;
         boolean isTopInventory = (event.getRawSlot() < event.getView().getTopInventory().getSize());
         boolean isOwner = chestShop.getChestData().isOwner(player);
-        if (isOwner) {
+        boolean isAllowed = ShopPlugin.getInstance().getMarket().isAllowedAt(player, chestShop.getLeft());
+        if (isOwner || isAllowed) {
             new BukkitRunnable() {
                 @Override public void run() {
                     chestShop.getChestData().setSoldOut(chestShop.isSoldOut());

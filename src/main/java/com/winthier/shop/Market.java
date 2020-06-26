@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -136,6 +137,18 @@ public final class Market {
             if (plot.isInside(x, y, z)) return plot;
         }
         return null;
+    }
+
+    public boolean isMarketWorld(World bukkitWorld) {
+        return Objects.equals((String) bukkitWorld.getName(), (String) this.world);
+    }
+
+    public boolean isAllowedAt(Player player, Block block) {
+        if (block == null) return false;
+        if (!isMarketWorld(block.getWorld())) return false;
+        Plot plot = plotAt(block);
+        if (plot == null) return false;
+        return plot.isAllowed(player);
     }
 
     public Plot findPlayerPlot(UUID player) {
