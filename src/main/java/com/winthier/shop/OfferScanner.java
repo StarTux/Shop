@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Getter;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.inventory.Inventory;
@@ -68,6 +69,12 @@ public final class OfferScanner {
     }
 
     void scan(BlockLocation location) {
+        World world = location.getBukkitWorld();
+        if (world == null) return;
+        world.getChunkAtAsync(location.getX() >> 4, location.getZ() >> 4, c -> callback(location));
+    }
+
+    void callback(BlockLocation location) {
         ChestShop chestShop = ChestShop.getByChest(location.getBlock());
         if (chestShop == null) {
             SQLOffer.deleteAt(location);

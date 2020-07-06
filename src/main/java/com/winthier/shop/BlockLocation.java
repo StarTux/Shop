@@ -23,8 +23,12 @@ public final class BlockLocation {
         return of(loc.getBlock());
     }
 
+    public World getBukkitWorld() {
+        return Bukkit.getServer().getWorld(world);
+    }
+
     public Block getBlock() {
-        World bWorld = Bukkit.getServer().getWorld(this.world);
+        World bWorld = Bukkit.getServer().getWorld(world);
         if (bWorld == null) return null;
         return bWorld.getBlockAt(x, y, z);
     }
