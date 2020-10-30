@@ -1,6 +1,8 @@
 package com.winthier.shop;
 
+import com.winthier.generic_events.GenericEvents;
 import com.winthier.shop.util.Msg;
+import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -12,7 +14,7 @@ import org.bukkit.entity.Player;
 public final class AdminCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        final Player player = sender instanceof Player ? (Player)sender : null;
+        final Player player = sender instanceof Player ? (Player) sender : null;
         if (args.length == 0) return false;
         String firstArg = args[0].toLowerCase();
         if (firstArg.equals("makeplot")) {
@@ -20,7 +22,12 @@ public final class AdminCommand implements CommandExecutor {
                 sender.sendMessage("Player expected");
                 return true;
             }
-            int ax, ay, az, bx, by, bz;
+            int ax;
+            int ay;
+            int az;
+            int bx;
+            int by;
+            int bz;
             try {
                 ax = player.getMetadata("SelectionAX").get(0).asInt();
                 ay = player.getMetadata("SelectionAY").get(0).asInt();
@@ -79,12 +86,12 @@ public final class AdminCommand implements CommandExecutor {
             for (Market.Plot plot: ShopPlugin.getInstance().getMarket().getPlots()) {
                 count += 1;
                 for (int x = plot.getWest(); x <= plot.getEast(); ++x) {
-                    player.sendBlockChange(new Location(world, (double)x, (double)y, (double)plot.getNorth()), mat.createBlockData());
-                    player.sendBlockChange(new Location(world, (double)x, (double)y, (double)plot.getSouth()), mat.createBlockData());
+                    player.sendBlockChange(new Location(world, (double) x, (double) y, (double) plot.getNorth()), mat.createBlockData());
+                    player.sendBlockChange(new Location(world, (double) x, (double) y, (double) plot.getSouth()), mat.createBlockData());
                 }
                 for (int z = plot.getNorth(); z <= plot.getSouth(); ++z) {
-                    player.sendBlockChange(new Location(world, (double)plot.getWest(), (double)y, (double)z), mat.createBlockData());
-                    player.sendBlockChange(new Location(world, (double)plot.getEast(), (double)y, (double)z), mat.createBlockData());
+                    player.sendBlockChange(new Location(world, (double) plot.getWest(), (double) y, (double) z), mat.createBlockData());
+                    player.sendBlockChange(new Location(world, (double) plot.getEast(), (double) y, (double) z), mat.createBlockData());
                 }
             }
             Msg.info(player, "%d plots highlighted", count);
@@ -96,6 +103,28 @@ public final class AdminCommand implements CommandExecutor {
             for (BlockLocation loc: ShopPlugin.getInstance().getOfferScanner().getDirties().keySet()) {
                 player.sendMessage("" + loc);
             }
+        } else if (firstArg.equals("transfer") && args.length == 2) {
+            Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(player.getLocation().getBlock());
+            if (plot == null) {
+                Msg.warn(player, "There is no plot here.");
+                return true;
+            }
+            String name = args[1];
+            UUID uuid = GenericEvents.cachedPlayerUuid(name);
+            if (uuid == null) {
+                Msg.warn(player, "Unknown player: " + name);
+                return true;
+            }
+            Shopper oldOwner = plot.getOwner();
+            name = GenericEvents.cachedPlayerName(uuid);
+            plot.setOwner(new Shopper(uuid, name));
+            ShopPlugin.getInstance().getMarket().save();
+            if (oldOwner == null) {
+                Msg.info(player, "Plot transferred to " + name);
+            } else {
+                Msg.info(player, "Plot transferred: " + oldOwner.getName() + " => " + name);
+            }
+            return true;
         }
         return true;
     }

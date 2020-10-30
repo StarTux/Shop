@@ -19,11 +19,12 @@ commands:
   shopadmin:
     description: Admin interface
     usage: |-
-      /<command> Reload
-      /<command> PlotInfo
-      /<command> MakePlot
-      /<command> DeletePlot
-      /<command> ShowPlots
+      /<command> reload - Reload configs
+      /<command> plotinfo - Display current plot info
+      /<command> makeplot - Make plot from selection
+      /<command> deleteplot - Delete current plot
+      /<command> showplots - Highlight nearby plots
+      /<command> transfer - Transfer plot
     permission: shop.admin
 permissions:
   shop.shop:
