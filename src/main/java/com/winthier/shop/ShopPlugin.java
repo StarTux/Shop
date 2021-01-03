@@ -36,7 +36,7 @@ public final class ShopPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SignListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
-        marketListener = new MarketListener();
+        marketListener = new MarketListener(this);
         getServer().getPluginManager().registerEvents(marketListener, this);
         getCommand("shop").setExecutor(new ShopCommand());
         getCommand("shopadmin").setExecutor(adminCommand);
@@ -45,7 +45,7 @@ public final class ShopPlugin extends JavaPlugin {
                 if (market == null) return true;
                 World world = getServer().getWorld(market.getWorld());
                 if (world == null) return true;
-                ((Player)s).teleport(world.getSpawnLocation());
+                ((Player) s).teleport(world.getSpawnLocation());
                 return true;
             });
         offerScanner.start();
@@ -70,6 +70,10 @@ public final class ShopPlugin extends JavaPlugin {
             market.load();
         }
         return market;
+    }
+
+    public void reloadMarket() {
+        market = null;
     }
 
     public Shopper findShopper(UUID uuid) {

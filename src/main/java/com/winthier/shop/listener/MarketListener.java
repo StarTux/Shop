@@ -3,8 +3,10 @@ package com.winthier.shop.listener;
 import com.winthier.generic_events.PlayerCanBuildEvent;
 import com.winthier.shop.Market;
 import com.winthier.shop.ShopPlugin;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -35,39 +37,28 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.InventoryHolder;
 
+@RequiredArgsConstructor
 public final class MarketListener implements Listener {
+    private final ShopPlugin plugin;
+
     public void onMarketEvent(Player player, Block block, Cancellable event) {
         if (block == null) return;
-        if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        if (!block.getWorld().getName().equals(plugin.getMarket().getWorld())) return;
         if (player.hasPermission("shop.market.override")) return;
-        Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(block);
+        Market.Plot plot = plugin.getMarket().plotAt(block);
         if (plot != null && plot.isAllowed(player)) return;
+        // plot == null
+        if (!plugin.getMarket().isProtect()) return;
         if (event instanceof PlayerInteractEvent) {
             PlayerInteractEvent pie = (PlayerInteractEvent) event;
             if (pie.getAction() == Action.RIGHT_CLICK_BLOCK) {
-                switch (block.getType()) {
+                Material mat = block.getType();
+                if (Tag.DOORS.isTagged(mat)) return;
+                if (Tag.BUTTONS.isTagged(mat)) return;
+                if (Tag.FENCE_GATES.isTagged(mat)) return;
+                switch (mat) {
                 case ENCHANTING_TABLE:
                 case ENDER_CHEST:
-                case ACACIA_DOOR:
-                case BIRCH_DOOR:
-                case DARK_OAK_DOOR:
-                case IRON_DOOR:
-                case JUNGLE_DOOR:
-                case OAK_DOOR:
-                case SPRUCE_DOOR:
-                case ACACIA_BUTTON:
-                case BIRCH_BUTTON:
-                case DARK_OAK_BUTTON:
-                case JUNGLE_BUTTON:
-                case OAK_BUTTON:
-                case SPRUCE_BUTTON:
-                case STONE_BUTTON:
-                case ACACIA_FENCE_GATE:
-                case BIRCH_FENCE_GATE:
-                case DARK_OAK_FENCE_GATE:
-                case JUNGLE_FENCE_GATE:
-                case OAK_FENCE_GATE:
-                case SPRUCE_FENCE_GATE:
                     return;
                 default:
                     pie.setUseInteractedBlock(Event.Result.DENY);
@@ -117,7 +108,7 @@ public final class MarketListener implements Listener {
     // Frost Walker
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityBlockForm(EntityBlockFormEvent event) {
-        Player player = event.getEntity() instanceof Player ? (Player)event.getEntity() : null;
+        Player player = event.getEntity() instanceof Player ? (Player) event.getEntity() : null;
         if (player == null) return;
         onMarketEvent(player, event.getBlock(), event);
     }
@@ -136,9 +127,9 @@ public final class MarketListener implements Listener {
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         Player player;
         if (event.getDamager() instanceof Player) {
-            player = (Player)event.getDamager();
-        } else if (event.getDamager() instanceof Projectile && ((Projectile)event.getDamager()).getShooter() instanceof Player) {
-            player = (Player)((Projectile)event.getDamager()).getShooter();
+            player = (Player) event.getDamager();
+        } else if (event.getDamager() instanceof Projectile && ((Projectile) event.getDamager()).getShooter() instanceof Player) {
+            player = (Player) ((Projectile) event.getDamager()).getShooter();
         } else {
             return;
         }
@@ -147,13 +138,15 @@ public final class MarketListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityExplode(EntityExplodeEvent event) {
-        if (!event.getEntity().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        if (!event.getEntity().getWorld().getName().equals(plugin.getMarket().getWorld())) return;
+        if (!plugin.getMarket().isProtect()) return;
         event.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonExtend(BlockPistonExtendEvent event) {
-        if (!event.getBlock().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        if (!event.getBlock().getWorld().getName().equals(plugin.getMarket().getWorld())) return;
+        if (!plugin.getMarket().isProtect()) return;
         for (Block block: event.getBlocks()) {
             if (block != null && block.getType() != Material.AIR) {
                 event.setCancelled(true);
@@ -164,16 +157,18 @@ public final class MarketListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonRetract(BlockPistonRetractEvent event) {
-        if (!event.getBlock().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        if (!event.getBlock().getWorld().getName().equals(plugin.getMarket().getWorld())) return;
+        if (!plugin.getMarket().isProtect()) return;
         event.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
-        if (!event.getEntity().getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
+        if (!event.getEntity().getWorld().getName().equals(plugin.getMarket().getWorld())) return;
         if (event.getRemover() instanceof Player) {
-            onMarketEvent((Player)event.getRemover(), event.getEntity().getLocation(), event);
+            onMarketEvent((Player) event.getRemover(), event.getEntity().getLocation(), event);
         } else {
+            if (!plugin.getMarket().isProtect()) return;
             event.setCancelled(true);
         }
     }
@@ -185,10 +180,11 @@ public final class MarketListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockFromTo(BlockFromToEvent event) {
+        if (!plugin.getMarket().isProtect()) return;
         Block block = event.getBlock();
-        if (!block.getWorld().getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return;
-        Market.Plot fromPlot = ShopPlugin.getInstance().getMarket().plotAt(block);
-        Market.Plot toPlot = ShopPlugin.getInstance().getMarket().plotAt(event.getToBlock());
+        if (!block.getWorld().getName().equals(plugin.getMarket().getWorld())) return;
+        Market.Plot fromPlot = plugin.getMarket().plotAt(block);
+        Market.Plot toPlot = plugin.getMarket().plotAt(event.getToBlock());
         if (fromPlot != toPlot) {
             event.setCancelled(true);
         }

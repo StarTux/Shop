@@ -18,16 +18,25 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+/**
+ * Protection controls most global market protections. Even if
+ * disabled, plots will still be mostly protected.
+ */
 @Getter @Setter
 public final class Market {
     private String world;
-    private int skyLimit, bottomLimit;
+    private int skyLimit;
+    private int bottomLimit;
     private final List<Plot> plots = new ArrayList<>();
     private double plotPrice;
+    private boolean protect;
 
     @Getter @Setter
     public final class Plot {
-        private int west, east, north, south;
+        private int west;
+        private int east;
+        private int north;
+        private int south;
         private Shopper owner = null;
         private final List<Shopper> trusted = new ArrayList<>();
         private Location spawnLocation = null;
@@ -104,23 +113,23 @@ public final class Market {
     @SuppressWarnings("unchecked")
     public Plot deserializePlot(Map<String, Object> map) {
         Plot plot = new Plot();
-        plot.west = (Integer)map.get("west");
-        plot.east = (Integer)map.get("east");
-        plot.south = (Integer)map.get("south");
-        plot.north = (Integer)map.get("north");
+        plot.west = (Integer) map.get("west");
+        plot.east = (Integer) map.get("east");
+        plot.south = (Integer) map.get("south");
+        plot.north = (Integer) map.get("north");
         if (map.containsKey("owner")) {
-            plot.owner = Shopper.deserialize((Map<String, Object>)map.get("owner"));
+            plot.owner = Shopper.deserialize((Map<String, Object>) map.get("owner"));
         }
-        List<Object> trusted = (List<Object>)map.get("trusted");
-        for (Object o: trusted) plot.trusted.add(Shopper.deserialize((Map<String, Object>)o));
+        List<Object> trusted = (List<Object>) map.get("trusted");
+        for (Object o: trusted) plot.trusted.add(Shopper.deserialize((Map<String, Object>) o));
         if (map.containsKey("spawnLocation")) {
             try {
-                Map<String, Object> section = (Map<String, Object>)map.get("spawnLocation");
-                double x = ((Number)section.get("x")).doubleValue();
-                double y = ((Number)section.get("y")).doubleValue();
-                double z = ((Number)section.get("z")).doubleValue();
-                float yaw = ((Number)section.get("yaw")).floatValue();
-                float pitch = ((Number)section.get("pitch")).floatValue();
+                Map<String, Object> section = (Map<String, Object>) map.get("spawnLocation");
+                double x = ((Number) section.get("x")).doubleValue();
+                double y = ((Number) section.get("y")).doubleValue();
+                double z = ((Number) section.get("z")).doubleValue();
+                float yaw = ((Number) section.get("yaw")).floatValue();
+                float pitch = ((Number) section.get("pitch")).floatValue();
                 plot.spawnLocation = new Location(Bukkit.getServer().getWorld(getWorld()), x, y, z, yaw, pitch);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -193,9 +202,10 @@ public final class Market {
         skyLimit = yaml.getInt("SkyLimit", 95);
         plotPrice = yaml.getDouble("PlotPrice", 2000.0);
         bottomLimit = yaml.getInt("BottomLimit", 1);
+        protect = yaml.getBoolean("Protect", true);
         for (Map<?, ?> m: yaml.getMapList("plots")) {
             @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>)m;
+            Map<String, Object> map = (Map<String, Object>) m;
             plots.add(deserializePlot(map));
         }
     }
@@ -206,6 +216,7 @@ public final class Market {
         yaml.set("SkyLimit", skyLimit);
         yaml.set("BottomLimit", bottomLimit);
         yaml.set("PlotPrice", plotPrice);
+        yaml.set("Protect", protect);
         List<Object> list = new ArrayList<>();
         for (Plot plot: plots) {
             list.add(plot.serialize());

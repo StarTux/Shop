@@ -98,6 +98,7 @@ public final class AdminCommand implements CommandExecutor {
         } else if (firstArg.equals("reload")) {
             ShopPlugin.getInstance().flush();
             ShopPlugin.getInstance().reloadConfig();
+            ShopPlugin.getInstance().reloadMarket();
             sender.sendMessage("Shop configuration reloaded");
         } else if (firstArg.equals("debug")) {
             for (BlockLocation loc: ShopPlugin.getInstance().getOfferScanner().getDirties().keySet()) {
