@@ -2,6 +2,7 @@ package com.winthier.shop.chest;
 
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
+import com.winthier.shop.sql.SQLChest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Material;
@@ -16,14 +17,13 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 /**
- * Holder of non-unique data related to one chest representing a
- * shop.
+ * Holder of transient, non-unique data related to one chest
+ * representing a shop. This is never cached for very long.
  */
-@Getter
-@RequiredArgsConstructor
+@Getter @RequiredArgsConstructor
 public final class ChestShop {
     final Inventory inventory;
-    final ChestData chestData;
+    final SQLChest chestData;
     final Block left;
     final Block right;
 
@@ -33,7 +33,7 @@ public final class ChestShop {
         Inventory inventory = chest.getBlockInventory();
         Block left = null;
         Block right = null;
-        ChestData chestData = null;
+        SQLChest chestData = null;
         inventory = inventory.getHolder().getInventory();
         if (inventory instanceof DoubleChestInventory) {
             DoubleChest doubleChest = ((DoubleChestInventory) inventory).getHolder();

@@ -4,6 +4,7 @@ import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
+import com.winthier.shop.sql.SQLChest;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,10 +15,10 @@ import org.bukkit.configuration.file.YamlConfiguration;
 @RequiredArgsConstructor
 public final class ChestDataStore {
     private final ShopPlugin plugin;
-    final Map<BlockLocation, ChestData> store = new HashMap<>();
+    final Map<BlockLocation, SQLChest> store = new HashMap<>();
 
-    public ChestData getByChest(Block left, Block right) {
-        ChestData result;
+    public SQLChest getByChest(Block left, Block right) {
+        SQLChest result;
         result = store.get(BlockLocation.of(left));
         if (result != null) return result;
         if (right != null) {
@@ -33,34 +34,34 @@ public final class ChestDataStore {
         return result;
     }
 
-    public ChestData getBySign(Block block) {
+    public SQLChest getBySign(Block block) {
         return store.get(BlockLocation.of(block));
     }
 
-    public ChestData remove(Block block) {
-        ChestData removed = store.remove(BlockLocation.of(block));
+    public SQLChest remove(Block block) {
+        SQLChest removed = store.remove(BlockLocation.of(block));
         if (removed != null) {
             plugin.getDb().deleteAsync(removed, unused -> {
                     if (plugin.isDebugMode()) {
-                        plugin.getLogger().info("ChestData deleted: " + removed.getId());
+                        plugin.getLogger().info("SQLChest deleted: " + removed.getId());
                     }
                 });
         }
         return removed;
     }
 
-    public void store(ChestData data) {
+    public void store(SQLChest data) {
         store.put(data.getLocation(), data);
         plugin.getDb().saveAsync(data, unused -> {
                 if (plugin.isDebugMode()) {
-                    plugin.getLogger().info("ChestData saved: " + data.getId());
+                    plugin.getLogger().info("SQLChest saved: " + data.getId());
                 }
             });
     }
 
     public void load() {
         store.clear();
-        for (ChestData chestData : plugin.getDb().find(ChestData.class).findList()) {
+        for (SQLChest chestData : plugin.getDb().find(SQLChest.class).findList()) {
             store.put(chestData.getLocation(), chestData);
         }
         if (plugin.isDebugMode()) {
@@ -74,7 +75,7 @@ public final class ChestDataStore {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(file);
         int count = 0;
         for (Map<?, ?> map : yaml.getMapList("store")) {
-            ChestData.Type type = ChestData.Type.valueOf((String) map.get("type"));
+            SQLChest.Type type = SQLChest.Type.valueOf((String) map.get("type"));
             ShopType shopType = ShopType.valueOf((String) map.get("shopType"));
             BlockLocation location = BlockLocation.deserialize((Map<String, Object>) map.get("location"));
             Shopper owner;
@@ -85,7 +86,7 @@ public final class ChestDataStore {
             }
             double price = (Double) map.get("price");
             boolean adminShop = map.containsKey("adminShop") ? (Boolean) map.get("adminShop") : false;
-            ChestData chestData = new ChestData(type, shopType, location, owner, price, adminShop);
+            SQLChest chestData = new SQLChest(type, shopType, location, owner, price, adminShop);
             store(chestData);
             count += 1;
         }

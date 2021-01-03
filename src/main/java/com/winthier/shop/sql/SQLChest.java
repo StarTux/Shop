@@ -1,4 +1,4 @@
-package com.winthier.shop.chest;
+package com.winthier.shop.sql;
 
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
@@ -18,7 +18,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
 @Getter @Setter @Table(name = "chests")
-public final class ChestData {
+public final class SQLChest {
     @Id private Integer id;
     @Column(nullable = false) private Type type;
     @Column(nullable = false) private ShopType shopType;
@@ -38,10 +38,10 @@ public final class ChestData {
         NAMED_CHEST;
     }
 
-    public ChestData() { }
+    public SQLChest() { }
 
-    public ChestData(final Type type, final ShopType shopType, final BlockLocation location,
-                     final Shopper shopper, final double price, final boolean adminShop) {
+    public SQLChest(final Type type, final ShopType shopType, final BlockLocation location,
+                    final Shopper shopper, final double price, final boolean adminShop) {
         this.type = type;
         this.shopType = shopType;
         this.location = location;

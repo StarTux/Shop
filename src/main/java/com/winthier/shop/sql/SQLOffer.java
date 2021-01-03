@@ -3,7 +3,6 @@ package com.winthier.shop.sql;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
-import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.util.Item;
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,7 +50,7 @@ public final class SQLOffer {
     @Column(nullable = false) private String itemDescription;
     @Column(nullable = false) private Double price;
 
-    SQLOffer(final Date time, final BlockLocation location, final ChestData chestData, final ItemStack item) {
+    SQLOffer(final Date time, final BlockLocation location, final SQLChest chestData, final ItemStack item) {
         setTime(time);
         setShopType(chestData.getShopType());
         if (chestData.isAdminShop()) {
@@ -133,7 +132,7 @@ public final class SQLOffer {
         return true;
     }
 
-    public static void store(BlockLocation location, ChestData chestData, List<ItemStack> items) {
+    public static void store(BlockLocation location, SQLChest chestData, List<ItemStack> items) {
         Date time = new Date();
         List<SQLOffer> list = new ArrayList<>();
         List<ItemStack> doneItems = new ArrayList<>();

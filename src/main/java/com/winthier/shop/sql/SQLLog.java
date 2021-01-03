@@ -4,7 +4,6 @@ import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
-import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.util.Item;
 import java.util.Date;
 import java.util.List;
@@ -42,7 +41,7 @@ public class SQLLog {
     @Column(nullable = false) private String itemDescription;
     @Column(nullable = false) private Double price;
 
-    SQLLog(final Date time, final ChestData chestData, final Shopper customer, final ItemStack item) {
+    SQLLog(final Date time, final SQLChest chestData, final Shopper customer, final ItemStack item) {
         setTime(time);
         setShopType(chestData.getShopType());
         if (chestData.isAdminShop()) {
@@ -66,13 +65,13 @@ public class SQLLog {
         setPrice(chestData.getPrice());
     }
 
-    public static void store(ChestData chestData, Shopper customer, ItemStack item) {
+    public static void store(SQLChest chestData, Shopper customer, ItemStack item) {
         if (chestData.getPrice() == 0.0) return;
         SQLLog log = new SQLLog(new Date(), chestData, customer, item);
         ShopPlugin.getInstance().getDb().save(log);
     }
 
-    public static void store(ChestData chestData, Shopper customer, ItemStack item, double price) {
+    public static void store(SQLChest chestData, Shopper customer, ItemStack item, double price) {
         if (price == 0.0) return;
         SQLLog log = new SQLLog(new Date(), chestData, customer, item);
         log.setPrice(price);

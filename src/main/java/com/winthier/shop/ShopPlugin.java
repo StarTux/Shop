@@ -1,7 +1,7 @@
 package com.winthier.shop;
 
 import com.winthier.generic_events.GenericEvents;
-import com.winthier.shop.chest.ChestData;
+import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.chest.ChestDataStore;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.listener.ChestListener;
@@ -38,7 +38,7 @@ public final class ShopPlugin extends JavaPlugin {
         reloadConf();
         saveResource("market.yml", false);
         db = new SQLDatabase(this);
-        db.registerTables(SQLLog.class, SQLOffer.class, ChestData.class);
+        db.registerTables(SQLLog.class, SQLOffer.class, SQLChest.class);
         db.createAllTables();
         getServer().getPluginManager().registerEvents(new SignListener(), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(this), this);

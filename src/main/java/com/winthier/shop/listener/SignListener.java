@@ -5,7 +5,7 @@ import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
-import com.winthier.shop.chest.ChestData;
+import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.util.Msg;
 import java.util.UUID;
@@ -83,7 +83,7 @@ public final class SignListener implements Listener {
             owner = Shopper.of(player);
         }
         BlockLocation location = BlockLocation.of(event.getBlock());
-        final ChestData chestData = new ChestData(ChestData.Type.SIGN, shopType, location, owner, price, owner == null);
+        final SQLChest chestData = new SQLChest(SQLChest.Type.SIGN, shopType, location, owner, price, owner == null);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
         String priceFormat = GenericEvents.formatMoney(price);
         Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
@@ -129,7 +129,7 @@ public final class SignListener implements Listener {
         BlockLocation location = BlockLocation.of(event.getBlock());
         Shopper owner = Shopper.of(event.getPlayer());
         String priceFormat = GenericEvents.formatMoney(price);
-        ChestData chestData = new ChestData(ChestData.Type.NAMED_CHEST, shopType, location, owner, price, false);
+        SQLChest chestData = new SQLChest(SQLChest.Type.NAMED_CHEST, shopType, location, owner, price, false);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
         Msg.info(player, "You created a shop chest %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
@@ -157,7 +157,7 @@ public final class SignListener implements Listener {
     }
 
     boolean checkBrokenBlock(Block block) {
-        ChestData data = ShopPlugin.getInstance().getChestDataStore().remove(block);
+        SQLChest data = ShopPlugin.getInstance().getChestDataStore().remove(block);
         if (data == null) return false;
         ChestShop shop = ChestShop.getByBlock(block);
         if (shop != null) {
