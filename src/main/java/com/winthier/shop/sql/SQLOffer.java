@@ -42,22 +42,24 @@ public final class SQLOffer {
     private UUID owner;
     @Column(nullable = false) private String ownerName;
     @Column(nullable = false) private String world;
-    @Column(nullable = false) private Integer x, y, z;
+    @Column(nullable = false) private Integer x;
+    @Column(nullable = false) private Integer y;
+    @Column(nullable = false) private Integer z;
     @Column(nullable = false) private String material;
     @Column(nullable = false) private Integer itemAmount;
     @Column(nullable = false) private String itemName;
     @Column(nullable = false) private String itemDescription;
     @Column(nullable = false) private Double price;
 
-    SQLOffer(Date time, BlockLocation location, ChestData chestData, ItemStack item) {
+    SQLOffer(final Date time, final BlockLocation location, final ChestData chestData, final ItemStack item) {
         setTime(time);
         setShopType(chestData.getShopType());
         if (chestData.isAdminShop()) {
             setOwner(null);
             setOwnerName("The Bank");
         } else {
-            setOwner(chestData.getOwner().getUuid());
-            setOwnerName(chestData.getOwner().getName());
+            setOwner(chestData.getOwner());
+            setOwnerName(chestData.getShopper().getName());
         }
         setWorld(location.getWorld());
         setX(location.getX());
@@ -150,6 +152,6 @@ public final class SQLOffer {
     }
 
     public double pricePerItem() {
-        return getPrice() / (double)getItemAmount();
+        return getPrice() / (double) getItemAmount();
     }
 }

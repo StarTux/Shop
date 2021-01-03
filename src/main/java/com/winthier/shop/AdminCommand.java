@@ -3,6 +3,7 @@ package com.winthier.shop;
 import com.winthier.generic_events.GenericEvents;
 import com.winthier.shop.util.Msg;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -11,7 +12,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+@RequiredArgsConstructor
 public final class AdminCommand implements CommandExecutor {
+    private final ShopPlugin plugin;
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         final Player player = sender instanceof Player ? (Player) sender : null;
@@ -39,21 +43,21 @@ public final class AdminCommand implements CommandExecutor {
                 player.sendMessage("Make a selection first.");
                 return true;
             }
-            Market.Plot plot = ShopPlugin.getInstance().getMarket().makePlot();
+            Market.Plot plot = plugin.getMarket().makePlot();
             plot.setWest(Math.min(ax, bx));
             plot.setEast(Math.max(ax, bx));
             plot.setNorth(Math.min(az, bz));
             plot.setSouth(Math.max(az, bz));
             plot.setOwner(null);
-            if (ShopPlugin.getInstance().getMarket().collides(plot)) {
+            if (plugin.getMarket().collides(plot)) {
                 Msg.warn(player, "This plot would collide with another one.");
             } else {
-                ShopPlugin.getInstance().getMarket().getPlots().add(plot);
-                ShopPlugin.getInstance().getMarket().save();
+                plugin.getMarket().getPlots().add(plot);
+                plugin.getMarket().save();
                 Msg.info(player, "Plot created");
             }
         } else if (firstArg.equals("plotinfo")) {
-            Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(player.getLocation().getBlock());
+            Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
             if (plot == null) {
                 Msg.info(player, "There is no plot here.");
                 return true;
@@ -64,13 +68,13 @@ public final class AdminCommand implements CommandExecutor {
                 Msg.info(player, "Plot without an owner.");
             }
         } else if (firstArg.equals("deleteplot")) {
-            Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(player.getLocation().getBlock());
+            Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
             if (plot == null) {
                 Msg.warn(player, "There is no plot here!");
                 return true;
             }
-            ShopPlugin.getInstance().getMarket().getPlots().remove(plot);
-            ShopPlugin.getInstance().getMarket().save();
+            plugin.getMarket().getPlots().remove(plot);
+            plugin.getMarket().save();
             if (plot.getOwner() != null) {
                 Msg.info(player, "Plot of %s removed.", plot.getOwner().getName());
             } else {
@@ -79,11 +83,11 @@ public final class AdminCommand implements CommandExecutor {
         } else if (firstArg.equals("showplots")) {
             if (player == null) return false;
             World world = player.getWorld();
-            if (!world.getName().equals(ShopPlugin.getInstance().getMarket().getWorld())) return false;
+            if (!world.getName().equals(plugin.getMarket().getWorld())) return false;
             int y = player.getLocation().getBlockY();
             final Material mat = Material.GLOWSTONE;
             int count = 0;
-            for (Market.Plot plot: ShopPlugin.getInstance().getMarket().getPlots()) {
+            for (Market.Plot plot: plugin.getMarket().getPlots()) {
                 count += 1;
                 for (int x = plot.getWest(); x <= plot.getEast(); ++x) {
                     player.sendBlockChange(new Location(world, (double) x, (double) y, (double) plot.getNorth()), mat.createBlockData());
@@ -96,16 +100,16 @@ public final class AdminCommand implements CommandExecutor {
             }
             Msg.info(player, "%d plots highlighted", count);
         } else if (firstArg.equals("reload")) {
-            ShopPlugin.getInstance().flush();
-            ShopPlugin.getInstance().reloadConfig();
-            ShopPlugin.getInstance().reloadMarket();
+            plugin.reloadConf();
+            plugin.reloadMarket();
+            plugin.reloadChests();
             sender.sendMessage("Shop configuration reloaded");
         } else if (firstArg.equals("debug")) {
-            for (BlockLocation loc: ShopPlugin.getInstance().getOfferScanner().getDirties().keySet()) {
+            for (BlockLocation loc: plugin.getOfferScanner().getDirties().keySet()) {
                 player.sendMessage("" + loc);
             }
         } else if (firstArg.equals("transfer") && args.length == 2) {
-            Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(player.getLocation().getBlock());
+            Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
             if (plot == null) {
                 Msg.warn(player, "There is no plot here.");
                 return true;
@@ -119,12 +123,17 @@ public final class AdminCommand implements CommandExecutor {
             Shopper oldOwner = plot.getOwner();
             name = GenericEvents.cachedPlayerName(uuid);
             plot.setOwner(new Shopper(uuid, name));
-            ShopPlugin.getInstance().getMarket().save();
+            plugin.getMarket().save();
             if (oldOwner == null) {
                 Msg.info(player, "Plot transferred to " + name);
             } else {
                 Msg.info(player, "Plot transferred: " + oldOwner.getName() + " => " + name);
             }
+            return true;
+        } else if (firstArg.equals("migrate")) {
+            sender.sendMessage("Starting migration...");
+            int count = plugin.getChestDataStore().migrate();
+            sender.sendMessage(count + " chests migrated");
             return true;
         }
         return true;

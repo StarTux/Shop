@@ -1,9 +1,9 @@
 package com.winthier.shop;
 
 public enum ShopType {
-    /** A shop players can buy from */
+    /** A shop players can buy from. */
     BUY,
-    /** A shop players can sell to */
+    /** A shop players can sell to. */
     SELL;
 
     public static ShopType of(String name) {

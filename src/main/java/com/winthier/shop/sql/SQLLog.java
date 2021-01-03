@@ -33,22 +33,24 @@ public class SQLLog {
     @Column(nullable = false) private UUID customer;
     @Column(nullable = false) private String customerName;
     @Column(nullable = false) private String world;
-    @Column(nullable = false) private Integer x, y, z;
+    @Column(nullable = false) private Integer x;
+    @Column(nullable = false) private Integer y;
+    @Column(nullable = false) private Integer z;
     @Column(nullable = false) private String material;
     @Column(nullable = false) private Integer itemAmount;
     @Column(nullable = false) private String itemName;
     @Column(nullable = false) private String itemDescription;
     @Column(nullable = false) private Double price;
 
-    SQLLog(Date time, ChestData chestData, Shopper customer, ItemStack item) {
+    SQLLog(final Date time, final ChestData chestData, final Shopper customer, final ItemStack item) {
         setTime(time);
         setShopType(chestData.getShopType());
         if (chestData.isAdminShop()) {
             setOwner(null);
             setOwnerName("The Bank");
         } else {
-            setOwner(chestData.getOwner().getUuid());
-            setOwnerName(chestData.getOwner().getName());
+            setOwner(chestData.getOwner());
+            setOwnerName(chestData.getShopper().getName());
         }
         setCustomer(customer.getUuid());
         setCustomerName(customer.getName());

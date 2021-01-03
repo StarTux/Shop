@@ -33,18 +33,23 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public final class ShopCommand implements TabExecutor {
+    final Random random = new Random(System.currentTimeMillis());
     final Map<UUID, PlayerContext> contexts = new HashMap<>();
     final Comparator<SQLOffer> sqlOfferComparator = new Comparator<SQLOffer>() {
         @Override public int compare(SQLOffer a, SQLOffer b) {
             return Double.compare(a.pricePerItem(), b.pricePerItem());
         }
     };
-    @Value static class DoneItem { private final UUID uuid; private final String name; }
-    final Random random = new Random(System.currentTimeMillis());
+
+    @Value
+    static class DoneItem {
+        private final UUID uuid;
+        private final String name;
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        final Player player = sender instanceof Player ? (Player)sender : null;
+        final Player player = sender instanceof Player ? (Player) sender : null;
         if (player == null) return false;
         if (args.length == 0) {
             usage(player);
@@ -486,7 +491,8 @@ public final class ShopCommand implements TabExecutor {
     void portToPlot(Player player, Market.Plot plot) {
         Location loc;
         if (plot.getSpawnLocation() == null) {
-            int x, z;
+            int x;
+            int z;
             if (random.nextBoolean()) {
                 x = plot.getWest() + random.nextInt(plot.getEast() - plot.getWest() + 1);
                 if (random.nextBoolean()) {
@@ -521,7 +527,7 @@ public final class ShopCommand implements TabExecutor {
         BlockData blockData = location.getBlock().getBlockData();
         BlockFace firstFace = BlockFace.NORTH;
         if (blockData instanceof org.bukkit.block.data.Directional) {
-            firstFace = ((org.bukkit.block.data.Directional)blockData).getFacing();
+            firstFace = ((org.bukkit.block.data.Directional) blockData).getFacing();
         }
     faceLoop: for (BlockFace face: Arrays.<BlockFace>asList(firstFace, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST)) {
             Block block = location.getBlock().getRelative(face);
@@ -582,17 +588,27 @@ public final class ShopCommand implements TabExecutor {
     void usage(Player player) {
         if (player == null) return;
         Msg.info(player, "/shop &7Usage");
-        Msg.raw(player, " ", Msg.button("&a/shop search ...", "Search for items", "/shop search "), Msg.format(" &8-&r Search for items"));
-        Msg.raw(player, " ", Msg.button("&a/shop sell ...", "Sell items", "/shop sell "), Msg.format(" &8-&r Sell items"));
-        Msg.raw(player, " ", Msg.button("&a/shop list", "See who used your shop chests", "/shop list"), Msg.format(" &8-&r See who used your shop chests"));
-        Msg.raw(player, " ", Msg.button("&a/shop port &7&o[Name]", "Port to a market plot", "/shop port "), Msg.format(" &8-&r Port to a market plot"));
-        Msg.raw(player, " ", Msg.button("&a/shop market", "Teleport to the market", "/shop market"), Msg.format(" &8-&r Teleport to the market"));
+        Msg.raw(player, " ", Msg.button("&a/shop search ...", "Search for items", "/shop search "),
+                Msg.format(" &8-&r Search for items"));
+        Msg.raw(player, " ", Msg.button("&a/shop sell ...", "Sell items", "/shop sell "),
+                Msg.format(" &8-&r Sell items"));
+        Msg.raw(player, " ", Msg.button("&a/shop list", "See who used your shop chests", "/shop list"),
+                Msg.format(" &8-&r See who used your shop chests"));
+        Msg.raw(player, " ", Msg.button("&a/shop port &7&o[Name]", "Port to a market plot", "/shop port "),
+                Msg.format(" &8-&r Port to a market plot"));
+        Msg.raw(player, " ", Msg.button("&a/shop market", "Teleport to the market", "/shop market"),
+                Msg.format(" &8-&r Teleport to the market"));
         if (player.hasPermission("shop.market.claim")) {
-            Msg.raw(player, " ", Msg.button("&a/shop auto", "Find an unclaimed market plot", "/shop auto"), Msg.format(" &8-&r Find an unclaimed market plot"));
-            Msg.raw(player, " ", Msg.button("&a/shop claim", "Claim a market plot", "/shop claim"), Msg.format(" &8-&r Claim a market plot"));
-            Msg.raw(player, " ", Msg.button("&a/shop trust", "Trust someone in your plot", "/shop trust "), Msg.format(" &8-&r Trust someone in your plot"));
-            Msg.raw(player, " ", Msg.button("&a/shop untrust", "Untrust someone in your plot", "/shop untrust "), Msg.format(" &8-&r Untrust someone in your plot"));
-            Msg.raw(player, " ", Msg.button("&a/shop setspawn", "Set the spawn location of your plot", "/shop setspawn "), Msg.format(" &8-&r Set the spawn location of your plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop auto", "Find an unclaimed market plot", "/shop auto"),
+                    Msg.format(" &8-&r Find an unclaimed market plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop claim", "Claim a market plot", "/shop claim"),
+                    Msg.format(" &8-&r Claim a market plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop trust", "Trust someone in your plot", "/shop trust "),
+                    Msg.format(" &8-&r Trust someone in your plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop untrust", "Untrust someone in your plot", "/shop untrust "),
+                    Msg.format(" &8-&r Untrust someone in your plot"));
+            Msg.raw(player, " ", Msg.button("&a/shop setspawn", "Set the spawn location of your plot", "/shop setspawn "),
+                    Msg.format(" &8-&r Set the spawn location of your plot"));
         }
     }
 

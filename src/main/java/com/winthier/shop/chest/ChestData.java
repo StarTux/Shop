@@ -1,13 +1,15 @@
 package com.winthier.shop.chest;
 
 import com.winthier.shop.BlockLocation;
+import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.util.Msg;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -15,58 +17,73 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
-@Getter
-@RequiredArgsConstructor
+@Getter @Setter @Table(name = "chests")
 public final class ChestData {
-    public enum Type { SIGN, NAMED_CHEST; }
-    private final Type type;
-    private final ShopType shopType;
-    private final BlockLocation location;
-    private final Shopper owner;
-    private final double price;
-    private final boolean adminShop;
-    @Setter private transient boolean soldOut = false;
+    @Id private Integer id;
+    @Column(nullable = false) private Type type;
+    @Column(nullable = false) private ShopType shopType;
+    @Column(nullable = false) private String world;
+    @Column(nullable = false) private int x;
+    @Column(nullable = false) private int y;
+    @Column(nullable = false) private int z;
+    @Column(nullable = true) private UUID owner;
+    @Column(nullable = false) private double price;
+    @Column(nullable = false) private boolean adminShop;
+    private transient boolean soldOut = false;
+    private transient BlockLocation location;
+    private transient Shopper shopper;
 
-    public Map<String, Object> serialize() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("type", type.name());
-        map.put("shopType", shopType.name());
-        map.put("location", location.serialize());
-        if (owner != null) map.put("owner", owner.serialize());
-        map.put("price", price);
-        if (adminShop) map.put("adminShop", adminShop);
-        return map;
+    public enum Type {
+        SIGN,
+        NAMED_CHEST;
     }
 
-    @SuppressWarnings("unchecked")
-    public static ChestData deserialize(Map<String, Object> map) {
-        Type type = Type.valueOf((String)map.get("type"));
-        ShopType shopType = ShopType.valueOf((String)map.get("shopType"));
-        BlockLocation location = BlockLocation.deserialize((Map<String, Object>)map.get("location"));
-        Shopper owner;
-        if (map.containsKey("owner")) {
-            owner = Shopper.deserialize((Map<String, Object>)map.get("owner"));
-        } else {
-            owner = null;
+    public ChestData() { }
+
+    public ChestData(final Type type, final ShopType shopType, final BlockLocation location,
+                     final Shopper shopper, final double price, final boolean adminShop) {
+        this.type = type;
+        this.shopType = shopType;
+        this.location = location;
+        this.world = location.getWorld();
+        this.x = location.getX();
+        this.y = location.getY();
+        this.z = location.getZ();
+        this.shopper = shopper;
+        if (shopper != null) {
+            this.owner = shopper.getUuid();
         }
-        double price = (Double)map.get("price");
-        boolean adminShop = map.containsKey("adminShop") ? (Boolean)map.get("adminShop") : false;
-        return new ChestData(type, shopType, location, owner, price, adminShop);
+        this.price = price;
+        this.adminShop = adminShop;
+    }
+
+    public Shopper getShopper() {
+        if (shopper == null) {
+            shopper = ShopPlugin.getInstance().findShopper(owner);
+        }
+        return shopper;
+    }
+
+    public BlockLocation getLocation() {
+        if (location == null) {
+            location = new BlockLocation(world, x, y, z);
+        }
+        return location;
     }
 
     public Player getPlayer() {
-        return Bukkit.getServer().getPlayer(getOwner().getUuid());
+        return Bukkit.getServer().getPlayer(owner);
     }
 
     public boolean isOwner(Player player) {
         if (isAdminShop()) return false;
-        return player.getUniqueId().equals(getOwner().getUuid());
+        return player.getUniqueId().equals(owner);
     }
 
     public String getOwnerName() {
         if (adminShop) return "The Bank";
         if (owner == null) return "N/A";
-        return owner.getName();
+        return getShopper().getName();
     }
 
     // Real world
@@ -75,7 +92,7 @@ public final class ChestData {
         Block block = location.getBlock();
         BlockState blockState = block.getState();
         if (!(blockState instanceof Sign)) return null;
-        return (Sign)blockState;
+        return (Sign) blockState;
     }
 
     public boolean updateInWorld() {
@@ -100,7 +117,7 @@ public final class ChestData {
                 sign.setLine(2, "");
                 sign.setLine(3, Msg.format("&9The Bank"));
             } else {
-                String ownerName = owner.getName();
+                String ownerName = getShopper().getName();
                 if (ownerName.length() <= 13) {
                     sign.setLine(2, "");
                     sign.setLine(3, Msg.format("&8%s", ownerName));

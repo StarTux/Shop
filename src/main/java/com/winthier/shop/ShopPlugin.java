@@ -1,7 +1,9 @@
 package com.winthier.shop;
 
 import com.winthier.generic_events.GenericEvents;
+import com.winthier.shop.chest.ChestData;
 import com.winthier.shop.chest.ChestDataStore;
+import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.listener.ChestListener;
 import com.winthier.shop.listener.InventoryListener;
 import com.winthier.shop.listener.MarketListener;
@@ -11,30 +13,35 @@ import com.winthier.shop.sql.SQLOffer;
 import com.winthier.sql.SQLDatabase;
 import java.util.UUID;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
 public final class ShopPlugin extends JavaPlugin {
     @Getter private static ShopPlugin instance;
-    private ChestDataStore chestDataStore = null;
+    @Getter private final ChestDataStore chestDataStore = new ChestDataStore(this);
     private OfferScanner offerScanner = new OfferScanner();
-    private Market market = null;
+    private Market market = new Market();
     private MarketListener marketListener;
-    private AdminCommand adminCommand = new AdminCommand();
+    private AdminCommand adminCommand = new AdminCommand(this);
     private boolean debugMode;
     private SQLDatabase db;
 
     @Override
     public void onEnable() {
         instance = this;
+        saveDefaultConfig();
+        reloadConf();
         saveResource("market.yml", false);
         db = new SQLDatabase(this);
-        db.registerTables(SQLLog.class, SQLOffer.class);
+        db.registerTables(SQLLog.class, SQLOffer.class, ChestData.class);
         db.createAllTables();
         getServer().getPluginManager().registerEvents(new SignListener(), this);
-        getServer().getPluginManager().registerEvents(new InventoryListener(), this);
+        getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
         marketListener = new MarketListener(this);
         getServer().getPluginManager().registerEvents(marketListener, this);
@@ -49,31 +56,37 @@ public final class ShopPlugin extends JavaPlugin {
                 return true;
             });
         offerScanner.start();
+        reloadMarket();
+        reloadChests();
     }
 
     @Override
     public void onDisable() {
         offerScanner.stop();
-    }
-
-    public ChestDataStore getChestDataStore() {
-        if (chestDataStore == null) {
-            chestDataStore = new ChestDataStore();
-            chestDataStore.load();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            InventoryView inventoryView = player.getOpenInventory();
+            if (inventoryView == null) continue;
+            Inventory inventory = inventoryView.getBottomInventory();
+            if (inventory == null) continue;
+            ChestShop chestShop = ChestShop.getByInventory(inventory);
+            if (chestShop == null) continue;
+            player.closeInventory();
         }
-        return chestDataStore;
-    }
-
-    public Market getMarket() {
-        if (market == null) {
-            market = new Market();
-            market.load();
-        }
-        return market;
     }
 
     public void reloadMarket() {
-        market = null;
+        market = new Market();
+        market.load();
+    }
+
+    public void reloadChests() {
+        chestDataStore.load();
+    }
+
+    public void reloadConf() {
+        reloadConfig();
+        debugMode = getConfig().getBoolean("Debug");
+        if (debugMode) getLogger().info("Debug mode enabled");
     }
 
     public Shopper findShopper(UUID uuid) {
@@ -90,10 +103,5 @@ public final class ShopPlugin extends JavaPlugin {
             return new Shopper(uuid, name);
         }
         return null;
-    }
-
-    public void flush() {
-        market = null;
-        chestDataStore = null;
     }
 }

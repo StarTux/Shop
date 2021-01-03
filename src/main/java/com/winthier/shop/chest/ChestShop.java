@@ -24,19 +24,21 @@ import org.bukkit.inventory.ItemStack;
 public final class ChestShop {
     final Inventory inventory;
     final ChestData chestData;
-    final Block left, right;
+    final Block left;
+    final Block right;
 
     public static ChestShop getByChest(Block block) {
         if (block.getType() != Material.CHEST && block.getType() != Material.TRAPPED_CHEST) return null;
-        Chest chest = (Chest)block.getState();
+        Chest chest = (Chest) block.getState();
         Inventory inventory = chest.getBlockInventory();
-        Block left = null, right = null;
+        Block left = null;
+        Block right = null;
         ChestData chestData = null;
         inventory = inventory.getHolder().getInventory();
         if (inventory instanceof DoubleChestInventory) {
-            DoubleChest doubleChest = ((DoubleChestInventory)inventory).getHolder();
-            left = ((Chest)doubleChest.getLeftSide()).getBlock();
-            right = ((Chest)doubleChest.getRightSide()).getBlock();
+            DoubleChest doubleChest = ((DoubleChestInventory) inventory).getHolder();
+            left = ((Chest) doubleChest.getLeftSide()).getBlock();
+            right = ((Chest) doubleChest.getRightSide()).getBlock();
         } else {
             left = block;
         }
@@ -62,10 +64,10 @@ public final class ChestShop {
 
     public static ChestShop getByInventory(Inventory inventory) {
         if (inventory.getHolder() instanceof Chest) {
-            return getByChest(((Chest)inventory.getHolder()).getBlock());
+            return getByChest(((Chest) inventory.getHolder()).getBlock());
         }
         if (inventory instanceof DoubleChestInventory) {
-            return getByChest(((DoubleChestInventory)inventory).getHolder().getLocation().getBlock());
+            return getByChest(((DoubleChestInventory) inventory).getHolder().getLocation().getBlock());
         }
         return null;
     }

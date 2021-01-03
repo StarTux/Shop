@@ -50,7 +50,7 @@ public final class Item {
             Map<Enchantment, Integer> enchants;
             enchants = meta.getEnchants();
             if (enchants.isEmpty() && meta instanceof EnchantmentStorageMeta) {
-                enchants = ((EnchantmentStorageMeta)meta).getStoredEnchants();
+                enchants = ((EnchantmentStorageMeta) meta).getStoredEnchants();
             }
             if (enchants != null && !enchants.isEmpty()) {
                 for (Enchantment enchant : enchants.keySet()) {
@@ -61,7 +61,7 @@ public final class Item {
                 }
             }
             if (meta instanceof PotionMeta) {
-                PotionMeta potions = (PotionMeta)meta;
+                PotionMeta potions = (PotionMeta) meta;
                 try {
                     PotionData data = potions.getBasePotionData();
                     if (data != null && data.getType() != PotionType.UNCRAFTABLE) {
@@ -89,7 +89,7 @@ public final class Item {
                 }
             }
             if (meta instanceof SkullMeta) {
-                SkullMeta skull = (SkullMeta)meta;
+                SkullMeta skull = (SkullMeta) meta;
                 String name = null;
                 if (skull.hasOwner()) {
                     name = skull.getOwningPlayer().getName();

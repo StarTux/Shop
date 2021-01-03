@@ -85,7 +85,7 @@ public final class OfferScanner {
             SQLOffer.deleteAt(location);
             return;
         }
-        Chest chest = (Chest)state;
+        Chest chest = (Chest) state;
         Inventory inv = chest.getBlockInventory();
         List<ItemStack> items = new ArrayList<>();
         for (ItemStack item: inv) {

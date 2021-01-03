@@ -85,7 +85,6 @@ public final class SignListener implements Listener {
         BlockLocation location = BlockLocation.of(event.getBlock());
         final ChestData chestData = new ChestData(ChestData.Type.SIGN, shopType, location, owner, price, owner == null);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
-        ShopPlugin.getInstance().getChestDataStore().save();
         String priceFormat = GenericEvents.formatMoney(price);
         Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         new BukkitRunnable() {
@@ -132,38 +131,29 @@ public final class SignListener implements Listener {
         String priceFormat = GenericEvents.formatMoney(price);
         ChestData chestData = new ChestData(ChestData.Type.NAMED_CHEST, shopType, location, owner, price, false);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
-        ShopPlugin.getInstance().getChestDataStore().save();
         Msg.info(player, "You created a shop chest %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (checkBrokenBlock(event.getBlock())) {
-            ShopPlugin.getInstance().getChestDataStore().save();
-        }
+        checkBrokenBlock(event.getBlock());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockExplode(BlockExplodeEvent event) {
         boolean shouldSave = false;
         for (Block block: event.blockList()) {
-            if (checkBrokenBlock(block)) {
-                shouldSave = true;
-            }
+            checkBrokenBlock(block);
         }
-        if (shouldSave) ShopPlugin.getInstance().getChestDataStore().save();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onEntityExplode(EntityExplodeEvent event) {
         boolean shouldSave = false;
         for (Block block: event.blockList()) {
-            if (checkBrokenBlock(block)) {
-                shouldSave = true;
-            }
+            checkBrokenBlock(block);
         }
-        if (shouldSave) ShopPlugin.getInstance().getChestDataStore().save();
     }
 
     boolean checkBrokenBlock(Block block) {

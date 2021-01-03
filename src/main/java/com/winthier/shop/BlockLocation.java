@@ -13,7 +13,9 @@ import org.bukkit.block.Block;
 @Value
 public final class BlockLocation {
     private String world;
-    private int x, y, z;
+    private int x;
+    private int y;
+    private int z;
 
     public static BlockLocation of(Block block) {
         return new BlockLocation(block.getWorld().getName(), block.getX(), block.getY(), block.getZ());
@@ -42,8 +44,8 @@ public final class BlockLocation {
 
     @SuppressWarnings("unchecked")
     public static BlockLocation deserialize(Map<String, Object> map) {
-        String world = (String)map.get("world");
-        List<Integer> coords = (List<Integer>)map.get("coordinates");
+        String world = (String) map.get("world");
+        List<Integer> coords = (List<Integer>) map.get("coordinates");
         return new BlockLocation(world, coords.get(0), coords.get(1), coords.get(2));
     }
 
