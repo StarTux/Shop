@@ -1,5 +1,6 @@
 package com.winthier.shop.listener;
 
+import com.destroystokyo.paper.event.entity.PreCreatureSpawnEvent;
 import com.winthier.generic_events.PlayerCanBuildEvent;
 import com.winthier.shop.Market;
 import com.winthier.shop.ShopPlugin;
@@ -7,8 +8,10 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.Cancellable;
@@ -24,6 +27,9 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -68,6 +74,10 @@ public final class MarketListener implements Listener {
         }
         event.setCancelled(true);
         return;
+    }
+
+    public boolean isMarketWorld(World world) {
+        return world.getName().equals(plugin.getMarket().getWorld());
     }
 
     public void onMarketEvent(Player player, Location location, Cancellable event) {
@@ -206,6 +216,42 @@ public final class MarketListener implements Listener {
         } else if (holder instanceof Entity) {
             Entity entity = (Entity) holder;
             onMarketEvent(player, entity.getLocation().getBlock(), event);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
+    void onCreatureSpawn(CreatureSpawnEvent event) {
+        onCreatureSpawn(event, event.getSpawnReason(), event.getEntityType(), event.getLocation());
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
+    void onPreCreatureSpawn(PreCreatureSpawnEvent event) {
+        onCreatureSpawn(event, event.getReason(), event.getType(), event.getSpawnLocation());
+    }
+
+    void onCreatureSpawn(Cancellable event, SpawnReason reason, EntityType entityType, Location location) {
+        if (!plugin.getMarket().isProtect()) return;
+        if (!isMarketWorld(location.getWorld())) return;
+        switch (reason) {
+        case CUSTOM:
+        case DEFAULT:
+            // We assume these are commands or plugins which is always
+            // allowed.
+            return;
+        default:
+            event.setCancelled(true);
+            return;
+        }
+    }
+
+    @EventHandler
+    void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        if (event.getEntity() instanceof Player) {
+            onMarketEvent((Player) event.getEntity(), event.getBlock(), event);
+        } else {
+            if (!plugin.getMarket().isProtect()) return;
+            if (!isMarketWorld(event.getBlock().getWorld())) return;
+            event.setCancelled(true);
         }
     }
 }
