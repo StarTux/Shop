@@ -113,7 +113,7 @@ public final class SQLChest {
             if (soldOut) {
                 sign.setLine(1, Msg.format("&4SOLD OUT"));
             } else {
-                sign.setLine(1, ChatColor.BLUE + GenericEvents.formatMoney(price));
+                sign.setLine(1, ChatColor.GOLD + GenericEvents.formatMoney(price));
             }
             if (adminShop) {
                 sign.setLine(2, "");
