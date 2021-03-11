@@ -1,5 +1,6 @@
 package com.winthier.shop.sql;
 
+import com.winthier.generic_events.GenericEvents;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -11,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -111,7 +113,7 @@ public final class SQLChest {
             if (soldOut) {
                 sign.setLine(1, Msg.format("&4SOLD OUT"));
             } else {
-                sign.setLine(1, Msg.format("&1%.02f", price));
+                sign.setLine(1, ChatColor.BLUE + GenericEvents.formatMoney(price));
             }
             if (adminShop) {
                 sign.setLine(2, "");
