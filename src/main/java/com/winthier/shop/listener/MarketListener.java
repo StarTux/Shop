@@ -22,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
@@ -151,6 +152,15 @@ public final class MarketListener implements Listener {
         if (!event.getEntity().getWorld().getName().equals(plugin.getMarket().getWorld())) return;
         if (!plugin.getMarket().isProtect()) return;
         event.setCancelled(true);
+        event.blockList().clear();
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onBlockExplode(BlockExplodeEvent event) {
+        if (!event.getBlock().getWorld().getName().equals(plugin.getMarket().getWorld())) return;
+        if (!plugin.getMarket().isProtect()) return;
+        event.setCancelled(true);
+        event.blockList().clear();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
