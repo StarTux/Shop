@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -32,6 +33,7 @@ import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
@@ -88,6 +90,22 @@ public final class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.PHYSICAL) return;
+        if (!event.hasBlock()) return;
+        Block block = event.getClickedBlock();
+        if (!block.getWorld().getName().equals(plugin.getMarket().getWorld())) return;
+        if (!plugin.getMarket().isProtect()) return;
+        switch (block.getType()) {
+        case RESPAWN_ANCHOR:
+            if (block.getWorld().getEnvironment() != World.Environment.NETHER) {
+                RespawnAnchor data = (RespawnAnchor) block.getBlockData();
+                if (data.getCharges() >= data.getMaximumCharges()) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+            break;
+        default: break;
+        }
         onMarketEvent(event.getPlayer(), event.getClickedBlock(), event);
     }
 
@@ -132,6 +150,20 @@ public final class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
         onMarketEvent(event.getPlayer(), event.getRightClicked().getLocation(), event);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (!event.getEntity().getWorld().getName().equals(plugin.getMarket().getWorld())) return;
+        if (!plugin.getMarket().isProtect()) return;
+        switch (event.getCause()) {
+        case BLOCK_EXPLOSION:
+        case ENTITY_EXPLOSION:
+        case LIGHTNING:
+        case MELTING:
+            event.setCancelled(true);
+        default: return;
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
