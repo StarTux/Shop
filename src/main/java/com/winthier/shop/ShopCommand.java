@@ -476,10 +476,6 @@ public final class ShopCommand implements TabExecutor {
         }
     }
 
-    static boolean blocks(Block block) {
-        return block.getType().isSolid();
-    }
-
     boolean portToShop(Player player, int index) {
         if (index < 0 || index >= getPlayerContext(player).locations.size()) return false;
         Location loc = savePortLocation(getPlayerContext(player).locations.get(index));
@@ -542,10 +538,9 @@ public final class ShopCommand implements TabExecutor {
         if (nbors.isEmpty()) return null;
         List<Block> results = new ArrayList<>();
     nborLoop: for (Block nbor: nbors) {
-            if (blocks(nbor)) {
+            if (nbor.isSolid()) {
                 int count = 0;
-                while (blocks(nbor.getRelative(BlockFace.UP, 1))
-                       || blocks(nbor.getRelative(BlockFace.UP, 2))) {
+                while (!nbor.getRelative(BlockFace.UP, 1).isEmpty() || !nbor.getRelative(BlockFace.UP, 2).isEmpty()) {
                     nbor = nbor.getRelative(BlockFace.UP);
                     count += 1;
                     if (count > 5) continue nborLoop;
@@ -553,13 +548,12 @@ public final class ShopCommand implements TabExecutor {
                 results.add(nbor.getRelative(BlockFace.UP));
             } else {
                 int count = 0;
-                while (!blocks(nbor)) {
+                while (!nbor.isSolid()) {
                     nbor = nbor.getRelative(BlockFace.DOWN);
                     count += 1;
                     if (count > 5) continue nborLoop;
                 }
-                if (!blocks(nbor.getRelative(BlockFace.UP, 1))
-                    && !blocks(nbor.getRelative(BlockFace.UP, 2))) {
+                if (nbor.getRelative(BlockFace.UP, 1).isEmpty() && nbor.getRelative(BlockFace.UP, 2).isEmpty()) {
                     results.add(nbor.getRelative(BlockFace.UP));
                 }
             }
