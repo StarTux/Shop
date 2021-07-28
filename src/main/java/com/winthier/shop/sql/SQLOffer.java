@@ -75,7 +75,7 @@ public final class SQLOffer {
         return new BlockLocation(getWorld(), getX(), getY(), getZ());
     }
 
-    static Map<BlockLocation, Offers> getCache() {
+    public static Map<BlockLocation, Offers> getCache() {
         if (cache == null) {
             cache = new HashMap<>();
             for (SQLOffer offer: ShopPlugin.getInstance().getDb().find(SQLOffer.class).findList()) {

@@ -5,7 +5,7 @@ version: 0.1
 api-version: 1.17
 main: com.winthier.shop.ShopPlugin
 website: https://cavetale.com
-depend: [SQL, GenericEvents]
+depend: [Core, SQL, GenericEvents, Mytems]
 softdepend: []
 commands:
   market:
@@ -19,12 +19,13 @@ commands:
   shopadmin:
     description: Admin interface
     usage: |-
-      /<command> reload - Reload configs
-      /<command> plotinfo - Display current plot info
-      /<command> makeplot - Make plot from selection
-      /<command> deleteplot - Delete current plot
-      /<command> showplots - Highlight nearby plots
-      /<command> transfer - Transfer plot
+      /shopadmin reload - Reload configs
+      /shopadmin plotinfo - Display current plot info
+      /shopadmin makeplot - Make plot from selection
+      /shopadmin deleteplot - Delete current plot
+      /shopadmin showplots - Highlight nearby plots
+      /shopadmin transfer - Transfer plot
+      /shopadmin flushoffers - Flush all offers (rescan)
     permission: shop.admin
 permissions:
   shop.shop:

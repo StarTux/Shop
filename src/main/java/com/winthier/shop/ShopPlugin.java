@@ -1,13 +1,13 @@
 package com.winthier.shop;
 
 import com.winthier.generic_events.GenericEvents;
-import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.chest.ChestDataStore;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.listener.ChestListener;
 import com.winthier.shop.listener.InventoryListener;
 import com.winthier.shop.listener.MarketListener;
 import com.winthier.shop.listener.SignListener;
+import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.sql.SQLDatabase;
@@ -55,6 +55,7 @@ public final class ShopPlugin extends JavaPlugin {
                 ((Player) s).teleport(world.getSpawnLocation());
                 return true;
             });
+        SQLOffer.getCache();
         offerScanner.start();
         reloadMarket();
         reloadChests();

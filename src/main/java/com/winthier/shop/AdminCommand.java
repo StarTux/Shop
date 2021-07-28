@@ -1,19 +1,24 @@
 package com.winthier.shop;
 
 import com.winthier.generic_events.GenericEvents;
+import com.winthier.shop.sql.SQLOffer;
 import com.winthier.shop.util.Msg;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
 @RequiredArgsConstructor
-public final class AdminCommand implements CommandExecutor {
+public final class AdminCommand implements TabExecutor {
     private final ShopPlugin plugin;
 
     @Override
@@ -21,7 +26,8 @@ public final class AdminCommand implements CommandExecutor {
         final Player player = sender instanceof Player ? (Player) sender : null;
         if (args.length == 0) return false;
         String firstArg = args[0].toLowerCase();
-        if (firstArg.equals("makeplot")) {
+        switch (firstArg) {
+        case "makeplot": {
             if (player == null) {
                 sender.sendMessage("Player expected");
                 return true;
@@ -56,7 +62,9 @@ public final class AdminCommand implements CommandExecutor {
                 plugin.getMarket().save();
                 Msg.info(player, "Plot created");
             }
-        } else if (firstArg.equals("plotinfo")) {
+            return true;
+        }
+        case "plotinfo": {
             Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
             if (plot == null) {
                 Msg.info(player, "There is no plot here.");
@@ -67,7 +75,9 @@ public final class AdminCommand implements CommandExecutor {
             } else {
                 Msg.info(player, "Plot without an owner.");
             }
-        } else if (firstArg.equals("deleteplot")) {
+            return true;
+        }
+        case "deleteplot": {
             Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
             if (plot == null) {
                 Msg.warn(player, "There is no plot here!");
@@ -80,7 +90,9 @@ public final class AdminCommand implements CommandExecutor {
             } else {
                 Msg.info(player, "Unowned plot removed.");
             }
-        } else if (firstArg.equals("showplots")) {
+            return true;
+        }
+        case "showplots": {
             if (player == null) return false;
             World world = player.getWorld();
             if (!world.getName().equals(plugin.getMarket().getWorld())) return false;
@@ -99,16 +111,23 @@ public final class AdminCommand implements CommandExecutor {
                 }
             }
             Msg.info(player, "%d plots highlighted", count);
-        } else if (firstArg.equals("reload")) {
+            return true;
+        }
+        case "reload": {
             plugin.reloadConf();
             plugin.reloadMarket();
             plugin.reloadChests();
             sender.sendMessage("Shop configuration reloaded");
-        } else if (firstArg.equals("debug")) {
+            return true;
+        }
+        case "debug": {
             for (BlockLocation loc: plugin.getOfferScanner().getDirties().keySet()) {
                 player.sendMessage("" + loc);
             }
-        } else if (firstArg.equals("transfer") && args.length == 2) {
+            return true;
+        }
+        case "transfer": {
+            if (args.length != 2) return false;
             Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
             if (plot == null) {
                 Msg.warn(player, "There is no plot here.");
@@ -130,12 +149,30 @@ public final class AdminCommand implements CommandExecutor {
                 Msg.info(player, "Plot transferred: " + oldOwner.getName() + " => " + name);
             }
             return true;
-        } else if (firstArg.equals("migrate")) {
-            sender.sendMessage("Starting migration...");
-            int count = plugin.getChestDataStore().migrate();
-            sender.sendMessage(count + " chests migrated");
+        }
+        case "flushoffers": {
+            List<BlockLocation> bls = new ArrayList<>(SQLOffer.getCache().keySet());
+            for (BlockLocation bl : bls) {
+                plugin.getOfferScanner().setDirty(bl);
+            }
+            sender.sendMessage(bls.size() + " offers flushed!");
             return true;
         }
-        return true;
+        default: return false;
+        }
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) return null;
+        String arg = args[args.length - 1];
+        if (args.length == 1) {
+            return Stream.of("makeplot", "plotinfo", "deleteplot",
+            "showplots", "reload", "debug", "transfer", "migrate",
+            "flushoffers")
+                .filter(s -> s.contains(arg))
+                .collect(Collectors.toList());
+        }
+        return null;
     }
 }
