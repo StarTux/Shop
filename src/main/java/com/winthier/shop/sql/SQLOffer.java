@@ -18,6 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 
 @Entity
@@ -46,29 +48,30 @@ public final class SQLOffer {
     @Column(nullable = false) private Integer z;
     @Column(nullable = false) private String material;
     @Column(nullable = false) private Integer itemAmount;
-    @Column(nullable = false) private String itemName;
+    @Column(nullable = false, length = 4096) private String itemDisplayName; // Component
     @Column(nullable = false) private String itemDescription;
     @Column(nullable = false) private Double price;
 
     SQLOffer(final Date time, final BlockLocation location, final SQLChest chestData, final ItemStack item) {
-        setTime(time);
-        setShopType(chestData.getShopType());
+        this.time = time;
+        this.shopType = chestData.getShopType();
         if (chestData.isAdminShop()) {
-            setOwner(null);
-            setOwnerName("The Bank");
+            this.owner = null;
+            this.ownerName = "The Bank";
         } else {
-            setOwner(chestData.getOwner());
-            setOwnerName(chestData.getShopper().getName());
+            this.owner = chestData.getOwner();
+            this.ownerName = chestData.getShopper().getName();
         }
-        setWorld(location.getWorld());
-        setX(location.getX());
-        setY(location.getY());
-        setZ(location.getZ());
-        setMaterial(item.getType().name().toLowerCase());
-        setItemAmount(item.getAmount());
-        setItemName(Item.getItemName(item));
-        setItemDescription(Item.getItemDescription(item));
-        setPrice(chestData.getPrice());
+        this.world = location.getWorld();
+        this.x = location.getX();
+        this.y = location.getY();
+        this.z = location.getZ();
+        this.material = item.getType().getKey().getKey();
+        this.itemAmount = item.getAmount();
+        Component itemComponent = Item.getItemDisplayName(item);
+        this.itemDisplayName = GsonComponentSerializer.gson().serialize(itemComponent);
+        this.itemDescription = Item.getItemDescription(item);
+        this.price = chestData.getPrice();
     }
 
     public BlockLocation getBlockLocation() {
@@ -152,5 +155,11 @@ public final class SQLOffer {
 
     public double pricePerItem() {
         return getPrice() / (double) getItemAmount();
+    }
+
+    public Component parseItemDisplayName() {
+        return itemDisplayName != null && !itemDisplayName.isEmpty()
+            ? GsonComponentSerializer.gson().deserialize(itemDisplayName)
+            : Component.empty();
     }
 }

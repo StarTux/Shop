@@ -3,6 +3,7 @@ package com.winthier.shop.util;
 import com.cavetale.mytems.Mytems;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
@@ -123,5 +124,13 @@ public final class Item {
             }
         }
         return desc.toString();
+    }
+
+    public static Component getItemDisplayName(ItemStack item) {
+        Mytems mytems = Mytems.forItem(item);
+        Component result = mytems != null
+            ? mytems.getMytem().getDisplayName()
+            : Component.text(getItemDescription(item), NamedTextColor.WHITE);
+        return result.hoverEvent(item.asHoverEvent());
     }
 }

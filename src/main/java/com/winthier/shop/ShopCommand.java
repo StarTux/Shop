@@ -18,6 +18,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -216,8 +222,8 @@ public final class ShopCommand implements TabExecutor {
         if (shopType == ShopType.SELL) Collections.reverse(offers);
         getPlayerContext(player).clear();
         int offerIndex = 0;
-        List<List<Object>> lines = new ArrayList<>();
         Set<DoneItem> doneItems = new HashSet<>();
+        List<Component> lines = new ArrayList<>();
         for (SQLOffer offer: offers) {
             // Only one mention per player
             UUID owner = offer.getOwner();
@@ -229,22 +235,29 @@ public final class ShopCommand implements TabExecutor {
                     doneItems.add(doneItem);
                 }
             }
-            List<Object> json = new ArrayList<>();
-            json.add("");
-            json.add(Msg.button(ChatColor.BLUE, "&r[&9Port&r] ", "Port to " + offer.getOwnerName() + "'s shop chest", "/shop port " + offerIndex));
-            json.add(Msg.button(ChatColor.GREEN, GenericEvents.formatMoney(offer.getPrice()), null, null));
-            json.add(Msg.button(ChatColor.WHITE,
-                                " " + offer.getItemAmount() + "&8x&r" + offer.getItemDescription(),
-                                null, null));
-            json.add(Msg.button(ChatColor.DARK_GRAY, " by " + offer.getOwnerName(),
-                                "Port to " + offer.getOwnerName() + "'s shop chest", "/shop port " + offerIndex));
-            lines.add(json);
+            TextComponent.Builder cb = Component.text()
+                .hoverEvent(HoverEvent.showText(Component.text("Port to " + offer.getOwnerName() + "'s shop chest", NamedTextColor.GRAY)))
+                .clickEvent(ClickEvent.runCommand("/shop port " + offerIndex));
+            cb.append(Component.text("[Port]", NamedTextColor.BLUE));
+            cb.append(Component.space());
+            cb.append(Component.text(GenericEvents.formatMoney(offer.getPrice()), NamedTextColor.GOLD));
+            cb.append(Component.space());
+            if (offer.getItemAmount() > 1) {
+                cb.append(Component.text(offer.getItemAmount(), NamedTextColor.WHITE));
+                cb.append(Component.text("x", NamedTextColor.DARK_GRAY));
+            }
+            cb.append(offer.parseItemDisplayName());
+            cb.append(Component.space());
+            cb.append(Component.text("by", NamedTextColor.DARK_GRAY));
+            cb.append(Component.space());
+            cb.append(Component.text(offer.getOwnerName(), NamedTextColor.WHITE));
+            lines.add(cb.build());
             getPlayerContext(player).locations.add(offer.getBlockLocation());
             getPlayerContext(player).searchType = shopType;
             offerIndex += 1;
         }
         getPlayerContext(player).pages.addAll(Page.pagesOf(lines));
-        Msg.send(player, "&9&lShop Search");
+        player.sendMessage(Component.text("Shop Search", NamedTextColor.BLUE, TextDecoration.BOLD));
         showPage(player, 0);
         return true;
     }
@@ -308,23 +321,27 @@ public final class ShopCommand implements TabExecutor {
     }
 
     void printShopList(Player player, List<SQLLog> logs) {
-        List<List<Object>> lines = new ArrayList<>();
+        List<Component> lines = new ArrayList<>();
         logs.removeIf(log -> log.getPrice() == 0.0);
-        for (SQLLog log: logs) {
-            List<Object> json = new ArrayList<>();
-            json.add(" ");
-            json.add(log.getCustomerName());
+        for (SQLLog log : logs) {
+            TextComponent.Builder cb = Component.text();
+            cb.append(Component.space());
+            cb.append(Component.text(log.getCustomerName(), NamedTextColor.WHITE));
+            cb.append(Component.space());
             if (log.getShopType() == ShopType.SELL) {
-                json.add(Msg.format(" &8sold&r "));
+                cb.append(Component.text("sold", NamedTextColor.DARK_GRAY));
             } else {
-                json.add(Msg.format(" &8bought&r "));
+                cb.append(Component.text("bought", NamedTextColor.DARK_GRAY));
             }
-            json.add("" + log.getItemAmount());
-            json.add(Msg.format("&8x"));
-            json.add(log.getItemDescription());
-            json.add(Msg.format(" &8for&r "));
-            json.add(Msg.format("&9%s&r.", GenericEvents.formatMoney(log.getPrice())));
-            lines.add(json);
+            cb.append(Component.space());
+            cb.append(Component.text("" + log.getItemAmount(), NamedTextColor.WHITE));
+            cb.append(Component.text("x", NamedTextColor.DARK_GRAY));
+            cb.append(Component.text(log.getItemDescription(), NamedTextColor.WHITE));
+            cb.append(Component.space());
+            cb.append(Component.text("for", NamedTextColor.DARK_GRAY));
+            cb.append(Component.space());
+            cb.append(Component.text(GenericEvents.formatMoney(log.getPrice()), NamedTextColor.GOLD));
+            lines.add(cb.build());
         }
         if (lines.isEmpty()) {
             Msg.warn(player, "Nothing found.");
@@ -332,7 +349,7 @@ public final class ShopCommand implements TabExecutor {
         }
         getPlayerContext(player).clear();
         getPlayerContext(player).pages.addAll(Page.pagesOf(lines));
-        Msg.send(player, "&9&lShop List");
+        player.sendMessage(Component.text("Shop List", NamedTextColor.BLUE, TextDecoration.BOLD));
         showPage(player, 0);
     }
 
@@ -466,13 +483,11 @@ public final class ShopCommand implements TabExecutor {
         } else {
             Msg.info(player, "Shop Page %d/%d", index + 1, pageCount);
         }
-        for (List<Object> json: page.lines) {
-            Msg.raw(player, json);
-        }
+        player.sendMessage(Component.join(Component.newline(), page.lines));
         if (index + 1 < pageCount) {
-            Msg.raw(player,
-                Msg.button(ChatColor.BLUE, "&r[&9More&r]", "Next page", "/shop page " + (index + 2))
-                );
+            player.sendMessage(Component.text("[More]", NamedTextColor.BLUE)
+                               .hoverEvent(HoverEvent.showText(Component.text("Next Page", NamedTextColor.GRAY)))
+                               .clickEvent(ClickEvent.runCommand("/shop page " + (index + 2))));
         }
     }
 
@@ -607,12 +622,13 @@ public final class ShopCommand implements TabExecutor {
     }
 
     static class Page {
-        final List<List<Object>> lines = new ArrayList<>();
-        static List<Page> pagesOf(List<List<Object>> lines) {
+        final List<Component> lines = new ArrayList<>();
+
+        static List<Page> pagesOf(List<Component> lines) {
             List<Page> result = new ArrayList<>();
             int i = 0;
             Page page = new Page();
-            for (List<Object> line: lines) {
+            for (Component line : lines) {
                 page.lines.add(line);
                 i += 1;
                 if (i == 5) {
@@ -629,9 +645,10 @@ public final class ShopCommand implements TabExecutor {
     @RequiredArgsConstructor
     class PlayerContext {
         final UUID player;
-        final List<Page> pages = new ArrayList<>();;
+        final List<Page> pages = new ArrayList<>();
         final List<BlockLocation> locations = new ArrayList<>();
         ShopType searchType;
+
         void clear() {
             pages.clear();
             locations.clear();
