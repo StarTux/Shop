@@ -1,7 +1,6 @@
 package com.winthier.shop.util;
 
 import com.cavetale.mytems.Mytems;
-import com.winthier.generic_events.GenericEvents;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
@@ -40,7 +39,7 @@ public final class Item {
         if (mytems != null) {
             Component displayName = mytems.getMytem().getDisplayName();
             String result = LegacyComponentSerializer.legacySection().serialize(displayName);
-            if (result != null) return ChatColor.stripColor(result);
+            return ChatColor.stripColor(result);
         }
         String result = item.getI18NDisplayName();
         return result != null
@@ -53,8 +52,12 @@ public final class Item {
     }
 
     public static String getItemDescription(ItemStack item) {
-        String result = GenericEvents.getItemName(item);
-        if (result != null) return result;
+        Mytems mytems = Mytems.forItem(item);
+        if (mytems != null) {
+            Component displayName = mytems.getMytem().getDisplayName();
+            String result = LegacyComponentSerializer.legacySection().serialize(displayName);
+            return ChatColor.stripColor(result);
+        }
         StringBuilder desc = new StringBuilder(getItemName(item));
         if (!item.hasItemMeta()) return desc.toString();
         ItemMeta meta = item.getItemMeta();
