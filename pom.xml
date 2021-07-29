@@ -35,7 +35,6 @@
       <artifactId>paper-api</artifactId>
       <version>1.17.1-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
-      <optional>true</optional>
     </dependency>
 
     <!-- Lombok -->
@@ -54,14 +53,6 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- GenericEvents -->
-    <dependency>
-      <groupId>com.winthier.generic_events</groupId>
-      <artifactId>generic_events</artifactId>
-      <version>0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-
     <!-- Core -->
     <dependency>
       <groupId>com.cavetale.core</groupId>
@@ -74,6 +65,22 @@
     <dependency>
       <groupId>com.cavetale.mytems</groupId>
       <artifactId>mytems</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- PlayerCache -->
+    <dependency>
+      <groupId>com.winthier.playercache</groupId>
+      <artifactId>playercache</artifactId>
+      <version>0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Money -->
+    <dependency>
+      <groupId>com.cavetale.money</groupId>
+      <artifactId>money</artifactId>
       <version>0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>

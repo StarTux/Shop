@@ -1,6 +1,6 @@
 package com.winthier.shop.listener;
 
-import com.winthier.generic_events.GenericEvents;
+import com.cavetale.money.Money;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
@@ -9,6 +9,7 @@ import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.util.Item;
 import com.winthier.shop.util.Msg;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,7 +21,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public final class InventoryListener implements Listener {
@@ -138,7 +138,7 @@ public final class InventoryListener implements Listener {
                 int restStack = event.getCurrentItem().getAmount();
             buyLoop:
                 while (restStack >= buyItem.getAmount()) {
-                    if (!chestShop.getChestData().isAdminShop() && GenericEvents.getPlayerBalance(chestShop.getChestData().getOwner()) < price) {
+                    if (!chestShop.getChestData().isAdminShop() && Money.get(chestShop.getChestData().getOwner()) < price) {
                         Msg.warn(player, "%s has run out of money.", chestShop.getOwnerName());
                         break buyLoop;
                     }
@@ -151,7 +151,7 @@ public final class InventoryListener implements Listener {
                     restStack -= buyItem.getAmount();
                     if (!chestShop.getChestData().isAdminShop()) {
                         String msg = player.getName() + " sold " + buyItem.getAmount() + "x" + Item.getItemName(buyItem) + " to chest";
-                        GenericEvents.takePlayerMoney(chestShop.getChestData().getOwner(), price, plugin, msg);
+                        Money.take(chestShop.getChestData().getOwner(), price, plugin, msg);
                     }
                 }
                 if (sold > 0) {
@@ -160,18 +160,18 @@ public final class InventoryListener implements Listener {
                     soldItem.setAmount(sold * buyItem.getAmount());
                     String msg = "Sell " + soldItem.getAmount() + "x" + Item.getItemName(soldItem)
                         + " to " + chestShop.getChestData().getOwnerName() + " via chest shop";
-                    GenericEvents.givePlayerMoney(player.getUniqueId(), fullPrice, plugin, msg);
+                    Money.give(player.getUniqueId(), fullPrice, plugin, msg);
                     if (restStack == 0) {
                         event.setCurrentItem(null);
                     } else {
                         event.getCurrentItem().setAmount(restStack);
                     }
-                    Msg.info(player, "Sold for %s.", GenericEvents.formatMoney(fullPrice));
+                    Msg.info(player, "Sold for %s.", Money.format(fullPrice));
                     Player ownerPlayer = chestShop.getChestData().getPlayer();
                     if (ownerPlayer != null) {
                         Msg.info(ownerPlayer, "%s sold %dx%s for %s to you.",
                                  player.getName(), soldItem.getAmount(), Item.getItemName(soldItem),
-                                 GenericEvents.formatMoney(fullPrice));
+                                 Money.format(fullPrice));
                     }
                     SQLLog.store(chestShop.getChestData(), Shopper.of(player), soldItem, fullPrice);
                     if (chestShop.isFull()) {
@@ -195,10 +195,10 @@ public final class InventoryListener implements Listener {
                 }
             } else {
                 if (chestShop.getChestData().getShopType() == ShopType.BUY) {
-                    Msg.info(player, "Buy this for %s by shift clicking.", GenericEvents.formatMoney(price));
+                    Msg.info(player, "Buy this for %s by shift clicking.", Money.format(price));
                 }
                 if (chestShop.getChestData().getShopType() == ShopType.SELL) {
-                    Msg.info(player, "Will pay %s for this item type.", GenericEvents.formatMoney(price));
+                    Msg.info(player, "Will pay %s for this item type.", Money.format(price));
                 }
             }
             return;
@@ -215,7 +215,7 @@ public final class InventoryListener implements Listener {
                 ItemStack item = event.getCurrentItem();
                 String takeMsg = "Buy " + item.getAmount() + "x" + Item.getItemName(item)
                     + " from " + chestShop.getChestData().getOwnerName() + " via chest shop";
-                boolean takeSuccess = GenericEvents.takePlayerMoney(player.getUniqueId(), chestShop.getChestData().getPrice(), plugin, takeMsg);
+                boolean takeSuccess = Money.take(player.getUniqueId(), chestShop.getChestData().getPrice(), plugin, takeMsg);
                 if (!takeSuccess) {
                     Msg.warn(player, "You don't have enough money");
                     return;
@@ -225,14 +225,14 @@ public final class InventoryListener implements Listener {
                     for (ItemStack drop: player.getInventory().addItem(item.clone()).values()) {
                         player.getWorld().dropItem(player.getEyeLocation(), drop);
                     }
-                    Msg.info(player, "Bought for %s.", GenericEvents.formatMoney(price));
+                    Msg.info(player, "Bought for %s.", Money.format(price));
                     if (!chestShop.getChestData().isAdminShop()) {
                         String giveMsg = player.getName() + " bought " + item.getAmount() + "x" + Item.getItemName(item) + " via chest shop";
-                        GenericEvents.givePlayerMoney(chestShop.getChestData().getOwner(), price, plugin, giveMsg);
+                        Money.give(chestShop.getChestData().getOwner(), price, plugin, giveMsg);
                         Player ownerPlayer = chestShop.getChestData().getPlayer();
                         if (ownerPlayer != null) {
                             Msg.info(ownerPlayer, "%s bought %dx%s for %s from you.",
-                                     player.getName(), item.getAmount(), Item.getItemName(item), GenericEvents.formatMoney(price));
+                                     player.getName(), item.getAmount(), Item.getItemName(item), Money.format(price));
                         }
                         event.setCurrentItem(null);
                     } else {

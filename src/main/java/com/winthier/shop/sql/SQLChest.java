@@ -1,6 +1,6 @@
 package com.winthier.shop.sql;
 
-import com.winthier.generic_events.GenericEvents;
+import com.cavetale.money.Money;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -113,7 +113,7 @@ public final class SQLChest {
             if (soldOut) {
                 sign.setLine(1, Msg.format("&4SOLD OUT"));
             } else {
-                sign.setLine(1, ChatColor.GOLD + GenericEvents.formatMoney(price));
+                sign.setLine(1, ChatColor.GOLD + Money.format(price));
             }
             if (adminShop) {
                 sign.setLine(2, "");

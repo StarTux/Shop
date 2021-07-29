@@ -1,12 +1,13 @@
 package com.winthier.shop.listener;
 
-import com.winthier.generic_events.GenericEvents;
+import com.cavetale.money.Money;
+import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
-import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.chest.ChestShop;
+import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.util.Msg;
 import java.util.UUID;
 import org.bukkit.Material;
@@ -72,7 +73,7 @@ public final class SignListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
-            UUID uuid = GenericEvents.cachedPlayerUuid(nameLine);
+            UUID uuid = PlayerCache.uuidForName(nameLine);
             if (uuid == null) {
                 event.setCancelled(true);
                 Msg.warn(player, "Not found: " + nameLine);
@@ -85,7 +86,7 @@ public final class SignListener implements Listener {
         BlockLocation location = BlockLocation.of(event.getBlock());
         final SQLChest chestData = new SQLChest(SQLChest.Type.SIGN, shopType, location, owner, price, owner == null);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
-        String priceFormat = GenericEvents.formatMoney(price);
+        String priceFormat = Money.format(price);
         Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         new BukkitRunnable() {
             @Override public void run() {
@@ -128,7 +129,7 @@ public final class SignListener implements Listener {
         }
         BlockLocation location = BlockLocation.of(event.getBlock());
         Shopper owner = Shopper.of(event.getPlayer());
-        String priceFormat = GenericEvents.formatMoney(price);
+        String priceFormat = Money.format(price);
         SQLChest chestData = new SQLChest(SQLChest.Type.NAMED_CHEST, shopType, location, owner, price, false);
         ShopPlugin.getInstance().getChestDataStore().store(chestData);
         Msg.info(player, "You created a shop chest %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);

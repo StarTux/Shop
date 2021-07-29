@@ -1,6 +1,6 @@
 package com.winthier.shop;
 
-import com.winthier.generic_events.GenericEvents;
+import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.shop.util.Msg;
 import java.util.ArrayList;
@@ -134,13 +134,13 @@ public final class AdminCommand implements TabExecutor {
                 return true;
             }
             String name = args[1];
-            UUID uuid = GenericEvents.cachedPlayerUuid(name);
+            UUID uuid = PlayerCache.uuidForName(name);
             if (uuid == null) {
                 Msg.warn(player, "Unknown player: " + name);
                 return true;
             }
             Shopper oldOwner = plot.getOwner();
-            name = GenericEvents.cachedPlayerName(uuid);
+            name = PlayerCache.nameForUuid(uuid);
             plot.setOwner(new Shopper(uuid, name));
             plugin.getMarket().save();
             if (oldOwner == null) {

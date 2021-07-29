@@ -1,6 +1,6 @@
 package com.winthier.shop;
 
-import com.winthier.generic_events.GenericEvents;
+import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.chest.ChestDataStore;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.listener.ChestListener;
@@ -91,15 +91,15 @@ public final class ShopPlugin extends JavaPlugin {
     }
 
     public Shopper findShopper(UUID uuid) {
-        String name = GenericEvents.cachedPlayerName(uuid);
+        String name = PlayerCache.nameForUuid(uuid);
         if (name != null) return new Shopper(uuid, name);
         return null;
     }
 
     public Shopper findShopper(String name) {
-        UUID uuid = GenericEvents.cachedPlayerUuid(name);
+        UUID uuid = PlayerCache.uuidForName(name);
         if (uuid != null) {
-            String nname = GenericEvents.cachedPlayerName(uuid);
+            String nname = PlayerCache.nameForUuid(uuid);
             if (nname != null) name = nname;
             return new Shopper(uuid, name);
         }

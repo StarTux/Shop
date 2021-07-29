@@ -1,6 +1,6 @@
 package com.winthier.shop.listener;
 
-import com.winthier.generic_events.GenericEvents;
+import com.cavetale.money.Money;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.chest.ChestShop;
@@ -35,7 +35,7 @@ public final class ChestListener implements Listener {
         if (chestShop == null) return;
         ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
         double price = chestShop.getChestData().getPrice();
-        String priceFormat = GenericEvents.formatMoney(price);
+        String priceFormat = Money.format(price);
         if (chestShop.getChestData().isOwner(player)) {
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
                 Msg.info(player, "Your shop chest sells items for &3%s&r.", priceFormat);
