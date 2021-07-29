@@ -1,7 +1,7 @@
 package com.winthier.shop.listener;
 
+import com.cavetale.core.event.block.PlayerCanBuildEvent;
 import com.destroystokyo.paper.event.entity.PreCreatureSpawnEvent;
-import com.winthier.generic_events.PlayerCanBuildEvent;
 import com.winthier.shop.Market;
 import com.winthier.shop.ShopPlugin;
 import lombok.RequiredArgsConstructor;
