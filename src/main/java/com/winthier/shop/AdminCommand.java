@@ -2,7 +2,9 @@ package com.winthier.shop;
 
 import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.sql.SQLOffer;
+import com.winthier.shop.util.Cuboid;
 import com.winthier.shop.util.Msg;
+import com.winthier.shop.util.WorldEdit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,28 +34,16 @@ public final class AdminCommand implements TabExecutor {
                 sender.sendMessage("Player expected");
                 return true;
             }
-            int ax;
-            int ay;
-            int az;
-            int bx;
-            int by;
-            int bz;
-            try {
-                ax = player.getMetadata("SelectionAX").get(0).asInt();
-                ay = player.getMetadata("SelectionAY").get(0).asInt();
-                az = player.getMetadata("SelectionAZ").get(0).asInt();
-                bx = player.getMetadata("SelectionBX").get(0).asInt();
-                by = player.getMetadata("SelectionBY").get(0).asInt();
-                bz = player.getMetadata("SelectionBZ").get(0).asInt();
-            } catch (Exception e) {
+            Cuboid cuboid = WorldEdit.getSelection(player);
+            if (cuboid == null) {
                 player.sendMessage("Make a selection first.");
                 return true;
             }
             Market.Plot plot = plugin.getMarket().makePlot();
-            plot.setWest(Math.min(ax, bx));
-            plot.setEast(Math.max(ax, bx));
-            plot.setNorth(Math.min(az, bz));
-            plot.setSouth(Math.max(az, bz));
+            plot.setWest(cuboid.a.x);
+            plot.setEast(cuboid.b.x);
+            plot.setNorth(cuboid.a.z);
+            plot.setSouth(cuboid.b.z);
             plot.setOwner(null);
             if (plugin.getMarket().collides(plot)) {
                 Msg.warn(player, "This plot would collide with another one.");
