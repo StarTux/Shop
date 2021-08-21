@@ -94,17 +94,14 @@ public final class MarketListener implements Listener {
         Block block = event.getClickedBlock();
         if (!block.getWorld().getName().equals(plugin.getMarket().getWorld())) return;
         if (!plugin.getMarket().isProtect()) return;
-        switch (block.getType()) {
-        case RESPAWN_ANCHOR:
-            if (block.getWorld().getEnvironment() != World.Environment.NETHER) {
-                RespawnAnchor data = (RespawnAnchor) block.getBlockData();
-                if (data.getCharges() >= data.getMaximumCharges()) {
-                    event.setCancelled(true);
-                    return;
-                }
+        if (block.getType() == Material.RESPAWN_ANCHOR
+            && block.getWorld().getEnvironment() != World.Environment.NETHER
+            && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            RespawnAnchor data = (RespawnAnchor) block.getBlockData();
+            if (data.getCharges() >= data.getMaximumCharges()) {
+                event.setCancelled(true);
+                return;
             }
-            break;
-        default: break;
         }
         onMarketEvent(event.getPlayer(), event.getClickedBlock(), event);
     }
