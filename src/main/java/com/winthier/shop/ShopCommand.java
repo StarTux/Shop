@@ -1,5 +1,6 @@
 package com.winthier.shop;
 
+import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.cavetale.money.Money;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -26,6 +28,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -38,7 +41,9 @@ import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+@RequiredArgsConstructor
 public final class ShopCommand implements TabExecutor {
+    final ShopPlugin plugin;
     final Random random = new Random(System.currentTimeMillis());
     final Map<UUID, PlayerContext> contexts = new HashMap<>();
     final Comparator<SQLOffer> sqlOfferComparator = new Comparator<SQLOffer>() {
@@ -113,7 +118,7 @@ public final class ShopCommand implements TabExecutor {
                 Msg.warn(player, "You don't have permission.");
                 return true;
             }
-            Market.Plot plot = ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId());
+            Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
             if (plot == null) {
                 Msg.warn(player, "You don't have a market plot.");
                 return true;
@@ -124,10 +129,10 @@ public final class ShopCommand implements TabExecutor {
                 return true;
             }
             plot.setSpawnLocation(loc);
-            ShopPlugin.getInstance().getMarket().save();
+            plugin.getMarket().save();
             Msg.info(player, "Spawn location of your plot was set.");
         } else if (firstArg.equals("market")) {
-            World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
+            World world = Bukkit.getServer().getWorld(plugin.getMarket().getWorld());
             if (world == null) return true;
             player.teleport(world.getSpawnLocation());
             Msg.info(player, "Teleported to the market.");
@@ -163,7 +168,7 @@ public final class ShopCommand implements TabExecutor {
         if (args.length < 2) return false;
         boolean exact = args[0].endsWith("!");
         boolean searchOwner = false;
-        String marketWorld = ShopPlugin.getInstance().getMarket().getWorld();
+        String marketWorld = plugin.getMarket().getWorld();
         ShopType shopType = ShopType.BUY;
         if (args[0].equals("sell")) shopType = ShopType.SELL;
         List<String> patterns = new ArrayList<>();
@@ -259,6 +264,7 @@ public final class ShopCommand implements TabExecutor {
         getPlayerContext(player).pages.addAll(Page.pagesOf(lines));
         player.sendMessage(Component.text("Shop Search", NamedTextColor.BLUE, TextDecoration.BOLD));
         showPage(player, 0);
+        PluginPlayerEvent.Name.SHOP_SEARCH.call(plugin, player);
         return true;
     }
 
@@ -275,7 +281,7 @@ public final class ShopCommand implements TabExecutor {
 
     boolean shopPort(Player player, String[] args) {
         if (args.length == 1) {
-            Market.Plot plot = ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId());
+            Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
             if (plot == null) {
                 Msg.warn(player, "You don't have a market plot.");
                 return true;
@@ -293,12 +299,12 @@ public final class ShopCommand implements TabExecutor {
                 }
             } catch (NumberFormatException nfe) {
                 String nameArg = args[1];
-                final Shopper owner = ShopPlugin.getInstance().findShopper(nameArg);
+                final Shopper owner = plugin.findShopper(nameArg);
                 if (owner == null) {
                     Msg.warn(player, "Market plot not found: %s.", nameArg);
                     return true;
                 }
-                Market.Plot plot = ShopPlugin.getInstance().getMarket().findPlayerPlot(owner.getUuid());
+                Market.Plot plot = plugin.getMarket().findPlayerPlot(owner.getUuid());
                 if (plot == null) {
                     Msg.warn(player, "Market plot not found: %s.", owner.getName());
                     return true;
@@ -355,11 +361,11 @@ public final class ShopCommand implements TabExecutor {
 
     boolean shopClaim(Player player, String[] args) {
         Block block = player.getLocation().getBlock();
-        if (ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId()) != null) {
+        if (plugin.getMarket().findPlayerPlot(player.getUniqueId()) != null) {
             Msg.warn(player, "You already have a plot.");
             return true;
         }
-        Market.Plot plot = ShopPlugin.getInstance().getMarket().plotAt(block);
+        Market.Plot plot = plugin.getMarket().plotAt(block);
         if (plot == null) {
             Msg.warn(player, "There is no plot here.");
             return true;
@@ -369,17 +375,17 @@ public final class ShopCommand implements TabExecutor {
             return true;
         }
         Shopper shopper = Shopper.of(player);
-        double price = ShopPlugin.getInstance().getMarket().getPlotPrice();
+        double price = plugin.getMarket().getPlotPrice();
         String priceFormat = Money.format(price);
         if (args.length == 2 && args[1].equals("confirm")) {
             // Clicked confirm.
-            if (!Money.take(shopper.getUuid(), price, ShopPlugin.getInstance(), "Claim market plot")) {
+            if (!Money.take(shopper.getUuid(), price, plugin, "Claim market plot")) {
                 Msg.warn(player, "You can't afford the %s.", priceFormat);
             } else {
                 plot.setOwner(Shopper.of(player));
-                ShopPlugin.getInstance().getMarket().save();
+                plugin.getMarket().save();
                 Msg.info(player, "You paid %s to claim this plot. Get to it via &a/shop port&r.", priceFormat);
-                ShopPlugin.getInstance().getLogger().info(player.getName() + " claimed plot at " + plot.getNorth() + "," + plot.getWest());
+                plugin.getLogger().info(player.getName() + " claimed plot at " + plot.getNorth() + "," + plot.getWest());
             }
         } else {
             Msg.raw(player,
@@ -390,11 +396,11 @@ public final class ShopCommand implements TabExecutor {
     }
 
     boolean shopAuto(Player player, String[] args) {
-        if (ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId()) != null) {
+        if (plugin.getMarket().findPlayerPlot(player.getUniqueId()) != null) {
             Msg.warn(player, "You already have a plot.");
             return true;
         }
-        Market.Plot plot = ShopPlugin.getInstance().getMarket().randomEmptyPlot();
+        Market.Plot plot = plugin.getMarket().randomEmptyPlot();
         if (plot == null) {
             Msg.warn(player, "All plots are occupied. Please make a ticket.");
             return true;
@@ -409,7 +415,7 @@ public final class ShopCommand implements TabExecutor {
 
     boolean shopTrust(Player player, boolean trust, String[] args) {
         if (args.length > 2) return false;
-        Market.Plot plot = ShopPlugin.getInstance().getMarket().findPlayerPlot(player.getUniqueId());
+        Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
         if (plot == null) {
             Msg.warn(player, "You don't own a plot.");
             return true;
@@ -442,14 +448,14 @@ public final class ShopCommand implements TabExecutor {
                     } else {
                         Shopper shopper = Shopper.of(target);
                         plot.getTrusted().add(shopper);
-                        ShopPlugin.getInstance().getMarket().save();
+                        plugin.getMarket().save();
                         Msg.info(player, "Trusted player in your plot: %s.", shopper.getName());
                     }
                 }
             } else {
                 if (targetName.equals("*")) {
                     plot.getTrusted().clear();
-                    ShopPlugin.getInstance().getMarket().save();
+                    plugin.getMarket().save();
                     Msg.info(player, "Trusted players cleared.");
                 } else {
                     Shopper target = null;
@@ -463,7 +469,7 @@ public final class ShopCommand implements TabExecutor {
                         Msg.warn(player, "Player not trusted: %s.", targetName);
                     } else {
                         plot.getTrusted().remove(target);
-                        ShopPlugin.getInstance().getMarket().save();
+                        plugin.getMarket().save();
                         Msg.info(player, "Player untrusted: %s.", target.getName());
                     }
                 }
@@ -495,7 +501,10 @@ public final class ShopCommand implements TabExecutor {
         if (index < 0 || index >= getPlayerContext(player).locations.size()) return false;
         Location loc = savePortLocation(getPlayerContext(player).locations.get(index));
         if (loc == null) return false;
-        player.teleport(loc);
+        loc.getWorld().getChunkAtAsync(loc.getBlockX() >> 4, loc.getBlockZ() >> 4, (Consumer<Chunk>) chunk -> {
+                player.teleport(loc);
+                PluginPlayerEvent.Name.SHOP_SEARCH_PORT.call(plugin, player);
+            });
         return true;
     }
 
@@ -519,7 +528,7 @@ public final class ShopCommand implements TabExecutor {
                     x = plot.getEast() + 1;
                 }
             }
-            World world = Bukkit.getServer().getWorld(ShopPlugin.getInstance().getMarket().getWorld());
+            World world = Bukkit.getServer().getWorld(plugin.getMarket().getWorld());
             if (world == null) return;
             int y = world.getHighestBlockYAt(x, z);
             Block block = world.getBlockAt(x, y, z);

@@ -45,7 +45,7 @@ public final class ShopPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
         marketListener = new MarketListener(this);
         getServer().getPluginManager().registerEvents(marketListener, this);
-        getCommand("shop").setExecutor(new ShopCommand());
+        getCommand("shop").setExecutor(new ShopCommand(this));
         getCommand("shopadmin").setExecutor(adminCommand);
         getCommand("market").setExecutor((s, c, l, a) -> {
                 if (!(s instanceof Player)) return true;
