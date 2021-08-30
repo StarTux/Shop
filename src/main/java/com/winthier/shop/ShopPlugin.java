@@ -1,5 +1,7 @@
 package com.winthier.shop;
 
+import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
+import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.chest.ChestDataStore;
 import com.winthier.shop.chest.ChestShop;
@@ -52,7 +54,11 @@ public final class ShopPlugin extends JavaPlugin {
                 if (market == null) return true;
                 World world = getServer().getWorld(market.getWorld());
                 if (world == null) return true;
-                ((Player) s).teleport(world.getSpawnLocation());
+                Player player = (Player) s;
+                player.teleport(world.getSpawnLocation());
+                PluginPlayerEvent.Name.USE_WARP.ultimate(this, player)
+                    .detail(Detail.NAME, "market")
+                    .call();
                 return true;
             });
         SQLOffer.getCache();
