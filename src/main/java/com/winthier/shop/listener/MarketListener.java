@@ -1,6 +1,8 @@
 package com.winthier.shop.listener;
 
-import com.cavetale.core.event.block.PlayerCanBuildEvent;
+import com.cavetale.core.event.block.PlayerBlockAbilityQuery;
+import com.cavetale.core.event.block.PlayerBreakBlockEvent;
+import com.cavetale.core.event.entity.PlayerEntityAbilityQuery;
 import com.destroystokyo.paper.event.entity.PreCreatureSpawnEvent;
 import com.winthier.shop.Market;
 import com.winthier.shop.ShopPlugin;
@@ -240,7 +242,7 @@ public final class MarketListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerCanBuild(PlayerCanBuildEvent event) {
+    public void onPlayerBreakblock(PlayerBreakBlockEvent event) {
         onMarketEvent(event.getPlayer(), event.getBlock(), event);
     }
 
@@ -266,6 +268,46 @@ public final class MarketListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
     void onPreCreatureSpawn(PreCreatureSpawnEvent event) {
         onCreatureSpawn(event, event.getReason(), event.getType(), event.getSpawnLocation());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    void onPlayerBlockAbility(PlayerBlockAbilityQuery query) {
+        switch (query.getAction()) {
+        case USE: // Buttons: Doors
+        case READ: // Lectern
+            return;
+        case OPEN: // Chests
+        case INVENTORY:
+        case BUILD:
+        case PLACE_ENTITY:
+        case SPAWN_MOB: // PocketMob
+        default:
+            onMarketEvent(query.getPlayer(), query.getBlock(), query);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    void onPlayerEntityAbility(PlayerEntityAbilityQuery query) {
+        switch (query.getAction()) {
+        case MOUNT:
+        case DISMOUNT:
+        case SIT:
+        case SHEAR:
+        case FEED:
+        case BREED:
+        case LEASH:
+        case PICKUP:
+        case INVENTORY:
+        case DAMAGE:
+        case POTION:
+        case CATCH:
+        case OPEN:
+        case MOVE:
+        case PLACE:
+        case GIMMICK:
+        default:
+            onMarketEvent(query.getPlayer(), query.getEntity().getLocation().getBlock(), query);
+        }
     }
 
     void onCreatureSpawn(Cancellable event, SpawnReason reason, EntityType entityType, Location location) {
