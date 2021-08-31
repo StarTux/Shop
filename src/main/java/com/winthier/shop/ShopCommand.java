@@ -78,7 +78,7 @@ public final class ShopCommand implements TabExecutor {
                 Msg.send(player, "/shop search &7&o... &8-&r Search for buying shops");
                 Msg.send(player, "/shop sell &7&o... &8-&r Search for selling shops");
                 Msg.send(player, "/shop search|sell! &7&o... &8-&r Search for exact word combo");
-                Msg.send(player, "/shop search|sell -Owner &7&o<Name> &8-&r Search by shop owner");
+                Msg.send(player, "/shop search|sell -owner &7&o<Name> &8-&r Search by shop owner");
             }
         } else if (firstArg.equals("page")) {
             if (!shopPage(player, args)) {
