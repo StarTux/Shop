@@ -15,6 +15,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.Cancellable;
@@ -329,6 +330,8 @@ public final class MarketListener implements Listener {
     void onEntityChangeBlock(EntityChangeBlockEvent event) {
         if (event.getEntity() instanceof Player) {
             onMarketEvent((Player) event.getEntity(), event.getBlock(), event);
+        } else if (event.getEntity() instanceof FallingBlock) {
+            return;
         } else {
             if (!plugin.getMarket().isProtect()) return;
             if (!isMarketWorld(event.getBlock().getWorld())) return;
