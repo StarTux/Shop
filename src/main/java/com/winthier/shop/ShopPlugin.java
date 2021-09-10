@@ -42,7 +42,7 @@ public final class ShopPlugin extends JavaPlugin {
         db = new SQLDatabase(this);
         db.registerTables(SQLLog.class, SQLOffer.class, SQLChest.class);
         db.createAllTables();
-        getServer().getPluginManager().registerEvents(new SignListener(), this);
+        getServer().getPluginManager().registerEvents(new SignListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
         marketListener = new MarketListener(this);

@@ -1,5 +1,7 @@
 package com.winthier.shop.listener;
 
+import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
+import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.cavetale.money.Money;
 import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.BlockLocation;
@@ -10,6 +12,8 @@ import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.util.Msg;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -23,9 +27,11 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
 
+@RequiredArgsConstructor
 public final class SignListener implements Listener {
+    private final ShopPlugin plugin;
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onSignChange(SignChangeEvent event) {
         final Player player = event.getPlayer();
@@ -85,15 +91,13 @@ public final class SignListener implements Listener {
         }
         BlockLocation location = BlockLocation.of(event.getBlock());
         final SQLChest chestData = new SQLChest(SQLChest.Type.SIGN, shopType, location, owner, price, owner == null);
-        ShopPlugin.getInstance().getChestDataStore().store(chestData);
+        plugin.getChestDataStore().store(chestData);
         String priceFormat = Money.format(price);
         Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
-        new BukkitRunnable() {
-            @Override public void run() {
-                chestData.updateInWorld();
-            }
-        }.runTask(ShopPlugin.getInstance());
-        ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(event.getBlock().getRelative(0, -1, 0)));
+        Bukkit.getScheduler().runTask(plugin, chestData::updateInWorld);
+        plugin.getOfferScanner().setDirty(BlockLocation.of(event.getBlock().getRelative(0, -1, 0)));
+        PluginPlayerEvent.Name.MAKE_SHOP_CHEST.ultimate(plugin, player)
+            .detail(Detail.BLOCK, event.getBlock()).call();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -131,9 +135,11 @@ public final class SignListener implements Listener {
         Shopper owner = Shopper.of(event.getPlayer());
         String priceFormat = Money.format(price);
         SQLChest chestData = new SQLChest(SQLChest.Type.NAMED_CHEST, shopType, location, owner, price, false);
-        ShopPlugin.getInstance().getChestDataStore().store(chestData);
+        plugin.getChestDataStore().store(chestData);
         Msg.info(player, "You created a shop chest %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
-        ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
+        plugin.getOfferScanner().setDirty(BlockLocation.of(block));
+        PluginPlayerEvent.Name.MAKE_SHOP_CHEST.ultimate(plugin, player)
+            .detail(Detail.BLOCK, event.getBlock()).call();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -158,13 +164,13 @@ public final class SignListener implements Listener {
     }
 
     boolean checkBrokenBlock(Block block) {
-        SQLChest data = ShopPlugin.getInstance().getChestDataStore().remove(block);
+        SQLChest data = plugin.getChestDataStore().remove(block);
         if (data == null) return false;
         ChestShop shop = ChestShop.getByBlock(block);
         if (shop != null) {
-            ShopPlugin.getInstance().getOfferScanner().setDirty(shop);
+            plugin.getOfferScanner().setDirty(shop);
         } else {
-            ShopPlugin.getInstance().getOfferScanner().setDirty(BlockLocation.of(block));
+            plugin.getOfferScanner().setDirty(BlockLocation.of(block));
         }
         return true;
     }
