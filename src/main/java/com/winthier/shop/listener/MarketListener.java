@@ -319,6 +319,7 @@ public final class MarketListener implements Listener {
         case DEFAULT:
             // We assume these are commands or plugins which is always
             // allowed.
+        case SPAWNER_EGG:
             return;
         default:
             event.setCancelled(true);
