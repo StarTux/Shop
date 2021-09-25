@@ -13,6 +13,7 @@ import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.sql.SQLDatabase;
+import java.io.File;
 import java.util.UUID;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -38,7 +39,9 @@ public final class ShopPlugin extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
         reloadConf();
-        saveResource("market.yml", false);
+        if (!new File(getDataFolder(), "market.yml").exists()) {
+            saveResource("market.yml", false);
+        }
         db = new SQLDatabase(this);
         db.registerTables(SQLLog.class, SQLOffer.class, SQLChest.class);
         db.createAllTables();

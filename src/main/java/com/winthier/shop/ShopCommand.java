@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -489,7 +490,7 @@ public final class ShopCommand implements TabExecutor {
         } else {
             Msg.info(player, "Shop Page %d/%d", index + 1, pageCount);
         }
-        player.sendMessage(Component.join(Component.newline(), page.lines));
+        player.sendMessage(Component.join(JoinConfiguration.separator(Component.newline()), page.lines));
         if (index + 1 < pageCount) {
             player.sendMessage(Component.text("[More]", NamedTextColor.BLUE)
                                .hoverEvent(HoverEvent.showText(Component.text("Next Page", NamedTextColor.GRAY)))

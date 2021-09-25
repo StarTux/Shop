@@ -7,7 +7,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import lombok.Getter;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
@@ -71,7 +73,8 @@ public final class OfferScanner {
     void scan(BlockLocation location) {
         World world = location.getBukkitWorld();
         if (world == null) return;
-        world.getChunkAtAsync(location.getX() >> 4, location.getZ() >> 4, c -> callback(location));
+        world.getChunkAtAsync(location.getX() >> 4, location.getZ() >> 4,
+                              (Consumer<Chunk>) c -> callback(location));
     }
 
     void callback(BlockLocation location) {

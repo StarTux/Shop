@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -103,30 +104,30 @@ public final class SQLChest {
             if (sign == null) return false;
             if (getShopType() == ShopType.BUY) {
                 if (sign.getLine(0).toLowerCase().contains("buy")) {
-                    sign.setLine(0, Msg.format("&r[&9&lBuy&r]"));
+                    sign.line(0, Component.text(Msg.format("&r[&9&lBuy&r]")));
                 } else {
-                    sign.setLine(0, Msg.format("&r[&9&lShop&r]"));
+                    sign.line(0, Component.text(Msg.format("&r[&9&lShop&r]")));
                 }
             } else if (getShopType() == ShopType.SELL) {
-                sign.setLine(0, Msg.format("&r[&9&lSell&r]"));
+                sign.line(0, Component.text(Msg.format("&r[&9&lSell&r]")));
             }
             if (soldOut) {
-                sign.setLine(1, Msg.format("&4SOLD OUT"));
+                sign.line(1, Component.text(Msg.format("&4SOLD OUT")));
             } else {
-                sign.setLine(1, ChatColor.GOLD + Money.format(price));
+                sign.line(1, Component.text(ChatColor.GOLD + Money.format(price)));
             }
             if (adminShop) {
-                sign.setLine(2, "");
-                sign.setLine(3, Msg.format("&9The Bank"));
+                sign.line(2, Component.empty());
+                sign.line(3, Component.text(Msg.format("&9The Bank")));
             } else {
                 String ownerName = getShopper().getName();
                 if (ownerName.length() <= 13) {
-                    sign.setLine(2, "");
-                    sign.setLine(3, Msg.format("&8%s", ownerName));
+                    sign.line(2, Component.empty());
+                    sign.line(3, Component.text(Msg.format("&8%s", ownerName)));
                 } else {
                     int b = (ownerName.length() - 1) / 2 + 1;
-                    sign.setLine(2, Msg.format("&8%s", ownerName.substring(0, b)));
-                    sign.setLine(3, Msg.format("&8%s", ownerName.substring(b)));
+                    sign.line(2, Component.text(Msg.format("&8%s", ownerName.substring(0, b))));
+                    sign.line(3, Component.text(Msg.format("&8%s", ownerName.substring(b))));
                 }
             }
             sign.update();
