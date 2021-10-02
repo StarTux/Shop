@@ -276,6 +276,7 @@ public final class MarketListener implements Listener {
         switch (query.getAction()) {
         case USE: // Buttons: Doors
         case READ: // Lectern
+        case FLY:
             return;
         case OPEN: // Chests
         case INVENTORY:
