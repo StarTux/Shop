@@ -13,6 +13,7 @@ import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.util.Msg;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -35,7 +36,7 @@ public final class SignListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onSignChange(SignChangeEvent event) {
         final Player player = event.getPlayer();
-        String title = event.getLine(0);
+        String title = PlainTextComponentSerializer.plainText().serialize(event.line(0));
         if (!title.startsWith("[")) return;
         if (!title.endsWith("]")) return;
         title = title.substring(1, title.length() - 1);
@@ -57,14 +58,14 @@ public final class SignListener implements Listener {
         }
         double price = 10.0;
         try {
-            String priceLine = event.getLine(1);
-            price = Double.parseDouble(event.getLine(1));
+            String priceLine = PlainTextComponentSerializer.plainText().serialize(event.line(1));
+            price = Double.parseDouble(priceLine);
             if (price < 0.0) {
                 price = 10.0;
             }
         } catch (NumberFormatException nfe) {
         }
-        String nameLine = event.getLine(3);
+        String nameLine = PlainTextComponentSerializer.plainText().serialize(event.line(3));
         Shopper owner;
         if ("admin".equalsIgnoreCase(nameLine)) {
             if (!player.hasPermission("shop.create.admin")) {
@@ -108,7 +109,8 @@ public final class SignListener implements Listener {
         ItemStack item = event.getItemInHand();
         ItemMeta meta = item.getItemMeta();
         if (meta == null || !meta.hasDisplayName()) return;
-        String[] arr = meta.getDisplayName().split("\\s+", 3);
+        String displayName = PlainTextComponentSerializer.plainText().serialize(meta.displayName());
+        String[] arr = displayName.split("\\s+", 3);
         if (arr.length != 2) return;
         String shopCode = arr[0];
         String priceCode = arr[1];

@@ -13,8 +13,9 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
@@ -103,7 +104,8 @@ public final class SQLChest {
             Sign sign = getSign();
             if (sign == null) return false;
             if (getShopType() == ShopType.BUY) {
-                if (sign.getLine(0).toLowerCase().contains("buy")) {
+                String firstLine = PlainTextComponentSerializer.plainText().serialize(sign.line(0));
+                if (firstLine.toLowerCase().contains("buy")) {
                     sign.line(0, Component.text(Msg.format("&r[&9&lBuy&r]")));
                 } else {
                     sign.line(0, Component.text(Msg.format("&r[&9&lShop&r]")));
