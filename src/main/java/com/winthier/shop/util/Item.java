@@ -113,7 +113,10 @@ public final class Item {
                 name = skull.getOwningPlayer().getName();
             }
             if (name == null) {
-                name = PlainTextComponentSerializer.plainText().serialize(meta.displayName());
+                Component displayName = meta.displayName();
+                if (displayName != null) {
+                    name = PlainTextComponentSerializer.plainText().serialize(meta.displayName());
+                }
             }
             if (name != null) {
                 desc.append(" <");
