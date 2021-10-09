@@ -1,11 +1,11 @@
 package com.winthier.shop.util;
 
 import com.cavetale.mytems.Mytems;
+import com.destroystokyo.paper.profile.PlayerProfile;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -109,14 +109,12 @@ public final class Item {
         if (meta instanceof SkullMeta) {
             SkullMeta skull = (SkullMeta) meta;
             String name = null;
-            if (skull.hasOwner()) {
-                name = skull.getOwningPlayer().getName();
+            PlayerProfile playerProfile = skull.getPlayerProfile();
+            if (playerProfile != null) {
+                name = playerProfile.getName();
             }
-            if (name == null) {
-                Component displayName = meta.displayName();
-                if (displayName != null) {
-                    name = PlainTextComponentSerializer.plainText().serialize(meta.displayName());
-                }
+            if (name == null && skull.hasOwner()) {
+                name = skull.getOwningPlayer().getName();
             }
             if (name != null) {
                 desc.append(" <");
