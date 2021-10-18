@@ -641,7 +641,7 @@ public final class ShopCommand implements TabExecutor {
             for (Component line : lines) {
                 page.lines.add(line);
                 i += 1;
-                if (i == 5) {
+                if (i >= 9) {
                     result.add(page);
                     page = new Page();
                     i = 0;
