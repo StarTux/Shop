@@ -30,7 +30,7 @@ public final class ChestShop {
     public static ChestShop getByChest(Block block) {
         if (block.getType() != Material.CHEST && block.getType() != Material.TRAPPED_CHEST) return null;
         Chest chest = (Chest) block.getState();
-        Inventory inventory = chest.getBlockInventory();
+        Inventory inventory = chest.getInventory();
         Block left = null;
         Block right = null;
         SQLChest chestData = null;
