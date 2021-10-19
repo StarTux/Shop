@@ -150,7 +150,7 @@ public final class InventoryListener implements Listener {
                     sold += 1;
                     restStack -= buyItem.getAmount();
                     if (!chestShop.getChestData().isAdminShop()) {
-                        String msg = player.getName() + " sold " + buyItem.getAmount() + "x" + Item.getItemName(buyItem) + " to chest";
+                        String msg = player.getName() + " sold " + buyItem.getAmount() + "x" + Item.getItemName(buyItem);
                         Money.take(chestShop.getChestData().getOwner(), price, plugin, msg);
                     }
                 }
@@ -159,7 +159,7 @@ public final class InventoryListener implements Listener {
                     ItemStack soldItem = buyItem.clone();
                     soldItem.setAmount(sold * buyItem.getAmount());
                     String msg = "Sell " + soldItem.getAmount() + "x" + Item.getItemName(soldItem)
-                        + " to " + chestShop.getChestData().getOwnerName() + " via chest shop";
+                        + " to " + chestShop.getChestData().getOwnerName();
                     Money.give(player.getUniqueId(), fullPrice, plugin, msg);
                     if (restStack == 0) {
                         event.setCurrentItem(null);
@@ -214,7 +214,7 @@ public final class InventoryListener implements Listener {
                 }
                 ItemStack item = event.getCurrentItem();
                 String takeMsg = "Buy " + item.getAmount() + "x" + Item.getItemName(item)
-                    + " from " + chestShop.getChestData().getOwnerName() + " via chest shop";
+                    + " from " + chestShop.getChestData().getOwnerName();
                 boolean takeSuccess = Money.take(player.getUniqueId(), chestShop.getChestData().getPrice(), plugin, takeMsg);
                 if (!takeSuccess) {
                     Msg.warn(player, "You don't have enough money");
@@ -227,7 +227,7 @@ public final class InventoryListener implements Listener {
                     }
                     Msg.info(player, "Bought for %s.", Money.format(price));
                     if (!chestShop.getChestData().isAdminShop()) {
-                        String giveMsg = player.getName() + " bought " + item.getAmount() + "x" + Item.getItemName(item) + " via chest shop";
+                        String giveMsg = player.getName() + " bought " + item.getAmount() + "x" + Item.getItemName(item);
                         Money.give(chestShop.getChestData().getOwner(), price, plugin, giveMsg);
                         Player ownerPlayer = chestShop.getChestData().getPlayer();
                         if (ownerPlayer != null) {
