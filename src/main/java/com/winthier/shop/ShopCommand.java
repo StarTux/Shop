@@ -149,7 +149,9 @@ public final class ShopCommand implements TabExecutor {
         String cmd = args.length == 0 ? "" : args[0];
         if (args.length == 1) {
             if (sender.hasPermission("shop.market.claim")) {
-                return tabMatch(arg, Arrays.asList("search", "sell", "port", "list", "claim", "auto", "trust", "untrust"));
+                return tabMatch(arg, Arrays.asList("search", "sell", "port", "setspawn",
+                                                   "list", "claim", "auto",
+                                                   "trust", "untrust"));
             } else {
                 return tabMatch(arg, Arrays.asList("search", "sell", "port"));
             }
