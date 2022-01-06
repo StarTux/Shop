@@ -41,40 +41,33 @@ public class SQLLog {
     @Column(nullable = false) private String itemDescription;
     @Column(nullable = false) private Double price;
 
-    SQLLog(final Date time, final SQLChest chestData, final Shopper customer, final ItemStack item) {
-        setTime(time);
-        setShopType(chestData.getShopType());
+    SQLLog(final Date time, final SQLChest chestData, final Shopper customer, final ItemStack item, final double price, final int amount) {
+        this.time = time;
+        this.shopType = chestData.getShopType();
         if (chestData.isAdminShop()) {
-            setOwner(null);
-            setOwnerName("The Bank");
+            this.owner = null;
+            this.ownerName = "The Bank";
         } else {
-            setOwner(chestData.getOwner());
-            setOwnerName(chestData.getShopper().getName());
+            this.owner = chestData.getOwner();
+            this.ownerName = chestData.getShopper().getName();
         }
-        setCustomer(customer.getUuid());
-        setCustomerName(customer.getName());
+        this.customer = customer.getUuid();
+        this.customerName = customer.getName();
         BlockLocation location = chestData.getLocation();
-        setWorld(location.getWorld());
-        setX(location.getX());
-        setY(location.getY());
-        setZ(location.getZ());
-        setMaterial(item.getType().name().toLowerCase());
-        setItemAmount(item.getAmount());
-        setItemName(Item.getItemName(item));
-        setItemDescription(Item.getItemDescription(item));
-        setPrice(chestData.getPrice());
+        this.world = location.getWorld();
+        this.x = location.getX();
+        this.y = location.getY();
+        this.z = location.getZ();
+        this.material = item.getType().name().toLowerCase();
+        this.itemAmount = amount;
+        this.itemName = Item.getItemName(item);
+        this.itemDescription = Item.getItemDescription(item);
+        this.price = price;
     }
 
-    public static void store(SQLChest chestData, Shopper customer, ItemStack item) {
-        if (chestData.getPrice() == 0.0) return;
-        SQLLog log = new SQLLog(new Date(), chestData, customer, item);
-        ShopPlugin.getInstance().getDb().save(log);
-    }
-
-    public static void store(SQLChest chestData, Shopper customer, ItemStack item, double price) {
+    public static void store(SQLChest chestData, Shopper customer, ItemStack item, double price, int amount) {
         if (price == 0.0) return;
-        SQLLog log = new SQLLog(new Date(), chestData, customer, item);
-        log.setPrice(price);
+        SQLLog log = new SQLLog(new Date(), chestData, customer, item, price, amount);
         ShopPlugin.getInstance().getDb().save(log);
     }
 

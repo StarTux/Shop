@@ -5,11 +5,13 @@ import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.chest.ChestShop;
+import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.util.Item;
 import com.winthier.shop.util.Msg;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,11 +22,23 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @RequiredArgsConstructor
 public final class InventoryListener implements Listener {
     private final ShopPlugin plugin;
+    /**
+     * Warts: Several players purchasing at once could override each
+     * other, cancelling out the 1-second delay. This is tolerable.
+     * When the plugin is disabled, will scheduled tasks still
+     * execute, or will the be cancelled? This merits a follow-up but
+     * is tolerable for the time being.
+     */
+    private Purchase lastPurchase;
 
     /**
      * Allow dragging if it's only in the bottom inventory.
@@ -41,12 +55,10 @@ public final class InventoryListener implements Listener {
         boolean isOwner = chestShop.getChestData().isOwner(player);
         boolean isAllowed = plugin.getMarket().isAllowedAt(player, chestShop.getLeft());
         if (isOwner || isAllowed) {
-            new BukkitRunnable() {
-                @Override public void run() {
+            Bukkit.getScheduler().runTask(plugin, () -> {
                     chestShop.getChestData().setSoldOut(chestShop.isSoldOut());
                     chestShop.getChestData().updateInWorld();
-                }
-            }.runTask(plugin);
+                });
             return;
         }
         boolean isTopInventory = false;
@@ -79,18 +91,17 @@ public final class InventoryListener implements Listener {
         Player player = (Player) event.getWhoClicked();
         final ChestShop chestShop = ChestShop.getByInventory(event.getInventory());
         if (chestShop == null) return;
+        SQLChest chestData = chestShop.getChestData();
         plugin.getOfferScanner().setDirty(chestShop);
         if (player.getGameMode() == GameMode.CREATIVE) return;
         boolean isTopInventory = (event.getRawSlot() < event.getView().getTopInventory().getSize());
-        boolean isOwner = chestShop.getChestData().isOwner(player);
+        boolean isOwner = chestData.isOwner(player);
         boolean isAllowed = plugin.getMarket().isAllowedAt(player, chestShop.getLeft());
         if (isOwner || isAllowed) {
-            new BukkitRunnable() {
-                @Override public void run() {
-                    chestShop.getChestData().setSoldOut(chestShop.isSoldOut());
-                    chestShop.getChestData().updateInWorld();
-                }
-            }.runTask(plugin);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                    chestData.setSoldOut(chestShop.isSoldOut());
+                    chestData.updateInWorld();
+                });
             return;
         }
         // allow left or right clicking in your own inventory
@@ -106,25 +117,25 @@ public final class InventoryListener implements Listener {
         event.setCancelled(true);
         // deny clicking items in for non-owners
         if (!event.isShiftClick() && isTopInventory && !isAir(event.getCursor())) {
-            if (chestShop.getChestData().getShopType() == ShopType.BUY) {
+            if (chestData.getShopType() == ShopType.BUY) {
                 Msg.warn(player, "You can't sell here.");
             }
-            if (chestShop.getChestData().getShopType() == ShopType.SELL) {
+            if (chestData.getShopType() == ShopType.SELL) {
                 Msg.warn(player, "Use shift click to sell items.");
             }
             return;
         }
         // shift click item into chest
         if (event.isShiftClick() && !isTopInventory && !isAir(event.getCurrentItem())) {
-            if (chestShop.getChestData().getShopType() == ShopType.BUY) {
+            if (chestData.getShopType() == ShopType.BUY) {
                 // deny shift clicking items in
                 Msg.warn(player, "You can't put items in.");
                 return;
             }
             // try to sell item to chest
-            if (chestShop.getChestData().getShopType() == ShopType.SELL) {
+            if (chestData.getShopType() == ShopType.SELL) {
                 // todo implement sell chests with item economy
-                double price = chestShop.getChestData().getPrice();
+                double price = chestData.getPrice();
                 if (Double.isNaN(price)) {
                     Msg.warn(player, "You can't sell here.");
                     return;
@@ -136,22 +147,22 @@ public final class InventoryListener implements Listener {
                 }
                 int sold = 0;
                 int restStack = event.getCurrentItem().getAmount();
-            buyLoop:
+                buyLoop:
                 while (restStack >= buyItem.getAmount()) {
-                    if (!chestShop.getChestData().isAdminShop() && Money.get(chestShop.getChestData().getOwner()) < price) {
+                    if (!chestData.isAdminShop() && Money.get(chestData.getOwner()) < price) {
                         Msg.warn(player, "%s has run out of money.", chestShop.getOwnerName());
                         break buyLoop;
                     }
-                    if (!chestShop.getChestData().isAdminShop() && !chestShop.addSlot(buyItem.clone())) {
+                    if (!chestData.isAdminShop() && !chestShop.addSlot(buyItem.clone())) {
                         Msg.warn(player, "This chest is full.");
                         // chestShop.setSoldOut();
                         break buyLoop;
                     }
                     sold += 1;
                     restStack -= buyItem.getAmount();
-                    if (!chestShop.getChestData().isAdminShop()) {
+                    if (!chestData.isAdminShop()) {
                         String msg = player.getName() + " sold " + buyItem.getAmount() + "x" + Item.getItemName(buyItem);
-                        Money.take(chestShop.getChestData().getOwner(), price, plugin, msg);
+                        Money.take(chestData.getOwner(), price, plugin, msg);
                     }
                 }
                 if (sold > 0) {
@@ -159,7 +170,7 @@ public final class InventoryListener implements Listener {
                     ItemStack soldItem = buyItem.clone();
                     soldItem.setAmount(sold * buyItem.getAmount());
                     String msg = "Sell " + soldItem.getAmount() + "x" + Item.getItemName(soldItem)
-                        + " to " + chestShop.getChestData().getOwnerName();
+                        + " to " + chestData.getOwnerName();
                     Money.give(player.getUniqueId(), fullPrice, plugin, msg);
                     if (restStack == 0) {
                         event.setCurrentItem(null);
@@ -167,16 +178,16 @@ public final class InventoryListener implements Listener {
                         event.getCurrentItem().setAmount(restStack);
                     }
                     Msg.info(player, "Sold for %s.", Money.format(fullPrice));
-                    Player ownerPlayer = chestShop.getChestData().getPlayer();
+                    Player ownerPlayer = chestData.getPlayer();
                     if (ownerPlayer != null) {
                         Msg.info(ownerPlayer, "%s sold %dx%s for %s to you.",
                                  player.getName(), soldItem.getAmount(), Item.getItemName(soldItem),
                                  Money.format(fullPrice));
                     }
-                    SQLLog.store(chestShop.getChestData(), Shopper.of(player), soldItem, fullPrice);
+                    SQLLog.store(chestData, Shopper.of(player), soldItem, fullPrice, soldItem.getAmount());
                     if (chestShop.isFull()) {
-                        chestShop.getChestData().setSoldOut(true);
-                        chestShop.getChestData().updateInWorld();
+                        chestData.setSoldOut(true);
+                        chestData.updateInWorld();
                     }
                 }
                 return;
@@ -185,19 +196,19 @@ public final class InventoryListener implements Listener {
         // single click chest slot to try to take item out
         if (!event.isShiftClick() && isTopInventory && !isAir(event.getCurrentItem())) {
             // deny taking items via single click for non-owners to avoid accidents
-            double price = chestShop.getChestData().getPrice();
+            double price = chestData.getPrice();
             if (Double.isNaN(price)) {
-                if (chestShop.getChestData().getShopType() == ShopType.BUY) {
+                if (chestData.getShopType() == ShopType.BUY) {
                     Msg.warn(player, "You can't buy here.");
                 }
-                if (chestShop.getChestData().getShopType() == ShopType.SELL) {
+                if (chestData.getShopType() == ShopType.SELL) {
                     Msg.warn(player, "You can't sell here.");
                 }
             } else {
-                if (chestShop.getChestData().getShopType() == ShopType.BUY) {
+                if (chestData.getShopType() == ShopType.BUY) {
                     Msg.info(player, "Buy this for %s by shift clicking.", Money.format(price));
                 }
-                if (chestShop.getChestData().getShopType() == ShopType.SELL) {
+                if (chestData.getShopType() == ShopType.SELL) {
                     Msg.info(player, "Will pay %s for this item type.", Money.format(price));
                 }
             }
@@ -206,50 +217,104 @@ public final class InventoryListener implements Listener {
         // shift click item out of chest
         if (event.isShiftClick() && isTopInventory && !isAir(event.getCurrentItem())) {
             // make a purchase
-            if (chestShop.getChestData().getShopType() == ShopType.BUY) {
-                double price = chestShop.getChestData().getPrice();
+            if (chestData.getShopType() == ShopType.BUY) {
+                double price = chestData.getPrice();
                 if (Double.isNaN(price)) {
                     Msg.warn(player, "You can't buy here.");
                     return;
                 }
                 ItemStack item = event.getCurrentItem();
-                String takeMsg = "Buy " + item.getAmount() + "x" + Item.getItemName(item)
-                    + " from " + chestShop.getChestData().getOwnerName();
-                boolean takeSuccess = Money.take(player.getUniqueId(), chestShop.getChestData().getPrice(), plugin, takeMsg);
-                if (!takeSuccess) {
+                if (!Money.takeSilent(player.getUniqueId(), price)) {
                     Msg.warn(player, "You don't have enough money");
                     return;
-                } else {
-                    // purchase made
-                    Map<Integer, ItemStack> retours;
-                    for (ItemStack drop: player.getInventory().addItem(item.clone()).values()) {
-                        player.getWorld().dropItem(player.getEyeLocation(), drop);
-                    }
-                    Msg.info(player, "Bought for %s.", Money.format(price));
-                    if (!chestShop.getChestData().isAdminShop()) {
-                        String giveMsg = player.getName() + " bought " + item.getAmount() + "x" + Item.getItemName(item);
-                        Money.give(chestShop.getChestData().getOwner(), price, plugin, giveMsg);
-                        Player ownerPlayer = chestShop.getChestData().getPlayer();
-                        if (ownerPlayer != null) {
-                            Msg.info(ownerPlayer, "%s bought %dx%s for %s from you.",
-                                     player.getName(), item.getAmount(), Item.getItemName(item), Money.format(price));
-                        }
-                        event.setCurrentItem(null);
-                    } else {
-                        event.setCurrentItem(event.getCurrentItem());
-                    }
-                    SQLLog.store(chestShop.getChestData(), Shopper.of(player), item);
-                    if (chestShop.isEmpty()) {
-                        chestShop.getChestData().setSoldOut(true);
-                        chestShop.getChestData().updateInWorld();
-                    }
-                    return;
                 }
+                if (!chestData.isAdminShop()) {
+                    if (!Money.giveSilent(chestData.getOwner(), price)) {
+                        plugin.getLogger().info("Could not give " + price + " to " + chestData.getOwnerName());
+                    }
+                }
+                // purchase made
+                for (ItemStack drop: player.getInventory().addItem(item.clone()).values()) {
+                    player.getWorld().dropItem(player.getEyeLocation(), drop);
+                }
+                final Purchase newPurchase = new Purchase(player, chestData, item);
+                final Purchase purchase = lastPurchase != null && lastPurchase.canStackWith(newPurchase)
+                    ? lastPurchase
+                    : newPurchase;
+                lastPurchase = purchase;
+                purchase.amount += item.getAmount();
+                purchase.price += price;
+                // Purchase the old task, if any, and schedule a new one.
+                if (purchase.task != null) {
+                    purchase.task.cancel();
+                    purchase.task = null;
+                }
+                if (!chestData.isAdminShop()) {
+                    event.setCurrentItem(null);
+                } else {
+                    event.setCurrentItem(event.getCurrentItem());
+                }
+                if (chestShop.isEmpty()) {
+                    chestData.setSoldOut(true);
+                    chestData.updateInWorld();
+                }
+                purchase.task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        SQLLog.store(chestData, Shopper.of(player), item, purchase.price, purchase.amount);
+                        Money.log(player.getUniqueId(), -purchase.price, plugin,
+                                  "Buy " + purchase.amount + "x" + Item.getItemName(purchase.item) + " from " + chestData.getOwnerName());
+                        String priceFormat = Money.format(purchase.price);
+                        player.sendMessage(join(noSeparators(), new Component[] {
+                                    Component.text("Bought "),
+                                    text(purchase.amount, YELLOW),
+                                    text("x"),
+                                    text(Item.getItemName(item), YELLOW),
+                                    Component.text(" for "),
+                                    Component.text(priceFormat, GOLD),
+                                }));
+                        if (chestData.isAdminShop()) return;
+                        Money.log(chestData.getOwner(), purchase.price, plugin,
+                                  player.getName() + " bought " + purchase.amount + "x" + Item.getItemName(purchase.item));
+                        Player ownerPlayer = chestData.getPlayer();
+                        if (ownerPlayer == null) return;
+                        ownerPlayer.sendMessage(join(noSeparators(), new Component[] {
+                                    text(player.getName()),
+                                    text(" bought "),
+                                    text(purchase.amount, YELLOW),
+                                    text("x"),
+                                    text(Item.getItemName(item), YELLOW),
+                                    text(" for "),
+                                    text(Money.format(purchase.price), GOLD),
+                                }));
+                        if (purchase == lastPurchase) {
+                            lastPurchase = null;
+                        }
+                    }, 20L);
+                return;
             }
-            if (chestShop.getChestData().getShopType() == ShopType.SELL) {
+            if (chestData.getShopType() == ShopType.SELL) {
                 Msg.warn(player, "You can't buy here.");
                 return;
             }
+        }
+    }
+
+    /**
+     * We store the purchase for almost a tick to reduce spam in chat
+     * and the money logs. Quick consecutive purchases get added up.
+     */
+    @RequiredArgsConstructor
+    private static final class Purchase {
+        private final Player player;
+        private final SQLChest chestData;
+        private final ItemStack item;
+        private double price = 0.0;
+        private int amount = 0;
+        private BukkitTask task;
+
+        public boolean canStackWith(Purchase other) {
+            return player == other.player
+                && chestData == other.chestData
+                && item.isSimilar(other.item);
         }
     }
 }
