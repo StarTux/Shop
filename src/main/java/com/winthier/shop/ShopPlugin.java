@@ -51,7 +51,7 @@ public final class ShopPlugin extends JavaPlugin {
         marketListener = new MarketListener(this);
         getServer().getPluginManager().registerEvents(marketListener, this);
         getCommand("shop").setExecutor(new ShopCommand(this));
-        getCommand("shopadmin").setExecutor(adminCommand);
+        adminCommand.enable();
         getCommand("market").setExecutor((s, c, l, a) -> {
                 if (!(s instanceof Player)) return true;
                 if (market == null) return true;

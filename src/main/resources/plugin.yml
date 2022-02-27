@@ -18,14 +18,7 @@ commands:
     permission: shop.shop
   shopadmin:
     description: Admin interface
-    usage: |-
-      /shopadmin reload - Reload configs
-      /shopadmin plotinfo - Display current plot info
-      /shopadmin makeplot - Make plot from selection
-      /shopadmin deleteplot - Delete current plot
-      /shopadmin showplots - Highlight nearby plots
-      /shopadmin transfer - Transfer plot
-      /shopadmin flushoffers - Flush all offers (rescan)
+    usage: /shopadmin
     permission: shop.admin
 permissions:
   shop.shop:

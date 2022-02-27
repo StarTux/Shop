@@ -399,7 +399,8 @@ public final class ShopCommand implements TabExecutor {
     }
 
     boolean shopAuto(Player player, String[] args) {
-        if (plugin.getMarket().findPlayerPlot(player.getUniqueId()) != null) {
+        if (!player.hasPermission("shop.market.override")
+            && plugin.getMarket().findPlayerPlot(player.getUniqueId()) != null) {
             Msg.warn(player, "You already have a plot.");
             return true;
         }
@@ -535,6 +536,7 @@ public final class ShopCommand implements TabExecutor {
             if (world == null) return;
             int y = world.getHighestBlockYAt(x, z);
             Block block = world.getBlockAt(x, y, z);
+            while (!block.isEmpty() && block.getY() < world.getMaxHeight()) block = block.getRelative(0, 1, 0);
             loc = block.getLocation().add(0.5, 0.0, 0.5);
             block = world.getBlockAt((plot.getWest() + plot.getEast()) / 2, y, (plot.getNorth() + plot.getSouth()) / 2);
             Vector vec = block.getLocation().add(0.5, 0.0, 0.5).toVector();
