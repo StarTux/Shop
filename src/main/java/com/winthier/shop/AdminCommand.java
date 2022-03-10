@@ -4,6 +4,7 @@ import com.cavetale.core.command.AbstractCommand;
 import com.cavetale.core.command.CommandArgCompleter;
 import com.cavetale.core.command.CommandWarn;
 import com.winthier.playercache.PlayerCache;
+import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.shop.util.Cuboid;
 import com.winthier.shop.util.Msg;
@@ -54,6 +55,10 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         rootNode.addChild("debug").denyTabCompletion()
             .description("Print debug info")
             .senderCaller(this::debug);
+        rootNode.addChild("transferall").arguments("<from> <to>")
+            .description("Account transfer")
+            .completers(PlayerCache.NAME_COMPLETER, PlayerCache.NAME_COMPLETER)
+            .senderCaller(this::transferAll);
     }
 
     protected boolean reload(CommandSender sender, String[] args) {
@@ -197,6 +202,40 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         for (BlockLocation loc : plugin.getOfferScanner().getDirties().keySet()) {
             sender.sendMessage("" + loc);
         }
+        return true;
+    }
+
+    private boolean transferAll(CommandSender sender, String[] args) {
+        if (args.length != 2) return false;
+        PlayerCache from = PlayerCache.forArg(args[0]);
+        if (from == null) throw new CommandWarn("Player not found: " + args[0]);
+        PlayerCache to = PlayerCache.forArg(args[1]);
+        if (to == null) throw new CommandWarn("Player not found: " + args[1]);
+        if (from.equals(to)) throw new CommandWarn("Players are identical: " + from.getName());
+        final int chestCount = plugin.getDb().update(SQLChest.class)
+            .set("owner", to.uuid)
+            .where(c -> c.eq("owner", from.uuid))
+            .sync();
+        if (chestCount != 0) {
+            plugin.reloadChests();
+        }
+        int plotCount = 0;
+        for (Market.Plot plot : plugin.getMarket().getPlots()) {
+            if (plot.getOwner() == null) continue;
+            if (!from.uuid.equals(plot.getOwner().getUuid())) continue;
+            plot.setOwner(new Shopper(to.uuid, to.name));
+            plotCount += 1;
+        }
+        if (plotCount != 0) {
+            plugin.getMarket().save();
+        }
+        if (chestCount == 0 && plotCount == 0) {
+            throw new CommandWarn(from.name + " does not have any shops");
+        }
+        sender.sendMessage(text("Shops transferred from " + from.name + " to " + to.name + ":"
+                                + " chests=" + chestCount
+                                + " plots=" + plotCount,
+                                AQUA));
         return true;
     }
 }
