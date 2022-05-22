@@ -1,41 +1,55 @@
+main: com.winthier.shop.ShopPlugin
 name: Shop
-description: Make shop chests
-author: StarTux
+
 version: 0.1
 api-version: 1.18
-main: com.winthier.shop.ShopPlugin
+
+description: Make shop chests
+author: StarTux
 website: https://cavetale.com
+
 depend: [Core, SQL, Mytems, PlayerCache, Money, WorldEdit]
 softdepend: []
+
 commands:
+
   market:
     description: Warp to the market
     usage: /<command>
     permission: shop.market
+
   shop:
     description: Shop user interface
     usage: /<command>
     permission: shop.shop
+
   shopadmin:
     description: Admin interface
     usage: /shopadmin
     permission: shop.admin
+
 permissions:
+
   shop.shop:
     description: Use /shop
     default: op
+
   shop.create:
     description: Create your own shops
     default: op
+
   shop.market:
     description: Visit the market via /market
     default: op
+
   shop.market.claim:
     description: Claim a plot on the market
     default: op
+
   shop.market.override:
     description: Override market plot restrictions
     default: op
+
   shop.admin:
     description: Use /shopadmin
     default: op

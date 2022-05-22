@@ -97,8 +97,9 @@ public final class SignListener implements Listener {
         Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         Bukkit.getScheduler().runTask(plugin, chestData::updateInWorld);
         plugin.getOfferScanner().setDirty(BlockLocation.of(event.getBlock().getRelative(0, -1, 0)));
-        PluginPlayerEvent.Name.MAKE_SHOP_CHEST.ultimate(plugin, player)
-            .detail(Detail.BLOCK, event.getBlock()).call();
+        PluginPlayerEvent.Name.MAKE_SHOP_CHEST.make(plugin, player)
+            .detail(Detail.BLOCK, event.getBlock())
+            .callEvent();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -140,8 +141,9 @@ public final class SignListener implements Listener {
         plugin.getChestDataStore().store(chestData);
         Msg.info(player, "You created a shop chest %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         plugin.getOfferScanner().setDirty(BlockLocation.of(block));
-        PluginPlayerEvent.Name.MAKE_SHOP_CHEST.ultimate(plugin, player)
-            .detail(Detail.BLOCK, event.getBlock()).call();
+        PluginPlayerEvent.Name.MAKE_SHOP_CHEST.make(plugin, player)
+            .detail(Detail.BLOCK, event.getBlock())
+            .callEvent();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)

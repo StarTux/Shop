@@ -5,12 +5,12 @@ import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.util.Item;
+import com.winthier.sql.SQLRow;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Getter;
@@ -18,12 +18,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.bukkit.inventory.ItemStack;
 
-@Entity
-@Table(name = "logs")
-@Getter
-@Setter
-@NoArgsConstructor
-public class SQLLog {
+@Getter @Setter @NoArgsConstructor @Table(name = "logs")
+public class SQLLog implements SQLRow {
     @Id private Integer id;
     @Column(nullable = false) private Date time;
     @Column(nullable = false) private ShopType shopType;

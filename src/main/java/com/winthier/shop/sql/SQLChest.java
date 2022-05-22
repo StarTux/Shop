@@ -6,6 +6,7 @@ import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.util.Msg;
+import com.winthier.sql.SQLRow;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Id;
@@ -22,7 +23,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
 @Getter @Setter @Table(name = "chests")
-public final class SQLChest {
+public final class SQLChest implements SQLRow {
     @Id private Integer id;
     @Column(nullable = false) private Type type;
     @Column(nullable = false) private ShopType shopType;

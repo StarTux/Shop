@@ -59,9 +59,9 @@ public final class ShopPlugin extends JavaPlugin {
                 if (world == null) return true;
                 Player player = (Player) s;
                 player.teleport(world.getSpawnLocation());
-                PluginPlayerEvent.Name.USE_WARP.ultimate(this, player)
+                PluginPlayerEvent.Name.USE_WARP.make(this, player)
                     .detail(Detail.NAME, "market")
-                    .call();
+                    .callEvent();
                 return true;
             });
         SQLOffer.getCache();

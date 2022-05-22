@@ -4,6 +4,7 @@ import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.util.Item;
+import com.winthier.sql.SQLRow;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Getter;
@@ -22,12 +22,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 
-@Entity
-@Table(name = "offers")
-@Getter
-@Setter
-@NoArgsConstructor
-public final class SQLOffer {
+@Getter @Setter @NoArgsConstructor @Table(name = "offers")
+public final class SQLOffer implements SQLRow {
     // Cache
     @RequiredArgsConstructor
     static class Offers {
