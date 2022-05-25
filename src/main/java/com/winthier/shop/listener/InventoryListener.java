@@ -1,6 +1,6 @@
 package com.winthier.shop.listener;
 
-import com.cavetale.money.Money;
+import com.cavetale.core.money.Money;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
@@ -149,7 +149,7 @@ public final class InventoryListener implements Listener {
                 int restStack = event.getCurrentItem().getAmount();
                 buyLoop:
                 while (restStack >= buyItem.getAmount()) {
-                    if (!chestData.isAdminShop() && Money.get(chestData.getOwner()) < price) {
+                    if (!chestData.isAdminShop() && Money.get().get(chestData.getOwner()) < price) {
                         Msg.warn(player, "%s has run out of money.", chestShop.getOwnerName());
                         break buyLoop;
                     }
@@ -162,7 +162,7 @@ public final class InventoryListener implements Listener {
                     restStack -= buyItem.getAmount();
                     if (!chestData.isAdminShop()) {
                         String msg = player.getName() + " sold " + buyItem.getAmount() + "x" + Item.getItemName(buyItem);
-                        Money.take(chestData.getOwner(), price, plugin, msg);
+                        Money.get().take(chestData.getOwner(), price, plugin, msg);
                     }
                 }
                 if (sold > 0) {
@@ -171,18 +171,18 @@ public final class InventoryListener implements Listener {
                     soldItem.setAmount(sold * buyItem.getAmount());
                     String msg = "Sell " + soldItem.getAmount() + "x" + Item.getItemName(soldItem)
                         + " to " + chestData.getOwnerName();
-                    Money.give(player.getUniqueId(), fullPrice, plugin, msg);
+                    Money.get().give(player.getUniqueId(), fullPrice, plugin, msg);
                     if (restStack == 0) {
                         event.setCurrentItem(null);
                     } else {
                         event.getCurrentItem().setAmount(restStack);
                     }
-                    Msg.info(player, "Sold for %s.", Money.format(fullPrice));
+                    Msg.info(player, "Sold for %s.", Money.get().format(fullPrice));
                     Player ownerPlayer = chestData.getPlayer();
                     if (ownerPlayer != null) {
                         Msg.info(ownerPlayer, "%s sold %dx%s for %s to you.",
                                  player.getName(), soldItem.getAmount(), Item.getItemName(soldItem),
-                                 Money.format(fullPrice));
+                                 Money.get().format(fullPrice));
                     }
                     SQLLog.store(chestData, Shopper.of(player), soldItem, fullPrice, soldItem.getAmount());
                     if (chestShop.isFull()) {
@@ -206,10 +206,10 @@ public final class InventoryListener implements Listener {
                 }
             } else {
                 if (chestData.getShopType() == ShopType.BUY) {
-                    Msg.info(player, "Buy this for %s by shift clicking.", Money.format(price));
+                    Msg.info(player, "Buy this for %s by shift clicking.", Money.get().format(price));
                 }
                 if (chestData.getShopType() == ShopType.SELL) {
-                    Msg.info(player, "Will pay %s for this item type.", Money.format(price));
+                    Msg.info(player, "Will pay %s for this item type.", Money.get().format(price));
                 }
             }
             return;
@@ -224,12 +224,12 @@ public final class InventoryListener implements Listener {
                     return;
                 }
                 ItemStack item = event.getCurrentItem();
-                if (!Money.takeSilent(player.getUniqueId(), price)) {
+                if (price >= 0.01 && !Money.get().take(player.getUniqueId(), price)) {
                     Msg.warn(player, "You don't have enough money");
                     return;
                 }
                 if (!chestData.isAdminShop()) {
-                    if (!Money.giveSilent(chestData.getOwner(), price)) {
+                    if (!Money.get().give(chestData.getOwner(), price)) {
                         plugin.getLogger().info("Could not give " + price + " to " + chestData.getOwnerName());
                     }
                 }
@@ -260,9 +260,9 @@ public final class InventoryListener implements Listener {
                 }
                 purchase.task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         SQLLog.store(chestData, Shopper.of(player), item, purchase.price, purchase.amount);
-                        Money.log(player.getUniqueId(), -purchase.price, plugin,
+                        Money.get().log(player.getUniqueId(), -purchase.price, plugin,
                                   "Buy " + purchase.amount + "x" + Item.getItemName(purchase.item) + " from " + chestData.getOwnerName());
-                        String priceFormat = Money.format(purchase.price);
+                        String priceFormat = Money.get().format(purchase.price);
                         player.sendMessage(join(noSeparators(), new Component[] {
                                     Component.text("Bought "),
                                     text(purchase.amount, YELLOW),
@@ -272,7 +272,7 @@ public final class InventoryListener implements Listener {
                                     Component.text(priceFormat, GOLD),
                                 }));
                         if (chestData.isAdminShop()) return;
-                        Money.log(chestData.getOwner(), purchase.price, plugin,
+                        Money.get().log(chestData.getOwner(), purchase.price, plugin,
                                   player.getName() + " bought " + purchase.amount + "x" + Item.getItemName(purchase.item));
                         Player ownerPlayer = chestData.getPlayer();
                         if (ownerPlayer == null) return;
@@ -283,7 +283,7 @@ public final class InventoryListener implements Listener {
                                     text("x"),
                                     text(Item.getItemName(item), YELLOW),
                                     text(" for "),
-                                    text(Money.format(purchase.price), GOLD),
+                                    text(Money.get().format(purchase.price), GOLD),
                                 }));
                         if (purchase == lastPurchase) {
                             lastPurchase = null;

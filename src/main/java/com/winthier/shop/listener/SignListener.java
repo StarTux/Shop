@@ -2,7 +2,7 @@ package com.winthier.shop.listener;
 
 import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.cavetale.core.event.player.PluginPlayerEvent;
-import com.cavetale.money.Money;
+import com.cavetale.core.money.Money;
 import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
@@ -93,7 +93,7 @@ public final class SignListener implements Listener {
         BlockLocation location = BlockLocation.of(event.getBlock());
         final SQLChest chestData = new SQLChest(SQLChest.Type.SIGN, shopType, location, owner, price, owner == null);
         plugin.getChestDataStore().store(chestData);
-        String priceFormat = Money.format(price);
+        String priceFormat = Money.get().format(price);
         Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
         Bukkit.getScheduler().runTask(plugin, chestData::updateInWorld);
         plugin.getOfferScanner().setDirty(BlockLocation.of(event.getBlock().getRelative(0, -1, 0)));
@@ -136,7 +136,7 @@ public final class SignListener implements Listener {
         }
         BlockLocation location = BlockLocation.of(event.getBlock());
         Shopper owner = Shopper.of(event.getPlayer());
-        String priceFormat = Money.format(price);
+        String priceFormat = Money.get().format(price);
         SQLChest chestData = new SQLChest(SQLChest.Type.NAMED_CHEST, shopType, location, owner, price, false);
         plugin.getChestDataStore().store(chestData);
         Msg.info(player, "You created a shop chest %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);

@@ -1,7 +1,7 @@
 package com.winthier.shop;
 
 import com.cavetale.core.event.player.PluginPlayerEvent;
-import com.cavetale.money.Money;
+import com.cavetale.core.money.Money;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.shop.util.Msg;
@@ -248,7 +248,7 @@ public final class ShopCommand implements TabExecutor {
                 .clickEvent(ClickEvent.runCommand("/shop port " + offerIndex));
             cb.append(Component.text("[Port]", NamedTextColor.BLUE));
             cb.append(Component.space());
-            cb.append(Component.text(Money.format(offer.getPrice()), NamedTextColor.GOLD));
+            cb.append(Component.text(Money.get().format(offer.getPrice()), NamedTextColor.GOLD));
             cb.append(Component.space());
             if (offer.getItemAmount() > 1) {
                 cb.append(Component.text(offer.getItemAmount(), NamedTextColor.WHITE));
@@ -349,7 +349,7 @@ public final class ShopCommand implements TabExecutor {
             cb.append(Component.space());
             cb.append(Component.text("for", NamedTextColor.DARK_GRAY));
             cb.append(Component.space());
-            cb.append(Component.text(Money.format(log.getPrice()), NamedTextColor.GOLD));
+            cb.append(Component.text(Money.get().format(log.getPrice()), NamedTextColor.GOLD));
             lines.add(cb.build());
         }
         if (lines.isEmpty()) {
@@ -379,10 +379,10 @@ public final class ShopCommand implements TabExecutor {
         }
         Shopper shopper = Shopper.of(player);
         double price = plugin.getMarket().getPlotPrice();
-        String priceFormat = Money.format(price);
+        String priceFormat = Money.get().format(price);
         if (args.length == 2 && args[1].equals("confirm")) {
             // Clicked confirm.
-            if (!Money.take(shopper.getUuid(), price, plugin, "Claim market plot")) {
+            if (!Money.get().take(shopper.getUuid(), price, plugin, "Claim market plot")) {
                 Msg.warn(player, "You can't afford the %s.", priceFormat);
             } else {
                 plot.setOwner(Shopper.of(player));

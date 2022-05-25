@@ -1,6 +1,6 @@
 package com.winthier.shop.sql;
 
-import com.cavetale.money.Money;
+import com.cavetale.core.money.Money;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -117,7 +117,7 @@ public final class SQLChest implements SQLRow {
             if (soldOut) {
                 sign.line(1, Component.text(Msg.format("&4SOLD OUT")));
             } else {
-                sign.line(1, Component.text(ChatColor.GOLD + Money.format(price)));
+                sign.line(1, Component.text(ChatColor.GOLD + Money.get().format(price)));
             }
             if (adminShop) {
                 sign.line(2, Component.empty());
