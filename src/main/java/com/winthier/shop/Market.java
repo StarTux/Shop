@@ -104,6 +104,12 @@ public final class Market {
             if (!ver) return false;
             return true;
         }
+
+        public String getOwnerName() {
+            return owner != null
+                ? owner.getName()
+                : "The Bank";
+        }
     }
 
     public Plot makePlot() {

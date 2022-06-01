@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +23,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 
-@Getter @Setter @NoArgsConstructor @Table(name = "offers")
+@Getter @Setter @NoArgsConstructor
+@Table(name = "offers", indexes = @Index(name = "world", columnList = "world"))
 public final class SQLOffer implements SQLRow {
     // Cache
     @RequiredArgsConstructor
@@ -135,7 +137,7 @@ public final class SQLOffer implements SQLRow {
         Date time = new Date();
         List<SQLOffer> list = new ArrayList<>();
         List<ItemStack> doneItems = new ArrayList<>();
-    OUTER: for (ItemStack item: items) {
+        OUTER: for (ItemStack item: items) {
             for (ItemStack doneItem: doneItems) {
                 if (doneItem.isSimilar(item)) continue OUTER;
             }

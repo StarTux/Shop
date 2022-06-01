@@ -1,7 +1,5 @@
 package com.winthier.shop;
 
-import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
-import com.cavetale.core.event.player.PluginPlayerEvent;
 import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.chest.ChestDataStore;
 import com.winthier.shop.chest.ChestShop;
@@ -14,10 +12,10 @@ import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.sql.SQLDatabase;
 import java.io.File;
+import java.util.List;
 import java.util.UUID;
 import lombok.Getter;
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
@@ -43,27 +41,15 @@ public final class ShopPlugin extends JavaPlugin {
             saveResource("market.yml", false);
         }
         db = new SQLDatabase(this);
-        db.registerTables(SQLLog.class, SQLOffer.class, SQLChest.class);
+        db.registerTables(List.of(SQLLog.class, SQLOffer.class, SQLChest.class));
         db.createAllTables();
         getServer().getPluginManager().registerEvents(new SignListener(this), this);
         getServer().getPluginManager().registerEvents(new InventoryListener(this), this);
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
         marketListener = new MarketListener(this);
         getServer().getPluginManager().registerEvents(marketListener, this);
-        getCommand("shop").setExecutor(new ShopCommand(this));
+        new ShopCommand(this).enable();
         adminCommand.enable();
-        getCommand("market").setExecutor((s, c, l, a) -> {
-                if (!(s instanceof Player)) return true;
-                if (market == null) return true;
-                World world = getServer().getWorld(market.getWorld());
-                if (world == null) return true;
-                Player player = (Player) s;
-                player.teleport(world.getSpawnLocation());
-                PluginPlayerEvent.Name.USE_WARP.make(this, player)
-                    .detail(Detail.NAME, "market")
-                    .callEvent();
-                return true;
-            });
         SQLOffer.getCache();
         offerScanner.start();
         reloadMarket();

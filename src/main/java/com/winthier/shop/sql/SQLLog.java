@@ -12,13 +12,15 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import javax.persistence.Column;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.bukkit.inventory.ItemStack;
 
-@Getter @Setter @NoArgsConstructor @Table(name = "logs")
+@Getter @Setter @NoArgsConstructor
+@Table(name = "logs", indexes = @Index(name = "owner", columnList = "owner"))
 public class SQLLog implements SQLRow {
     @Id private Integer id;
     @Column(nullable = false) private Date time;
