@@ -148,12 +148,12 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
     private void searchCallback(RemotePlayer player, ShopType shopType, List<String> patterns, List<SQLOffer> rows) {
         List<SQLOffer> offers = new ArrayList<>();
         String marketWorld = plugin.getMarket().getWorld();
-        for (SQLOffer offer : rows) {
+        OFFERS: for (SQLOffer offer : rows) {
             if (!offer.getWorld().equals(marketWorld)) continue;
             if (offer.getShopType() != shopType) continue;
             String desc = offer.getItemDescription().toLowerCase();
             for (String pattern : patterns) {
-                if (!desc.contains(pattern)) continue;
+                if (!desc.contains(pattern)) continue OFFERS;
             }
             offers.add(offer);
         }
@@ -166,7 +166,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         int offerIndex = 0;
         Set<DoneItem> doneItems = new HashSet<>();
         List<Component> lines = new ArrayList<>();
-        for (SQLOffer offer: offers) {
+        for (SQLOffer offer : offers) {
             // Only one mention per player
             UUID owner = offer.getOwner();
             if (owner != null) {
