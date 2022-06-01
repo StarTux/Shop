@@ -64,11 +64,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
     }
 
     protected void onEnable() {
-        final NetworkServer targetServer = switch (NetworkServer.current()) {
-        case ALPHA -> NetworkServer.BETA;
-        case BETA, CAVETALE -> null;
-        default -> NetworkServer.CAVETALE;
-        };
+        final NetworkServer targetServer = plugin.getMasterServer();
         rootNode.addChild("search").arguments("[item]")
             .denyTabCompletion()
             .description("Search for shop chests")
@@ -272,7 +268,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         return true;
     }
 
-    private void market(RemotePlayer player) {
+    protected void market(RemotePlayer player) {
         World world = Bukkit.getServer().getWorld(plugin.getMarket().getWorld());
         if (world == null) {
             throw new CommandWarn("Market not found");

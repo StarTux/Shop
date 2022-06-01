@@ -20,6 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.plugin.java.JavaPlugin;
+import com.cavetale.core.connect.NetworkServer;
 
 @Getter
 public final class ShopPlugin extends JavaPlugin {
@@ -31,6 +32,8 @@ public final class ShopPlugin extends JavaPlugin {
     private AdminCommand adminCommand = new AdminCommand(this);
     private boolean debugMode;
     private SQLDatabase db;
+    protected ShopCommand shopCommand = new ShopCommand(this);
+    protected MarketCommand marketCommand = new MarketCommand(this);
 
     @Override
     public void onEnable() {
@@ -48,7 +51,8 @@ public final class ShopPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChestListener(), this);
         marketListener = new MarketListener(this);
         getServer().getPluginManager().registerEvents(marketListener, this);
-        new ShopCommand(this).enable();
+        shopCommand.enable();
+        marketCommand.enable();
         adminCommand.enable();
         SQLOffer.getCache();
         offerScanner.start();
@@ -99,5 +103,13 @@ public final class ShopPlugin extends JavaPlugin {
             return new Shopper(uuid, name);
         }
         return null;
+    }
+
+    protected NetworkServer getMasterServer() {
+        return switch (NetworkServer.current()) {
+        case ALPHA -> NetworkServer.BETA;
+        case BETA, CAVETALE -> null;
+        default -> NetworkServer.CAVETALE;
+        };
     }
 }
