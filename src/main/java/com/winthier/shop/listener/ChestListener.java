@@ -1,10 +1,9 @@
 package com.winthier.shop.listener;
 
-import com.cavetale.core.money.Money;
+import com.cavetale.mytems.item.coin.Coin;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.chest.ChestShop;
-import com.winthier.shop.util.Msg;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,6 +12,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 public final class ChestListener implements Listener {
     private boolean allowEvent;
@@ -22,7 +25,7 @@ public final class ChestListener implements Listener {
      * part of a shop chest, we want to send an informative
      * message and open the chest. The opening is done
      * manually and the event cancelled so protection plugins
-     * don't get involved later.
+     * do not get involved later.
      */
     @EventHandler(ignoreCancelled = false, priority = EventPriority.LOW)
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -35,20 +38,27 @@ public final class ChestListener implements Listener {
         if (chestShop == null) return;
         ShopPlugin.getInstance().getOfferScanner().setDirty(chestShop);
         double price = chestShop.getChestData().getPrice();
-        String priceFormat = Money.get().format(price);
         if (chestShop.getChestData().isOwner(player)) {
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
-                Msg.info(player, "Your shop chest sells items for &3%s&r.", priceFormat);
+                player.sendMessage(join(noSeparators(),
+                                        text("Your shop chest sells items for "),
+                                        Coin.format(price)));
             } else if (chestShop.getChestData().getShopType() == ShopType.SELL) {
-                Msg.info(player, "Your shop chest buys items for &3%s&r.", priceFormat);
+                player.sendMessage(join(noSeparators(),
+                                        text("Your shop chest buys items for "),
+                                        Coin.format(price)));
             }
             chestShop.getChestData().setSoldOut(chestShop.isEmpty());
             chestShop.getChestData().updateInWorld();
         } else {
             if (chestShop.getChestData().getShopType() == ShopType.BUY) {
-                Msg.info(player, "%s's shop sells items for &3%s&r.", chestShop.getOwnerName(), priceFormat);
+                player.sendMessage(join(noSeparators(),
+                                        text(chestShop.getOwnerName() + "'s shop sells items for "),
+                                        Coin.format(price)));
             } else if (chestShop.getChestData().getShopType() == ShopType.SELL) {
-                Msg.info(player, "%s's shop buys items for &3%s&r.", chestShop.getOwnerName(), priceFormat);
+                player.sendMessage(join(noSeparators(),
+                                        text(chestShop.getOwnerName() + "'s shop buys items for "),
+                                        Coin.format(price)));
             }
         }
         event.setCancelled(true);

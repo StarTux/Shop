@@ -1,6 +1,7 @@
 package com.winthier.shop.util;
 
 import com.cavetale.mytems.Mytems;
+import com.cavetale.mytems.util.Text;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import java.util.Map;
 import net.kyori.adventure.text.Component;
@@ -46,7 +47,7 @@ public final class Item {
         String result = item.getI18NDisplayName();
         return result != null
             ? result
-            : Msg.camelCase(item.getType().name());
+            : Text.toCamelCase(item.getType(), " ");
     }
 
     public static String getEnchantmentName(Enchantment enchantment) {

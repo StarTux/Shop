@@ -14,7 +14,6 @@ import com.cavetale.mytems.item.coin.Coin;
 import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
-import com.winthier.shop.util.Msg;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -182,7 +181,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
                 .clickEvent(runCommand("/shop port " + offerIndex));
             cb.append(text("[Port]", BLUE));
             cb.append(space());
-            cb.append(text(Money.get().format(offer.getPrice()), GOLD));
+            cb.append(Coin.format(offer.getPrice()));
             cb.append(space());
             if (offer.getItemAmount() > 1) {
                 cb.append(text(offer.getItemAmount(), WHITE));
@@ -235,7 +234,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         if (args.length == 0) {
             Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
             if (plot == null) {
-                throw new CommandWarn("You don't have a market plot");
+                throw new CommandWarn("You do not have a market plot");
             }
             boolean res = portToPlot(player, plot, player2 -> {
                     if (player2 == null) return;
@@ -311,7 +310,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             cb.append(space());
             cb.append(text("for", DARK_GRAY));
             cb.append(space());
-            cb.append(text(Money.get().format(log.getPrice()), GOLD));
+            cb.append(Coin.format(log.getPrice()));
             lines.add(cb.build());
         }
         if (lines.isEmpty()) {
@@ -362,7 +361,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         if (args.length == 1 && args[0].equals("confirm")) {
             // Clicked confirm.
             if (!Money.get().take(shopper.getUuid(), price, plugin, "Claim market plot")) {
-                throw new CommandWarn("You can't afford the " + Money.get().format(price));
+                throw new CommandWarn("You cannot afford the " + Money.get().format(price));
             } else {
                 plot.setOwner(Shopper.of(player));
                 plugin.getMarket().save();
@@ -402,7 +401,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         if (args.length > 1) return false;
         Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
         if (plot == null) {
-            throw new CommandWarn("You don't own a plot");
+            throw new CommandWarn("You do not own a plot");
         }
         if (args.length == 0) {
             if (plot.getTrusted().isEmpty()) {
@@ -438,14 +437,14 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
                     Shopper shopper = Shopper.of(target);
                     plot.getTrusted().add(shopper);
                     plugin.getMarket().save();
-                    Msg.info(player, "Trusted player in your plot: %s", shopper.getName());
+                    player.sendMessage(text("Trusted player in your plot: " + shopper.getName(), GREEN));
                 }
             }
         } else {
             if (targetName.equals("*")) {
                 plot.getTrusted().clear();
                 plugin.getMarket().save();
-                Msg.info(player, "Trusted players cleared");
+                player.sendMessage(text("Trusted players cleared", GREEN));
             } else {
                 Shopper target = null;
                 for (Shopper shopper: plot.getTrusted()) {
@@ -459,7 +458,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
                 } else {
                     plot.getTrusted().remove(target);
                     plugin.getMarket().save();
-                    Msg.info(player, "Player untrusted: %s", target.getName());
+                    player.sendMessage(text("Player untrusted: " + target.getName(), GREEN));
                 }
             }
         }
@@ -469,11 +468,11 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
     private void setspawn(Player player) {
         Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
         if (plot == null) {
-            throw new CommandWarn("You don't have a market plot.");
+            throw new CommandWarn("You do not have a market plot");
         }
         Location loc = player.getLocation();
         if (!plot.isInside(loc)) {
-            throw new CommandWarn("The spawn location must be inside your plot.");
+            throw new CommandWarn("The spawn location must be inside your plot");
         }
         plot.setSpawnLocation(loc);
         plugin.getMarket().save();

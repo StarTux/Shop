@@ -1,11 +1,12 @@
 package com.winthier.shop.sql;
 
-import com.cavetale.core.money.Money;
+import com.cavetale.core.command.RemotePlayer;
+import com.cavetale.core.connect.Connect;
+import com.cavetale.mytems.item.coin.Coin;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
-import com.winthier.shop.util.Msg;
 import com.winthier.sql.SQLRow;
 import java.util.UUID;
 import javax.persistence.Column;
@@ -13,14 +14,16 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import static com.cavetale.core.font.Unicode.tiny;
+import static net.kyori.adventure.text.Component.empty;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @Getter @Setter @Table(name = "chests")
 public final class SQLChest implements SQLRow {
@@ -76,8 +79,16 @@ public final class SQLChest implements SQLRow {
         return location;
     }
 
+    public RemotePlayer getRemotePlayer() {
+        return owner != null
+            ? Connect.get().getRemotePlayer(owner)
+            : null;
+    }
+
     public Player getPlayer() {
-        return Bukkit.getServer().getPlayer(owner);
+        return owner != null
+            ? Bukkit.getServer().getPlayer(owner)
+            : null;
     }
 
     public boolean isOwner(Player player) {
@@ -107,31 +118,24 @@ public final class SQLChest implements SQLRow {
             if (getShopType() == ShopType.BUY) {
                 String firstLine = PlainTextComponentSerializer.plainText().serialize(sign.line(0));
                 if (firstLine.toLowerCase().contains("buy")) {
-                    sign.line(0, Component.text(Msg.format("&r[&9&lBuy&r]")));
+                    sign.line(0, text("[Buy]", AQUA));
                 } else {
-                    sign.line(0, Component.text(Msg.format("&r[&9&lShop&r]")));
+                    sign.line(0, text("[Shop]", AQUA));
                 }
             } else if (getShopType() == ShopType.SELL) {
-                sign.line(0, Component.text(Msg.format("&r[&9&lSell&r]")));
+                sign.line(0, text("[Sell]", AQUA));
             }
             if (soldOut) {
-                sign.line(1, Component.text(Msg.format("&4SOLD OUT")));
+                sign.line(1, text(tiny("sold out"), DARK_RED));
             } else {
-                sign.line(1, Component.text(ChatColor.GOLD + Money.get().format(price)));
+                sign.line(1, Coin.format(price));
             }
             if (adminShop) {
-                sign.line(2, Component.empty());
-                sign.line(3, Component.text(Msg.format("&9The Bank")));
+                sign.line(2, empty());
+                sign.line(3, text(tiny("the bank"), AQUA));
             } else {
-                String ownerName = getShopper().getName();
-                if (ownerName.length() <= 13) {
-                    sign.line(2, Component.empty());
-                    sign.line(3, Component.text(Msg.format("&8%s", ownerName)));
-                } else {
-                    int b = (ownerName.length() - 1) / 2 + 1;
-                    sign.line(2, Component.text(Msg.format("&8%s", ownerName.substring(0, b))));
-                    sign.line(3, Component.text(Msg.format("&8%s", ownerName.substring(b))));
-                }
+                sign.line(2, empty());
+                sign.line(3, text(getShopper().getName(), WHITE));
             }
             sign.update();
             return true;

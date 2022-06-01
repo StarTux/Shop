@@ -7,7 +7,6 @@ import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.shop.util.Cuboid;
-import com.winthier.shop.util.Msg;
 import com.winthier.shop.util.WorldEdit;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,31 +60,26 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
             .senderCaller(this::transferAll);
     }
 
-    protected boolean reload(CommandSender sender, String[] args) {
-        if (args.length != 0) return false;
+    protected void reload(CommandSender sender) {
         plugin.reloadConf();
         plugin.reloadMarket();
         plugin.reloadChests();
         sender.sendMessage(text("Shop configuration reloaded", AQUA));
-        return true;
     }
 
-    protected boolean plotInfo(Player player, String[] args) {
-        if (args.length != 0) return false;
+    protected void plotInfo(Player player) {
         Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
         if (plot == null) {
-            throw new CommandWarn("There is no plot here.");
+            throw new CommandWarn("There is no plot here");
         }
         if (plot.getOwner() != null) {
-            Msg.info(player, "Plot belongs to %s.", plot.getOwner().getName());
+            player.sendMessage(text("Plot belongs to " + plot.getOwner().getName(), AQUA));
         } else {
-            Msg.info(player, "Plot without an owner.");
+            player.sendMessage(text("Plot without an owner", AQUA));
         }
-        return true;
     }
 
-    protected boolean plotStats(CommandSender sender, String[] args) {
-        if (args.length != 0) return false;
+    protected void plotStats(CommandSender sender) {
         int owned = 0;
         int unowned = 0;
         int total = 0;
@@ -100,12 +94,10 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         sender.sendMessage(text("Plot statistics", AQUA));
         sender.sendMessage(text("" + total + " Total", AQUA));
         sender.sendMessage(text("" + owned + " Owned", RED));
-        sender.sendMessage(text("" + unowned + " Unowned", GREEN));
-        return true;
+        sender.sendMessage(text("" + unowned + " Unowned", AQUA));
     }
 
-    protected boolean makePlot(Player player, String[] args) {
-        if (args.length != 0) return false;
+    protected void makePlot(Player player) {
         Cuboid cuboid = WorldEdit.getSelection(player);
         if (cuboid == null) {
             throw new CommandWarn("Make a selection first");
@@ -117,17 +109,14 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         plot.setSouth(cuboid.b.z);
         plot.setOwner(null);
         if (plugin.getMarket().collides(plot)) {
-            Msg.warn(player, "This plot would collide with another one.");
-        } else {
-            plugin.getMarket().getPlots().add(plot);
-            plugin.getMarket().save();
-            Msg.info(player, "Plot created");
+            throw new CommandWarn("This plot would collide with another one");
         }
-        return true;
+        plugin.getMarket().getPlots().add(plot);
+        plugin.getMarket().save();
+        player.sendMessage(text("Plot created", AQUA));
     }
 
-    protected boolean deletePlot(Player player, String[] args) {
-        if (args.length != 0) return false;
+    protected void deletePlot(Player player) {
         Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
         if (plot == null) {
             throw new CommandWarn("There is no plot here!");
@@ -135,17 +124,15 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         plugin.getMarket().getPlots().remove(plot);
         plugin.getMarket().save();
         if (plot.getOwner() != null) {
-            Msg.info(player, "Plot of %s removed.", plot.getOwner().getName());
+            player.sendMessage(text("Plot of " + plot.getOwner().getName() + " removed", AQUA));
         } else {
-            Msg.info(player, "Unowned plot removed.");
+            player.sendMessage(text("Unowned plot removed", AQUA));
         }
-        return true;
     }
 
-    protected boolean showPlots(Player player, String[] args) {
-        if (args.length != 0) return false;
+    protected void showPlots(Player player) {
         World world = player.getWorld();
-        if (!world.getName().equals(plugin.getMarket().getWorld())) return false;
+        if (!world.getName().equals(plugin.getMarket().getWorld())) return;
         int y = player.getLocation().getBlockY();
         final Material mat = Material.GLOWSTONE;
         int count = 0;
@@ -160,8 +147,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
                 player.sendBlockChange(new Location(world, (double) plot.getEast(), (double) y, (double) z), mat.createBlockData());
             }
         }
-        Msg.info(player, "%d plots highlighted", count);
-        return true;
+        player.sendMessage(text(count + " plots highlighted", AQUA));
     }
 
     protected boolean transfer(Player player, String[] args) {
@@ -180,29 +166,25 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         plot.setOwner(new Shopper(uuid, name));
         plugin.getMarket().save();
         if (oldOwner == null) {
-            Msg.info(player, "Plot transferred to " + name);
+            player.sendMessage(text("Plot transferred to " + name, AQUA));
         } else {
-            Msg.info(player, "Plot transferred: " + oldOwner.getName() + " => " + name);
+            player.sendMessage(text("Plot transferred: " + oldOwner.getName() + " => " + name, AQUA));
         }
         return true;
     }
 
-    protected boolean flushOffers(CommandSender sender, String[] args) {
-        if (args.length != 0) return false;
+    protected void flushOffers(CommandSender sender) {
         List<BlockLocation> bls = new ArrayList<>(SQLOffer.getCache().keySet());
         for (BlockLocation bl : bls) {
             plugin.getOfferScanner().setDirty(bl);
         }
         sender.sendMessage(bls.size() + " offers flushed!");
-        return true;
     }
 
-    protected boolean debug(CommandSender sender, String[] args) {
-        if (args.length != 0) return false;
+    protected void debug(CommandSender sender) {
         for (BlockLocation loc : plugin.getOfferScanner().getDirties().keySet()) {
             sender.sendMessage("" + loc);
         }
-        return true;
     }
 
     private boolean transferAll(CommandSender sender, String[] args) {

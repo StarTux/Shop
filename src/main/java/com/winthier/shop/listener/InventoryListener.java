@@ -1,6 +1,8 @@
 package com.winthier.shop.listener;
 
+import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.money.Money;
+import com.cavetale.mytems.item.coin.Coin;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
@@ -8,7 +10,6 @@ import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.util.Item;
-import com.winthier.shop.util.Msg;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -118,10 +119,10 @@ public final class InventoryListener implements Listener {
         // deny clicking items in for non-owners
         if (!event.isShiftClick() && isTopInventory && !isAir(event.getCursor())) {
             if (chestData.getShopType() == ShopType.BUY) {
-                Msg.warn(player, "You can't sell here.");
+                player.sendMessage(text("You cannot sell here", RED));
             }
             if (chestData.getShopType() == ShopType.SELL) {
-                Msg.warn(player, "Use shift click to sell items.");
+                player.sendMessage(text("Use shift click to sell items", RED));
             }
             return;
         }
@@ -129,7 +130,7 @@ public final class InventoryListener implements Listener {
         if (event.isShiftClick() && !isTopInventory && !isAir(event.getCurrentItem())) {
             if (chestData.getShopType() == ShopType.BUY) {
                 // deny shift clicking items in
-                Msg.warn(player, "You can't put items in.");
+                player.sendMessage(text("You cannot put items in", RED));
                 return;
             }
             // try to sell item to chest
@@ -137,12 +138,12 @@ public final class InventoryListener implements Listener {
                 // todo implement sell chests with item economy
                 double price = chestData.getPrice();
                 if (Double.isNaN(price)) {
-                    Msg.warn(player, "You can't sell here.");
+                    player.sendMessage(text("You cannot sell here", RED));
                     return;
                 }
                 ItemStack buyItem = chestShop.getSellItem(event.getCurrentItem());
                 if (buyItem == null) {
-                    Msg.warn(player, "You can't sell this here.");
+                    player.sendMessage(text("You cannot sell this here", RED));
                     return;
                 }
                 int sold = 0;
@@ -150,11 +151,11 @@ public final class InventoryListener implements Listener {
                 buyLoop:
                 while (restStack >= buyItem.getAmount()) {
                     if (!chestData.isAdminShop() && Money.get().get(chestData.getOwner()) < price) {
-                        Msg.warn(player, "%s has run out of money.", chestShop.getOwnerName());
+                        player.sendMessage(text(chestShop.getOwnerName() + " has run out of money", RED));
                         break buyLoop;
                     }
                     if (!chestData.isAdminShop() && !chestShop.addSlot(buyItem.clone())) {
-                        Msg.warn(player, "This chest is full.");
+                        player.sendMessage(text("This chest is full", RED));
                         // chestShop.setSoldOut();
                         break buyLoop;
                     }
@@ -177,17 +178,25 @@ public final class InventoryListener implements Listener {
                     } else {
                         event.getCurrentItem().setAmount(restStack);
                     }
-                    Msg.info(player, "Sold for %s.", Money.get().format(fullPrice));
-                    Player ownerPlayer = chestData.getPlayer();
-                    if (ownerPlayer != null) {
-                        Msg.info(ownerPlayer, "%s sold %dx%s for %s to you.",
-                                 player.getName(), soldItem.getAmount(), Item.getItemName(soldItem),
-                                 Money.get().format(fullPrice));
-                    }
+                    player.sendMessage(join(noSeparators(),
+                                            text("Sold for ", GREEN),
+                                            Coin.format(fullPrice)));
                     SQLLog.store(chestData, Shopper.of(player), soldItem, fullPrice, soldItem.getAmount());
                     if (chestShop.isFull()) {
                         chestData.setSoldOut(true);
                         chestData.updateInWorld();
+                    }
+                    RemotePlayer ownerPlayer = chestData.getRemotePlayer();
+                    if (ownerPlayer != null) {
+                        ownerPlayer.sendMessage(join(noSeparators(),
+                                                     text(player.getName()),
+                                                     text(" sold "),
+                                                     text(soldItem.getAmount(), GREEN),
+                                                     text("x", GRAY),
+                                                     Item.getItemDisplayName(soldItem),
+                                                     text(" for "),
+                                                     Coin.format(fullPrice),
+                                                     text(" to you")));
                     }
                 }
                 return;
@@ -199,17 +208,23 @@ public final class InventoryListener implements Listener {
             double price = chestData.getPrice();
             if (Double.isNaN(price)) {
                 if (chestData.getShopType() == ShopType.BUY) {
-                    Msg.warn(player, "You can't buy here.");
+                    player.sendMessage(text("You cannot buy here", RED));
                 }
                 if (chestData.getShopType() == ShopType.SELL) {
-                    Msg.warn(player, "You can't sell here.");
+                    player.sendMessage(text("You cannot sell here", RED));
                 }
             } else {
                 if (chestData.getShopType() == ShopType.BUY) {
-                    Msg.info(player, "Buy this for %s by shift clicking.", Money.get().format(price));
+                    player.sendMessage(join(noSeparators(),
+                                            text("Buy this for "),
+                                            Coin.format(price),
+                                            text(" by shift clicking")));
                 }
                 if (chestData.getShopType() == ShopType.SELL) {
-                    Msg.info(player, "Will pay %s for this item type.", Money.get().format(price));
+                    player.sendMessage(join(noSeparators(),
+                                            text("Sell this for "),
+                                            Coin.format(price),
+                                            text(" by shift clicking")));
                 }
             }
             return;
@@ -220,12 +235,12 @@ public final class InventoryListener implements Listener {
             if (chestData.getShopType() == ShopType.BUY) {
                 double price = chestData.getPrice();
                 if (Double.isNaN(price)) {
-                    Msg.warn(player, "You can't buy here.");
+                    player.sendMessage(text("You cannot buy here", RED));
                     return;
                 }
                 ItemStack item = event.getCurrentItem();
                 if (price >= 0.01 && !Money.get().take(player.getUniqueId(), price)) {
-                    Msg.warn(player, "You don't have enough money");
+                    player.sendMessage(text("You do not have enough money", RED));
                     return;
                 }
                 if (!chestData.isAdminShop()) {
@@ -262,37 +277,35 @@ public final class InventoryListener implements Listener {
                         SQLLog.store(chestData, Shopper.of(player), item, purchase.price, purchase.amount);
                         Money.get().log(player.getUniqueId(), -purchase.price, plugin,
                                   "Buy " + purchase.amount + "x" + Item.getItemName(purchase.item) + " from " + chestData.getOwnerName());
-                        String priceFormat = Money.get().format(purchase.price);
-                        player.sendMessage(join(noSeparators(), new Component[] {
-                                    Component.text("Bought "),
-                                    text(purchase.amount, YELLOW),
-                                    text("x"),
-                                    text(Item.getItemName(item), YELLOW),
-                                    Component.text(" for "),
-                                    Component.text(priceFormat, GOLD),
-                                }));
+                        player.sendMessage(join(noSeparators(),
+                                                Component.text("Bought "),
+                                                text(purchase.amount, YELLOW),
+                                                text("x", GRAY),
+                                                Item.getItemDisplayName(item),
+                                                Component.text(" for "),
+                                                Coin.format(purchase.price)));
                         if (chestData.isAdminShop()) return;
                         Money.get().log(chestData.getOwner(), purchase.price, plugin,
                                   player.getName() + " bought " + purchase.amount + "x" + Item.getItemName(purchase.item));
-                        Player ownerPlayer = chestData.getPlayer();
-                        if (ownerPlayer == null) return;
-                        ownerPlayer.sendMessage(join(noSeparators(), new Component[] {
-                                    text(player.getName()),
-                                    text(" bought "),
-                                    text(purchase.amount, YELLOW),
-                                    text("x"),
-                                    text(Item.getItemName(item), YELLOW),
-                                    text(" for "),
-                                    text(Money.get().format(purchase.price), GOLD),
-                                }));
                         if (purchase == lastPurchase) {
                             lastPurchase = null;
+                        }
+                        RemotePlayer ownerPlayer = chestData.getRemotePlayer();
+                        if (ownerPlayer != null) {
+                            ownerPlayer.sendMessage(join(noSeparators(),
+                                                         text(player.getName()),
+                                                         text(" bought "),
+                                                         text(purchase.amount, GREEN),
+                                                         text("x", GRAY),
+                                                         Item.getItemDisplayName(item),
+                                                         text(" for "),
+                                                         Coin.format(purchase.price)));
                         }
                     }, 20L);
                 return;
             }
             if (chestData.getShopType() == ShopType.SELL) {
-                Msg.warn(player, "You can't buy here.");
+                player.sendMessage(text("You cannot buy here", RED));
                 return;
             }
         }

@@ -2,7 +2,7 @@ package com.winthier.shop.listener;
 
 import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.cavetale.core.event.player.PluginPlayerEvent;
-import com.cavetale.core.money.Money;
+import com.cavetale.mytems.item.coin.Coin;
 import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
@@ -10,7 +10,6 @@ import com.winthier.shop.ShopType;
 import com.winthier.shop.Shopper;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.sql.SQLChest;
-import com.winthier.shop.util.Msg;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -28,6 +27,10 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import static net.kyori.adventure.text.Component.join;
+import static net.kyori.adventure.text.Component.text;
+import static net.kyori.adventure.text.JoinConfiguration.noSeparators;
+import static net.kyori.adventure.text.format.NamedTextColor.*;
 
 @RequiredArgsConstructor
 public final class SignListener implements Listener {
@@ -43,7 +46,7 @@ public final class SignListener implements Listener {
         ShopType shopType = ShopType.of(title);
         if (shopType == null) return;
         if (!player.hasPermission("shop.create")) {
-            Msg.warn(player, "You don't have permission to create a shop");
+            player.sendMessage(text("You do not have permission to create a shop", RED));
             event.setCancelled(true);
             return;
         }
@@ -52,7 +55,7 @@ public final class SignListener implements Listener {
         case TRAPPED_CHEST:
             break;
         default:
-            Msg.warn(player, "There is no chest under this sign");
+            player.sendMessage(text("There is no chest under this sign", RED));
             event.setCancelled(true);
             return;
         }
@@ -69,21 +72,21 @@ public final class SignListener implements Listener {
         Shopper owner;
         if ("admin".equalsIgnoreCase(nameLine)) {
             if (!player.hasPermission("shop.create.admin")) {
-                Msg.warn(player, "You don't have permission");
+                player.sendMessage(text("You do not have permission", RED));
                 event.setCancelled(true);
                 return;
             }
             owner = null;
         } else if (nameLine != null && !nameLine.isEmpty() && !nameLine.equalsIgnoreCase(player.getName())) {
             if (!player.hasPermission("shop.create.other")) {
-                Msg.warn(player, "You don't have permission");
+                player.sendMessage(text("You do not have permission", RED));
                 event.setCancelled(true);
                 return;
             }
             UUID uuid = PlayerCache.uuidForName(nameLine);
             if (uuid == null) {
                 event.setCancelled(true);
-                Msg.warn(player, "Not found: " + nameLine);
+                player.sendMessage(text("Not found: " + nameLine, RED));
                 return;
             }
             owner = new Shopper(uuid, nameLine);
@@ -93,8 +96,11 @@ public final class SignListener implements Listener {
         BlockLocation location = BlockLocation.of(event.getBlock());
         final SQLChest chestData = new SQLChest(SQLChest.Type.SIGN, shopType, location, owner, price, owner == null);
         plugin.getChestDataStore().store(chestData);
-        String priceFormat = Money.get().format(price);
-        Msg.info(player, "You created a shop %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
+        player.sendMessage(join(noSeparators(),
+                                text("You created a shop "
+                                     + (shopType == ShopType.BUY ? "selling" : "buying")
+                                     + " items for "),
+                                Coin.format(price)));
         Bukkit.getScheduler().runTask(plugin, chestData::updateInWorld);
         plugin.getOfferScanner().setDirty(BlockLocation.of(event.getBlock().getRelative(0, -1, 0)));
         PluginPlayerEvent.Name.MAKE_SHOP_CHEST.make(plugin, player)
@@ -130,16 +136,19 @@ public final class SignListener implements Listener {
         if (price < 0.0) return;
         // Permission
         if (!player.hasPermission("shop.create")) {
-            Msg.warn(player, "You don't have permission to create a shop.");
+            player.sendMessage(text("You do not have permission to create a shop", RED));
             event.setCancelled(true);
             return;
         }
         BlockLocation location = BlockLocation.of(event.getBlock());
         Shopper owner = Shopper.of(event.getPlayer());
-        String priceFormat = Money.get().format(price);
         SQLChest chestData = new SQLChest(SQLChest.Type.NAMED_CHEST, shopType, location, owner, price, false);
         plugin.getChestDataStore().store(chestData);
-        Msg.info(player, "You created a shop chest %s items for %s.", (shopType == ShopType.BUY ? "selling" : "buying"), priceFormat);
+        player.sendMessage(join(noSeparators(),
+                                text("You created a shop "
+                                     + (shopType == ShopType.BUY ? "selling" : "buying")
+                                     + " items for "),
+                                Coin.format(price)));
         plugin.getOfferScanner().setDirty(BlockLocation.of(block));
         PluginPlayerEvent.Name.MAKE_SHOP_CHEST.make(plugin, player)
             .detail(Detail.BLOCK, event.getBlock())
