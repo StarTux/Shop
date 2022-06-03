@@ -36,6 +36,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import static net.kyori.adventure.text.Component.join;
@@ -52,6 +54,7 @@ import static net.kyori.adventure.text.format.TextDecoration.*;
 
 public final class ShopCommand extends AbstractCommand<ShopPlugin> {
     private final Random random = new Random(System.currentTimeMillis());
+    private static final UUID CONSOLE_UUID = new UUID(0L, 0L);
     private final Map<UUID, PlayerContext> contexts = new HashMap<>();
     private static final Comparator<SQLOffer> SQL_OFFER_COMPARATOR = new Comparator<SQLOffer>() {
         @Override public int compare(SQLOffer a, SQLOffer b) {
@@ -69,17 +72,17 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             .denyTabCompletion()
             .description("Search for shop chests")
             .remoteServer(targetServer)
-            .remotePlayerCaller(this::search);
+            .senderCaller(this::search);
         rootNode.addChild("sell").arguments("[item]")
             .denyTabCompletion()
             .description("Search for sell chests")
             .remoteServer(targetServer)
-            .remotePlayerCaller(this::sell);
+            .senderCaller(this::sell);
         rootNode.addChild("page").arguments("<page>")
             .completers(CommandArgCompleter.integer(i -> i > 0))
             .description("View page of previous search")
             .remoteServer(targetServer)
-            .remotePlayerCaller(this::page);
+            .senderCaller(this::page);
         rootNode.addChild("list").denyTabCompletion()
             .description("See who used your shop chests")
             .remoteServer(targetServer)
@@ -118,29 +121,29 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             .playerCaller(this::setspawn);
     }
 
-    private boolean search(RemotePlayer player, String[] args) {
+    private boolean search(CommandSender sender, String[] args) {
         if (args.length == 0) return false;
-        return search(player, ShopType.BUY, String.join(" ", args));
+        return search(sender, ShopType.BUY, String.join(" ", args));
     }
 
-    private boolean sell(RemotePlayer player, String[] args) {
+    private boolean sell(CommandSender sender, String[] args) {
         if (args.length == 0) return false;
-        return search(player, ShopType.SELL, String.join(" ", args));
+        return search(sender, ShopType.SELL, String.join(" ", args));
     }
 
-    private boolean search(RemotePlayer player, final ShopType shopType, final String term) {
+    private boolean search(CommandSender sender, final ShopType shopType, final String term) {
         final boolean exact = term.startsWith("\"") && term.endsWith("\"");
         List<String> patterns = exact
             ? List.of(term.substring(1, term.length() - 1))
             : List.of(term.split(" "));
         plugin.getDb().find(SQLOffer.class)
             .eq("world", plugin.getMarket().getWorld())
-            .eq("shopType", shopType)
-            .findListAsync(list -> CommandNode.wrap(player, () -> searchCallback(player, shopType, patterns, list)));
+            .eq("shopType", shopType.ordinal())
+            .findListAsync(list -> CommandNode.wrap(sender, () -> searchCallback(sender, shopType, patterns, list)));
         return true;
     }
 
-    private void searchCallback(RemotePlayer player, ShopType shopType, List<String> patterns, List<SQLOffer> rows) {
+    private void searchCallback(CommandSender sender, ShopType shopType, List<String> patterns, List<SQLOffer> rows) {
         List<SQLOffer> offers = new ArrayList<>();
         String marketWorld = plugin.getMarket().getWorld();
         OFFERS: for (SQLOffer offer : rows) {
@@ -157,7 +160,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         }
         offers.sort(SQL_OFFER_COMPARATOR);
         if (shopType == ShopType.SELL) Collections.reverse(offers);
-        getPlayerContext(player).clear();
+        getPlayerContext(sender).clear();
         int offerIndex = 0;
         Set<DoneItem> doneItems = new HashSet<>();
         List<Component> lines = new ArrayList<>();
@@ -189,37 +192,41 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             cb.append(space());
             cb.append(text(offer.getOwnerName(), WHITE));
             lines.add(cb.build());
-            getPlayerContext(player).locations.add(offer.getBlockLocation());
-            getPlayerContext(player).searchType = shopType;
+            getPlayerContext(sender).locations.add(offer.getBlockLocation());
+            getPlayerContext(sender).searchType = shopType;
             offerIndex += 1;
         }
-        getPlayerContext(player).pages.addAll(pagesOf(lines));
-        player.sendMessage(text("Shop Search", BLUE, BOLD));
-        showPage(player, 0);
-        PluginPlayerEvent.Name.SHOP_SEARCH.broadcast(plugin, player.getUniqueId());
+        getPlayerContext(sender).pages.addAll(pagesOf(lines));
+        sender.sendMessage(text("Shop Search", BLUE, BOLD));
+        showPage(sender, 0);
+        if (sender instanceof Player player) {
+            PluginPlayerEvent.Name.SHOP_SEARCH.call(plugin, player);
+        } else if (sender instanceof RemotePlayer player) {
+            PluginPlayerEvent.Name.SHOP_SEARCH.broadcast(plugin, player.getUniqueId());
+        }
     }
 
-    private boolean page(RemotePlayer player, String[] args) {
+    private boolean page(CommandSender sender, String[] args) {
         if (args.length != 1) return false;
         int page = CommandArgCompleter.requireInt(args[0], i -> i > 0);
-        showPage(player, page - 1);
+        showPage(sender, page - 1);
         return true;
     }
 
-    private void showPage(RemotePlayer player, int index) {
-        int pageCount = getPlayerContext(player).pages.size();
+    private void showPage(CommandSender sender, int index) {
+        int pageCount = getPlayerContext(sender).pages.size();
         if (index < 0 || index >= pageCount) return;
-        PlayerContext context = getPlayerContext(player);
+        PlayerContext context = getPlayerContext(sender);
         if (context == null) return;
         Component page = context.pages.get(index);
         if (context.searchType == ShopType.SELL) {
-            player.sendMessage(text("Sell Page " + (index + 1) + "/" + pageCount, GREEN));
+            sender.sendMessage(text("Sell Page " + (index + 1) + "/" + pageCount, GREEN));
         } else {
-            player.sendMessage(text("Shop Page " + (index + 1) + "/" + pageCount, GREEN));
+            sender.sendMessage(text("Shop Page " + (index + 1) + "/" + pageCount, GREEN));
         }
-        player.sendMessage(page);
+        sender.sendMessage(page);
         if (index + 1 < pageCount) {
-            player.sendMessage(text("[More]", BLUE)
+            sender.sendMessage(text("[More]", BLUE)
                                .hoverEvent(showText(text("Next Page", GRAY)))
                                .clickEvent(runCommand("/shop page " + (index + 2))));
         }
@@ -571,11 +578,21 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         return result;
     }
 
-    private PlayerContext getPlayerContext(RemotePlayer player) {
-        PlayerContext result = contexts.get(player.getUniqueId());
+    private PlayerContext getPlayerContext(CommandSender sender) {
+        final UUID uuid;
+        if (sender instanceof ConsoleCommandSender) {
+            uuid = CONSOLE_UUID;
+        } else if (sender instanceof Player player) {
+            uuid = player.getUniqueId();
+        } else if (sender instanceof RemotePlayer player) {
+            uuid = player.getUniqueId();
+        } else {
+            throw new IllegalArgumentException(sender.getClass().getName());
+        }
+        PlayerContext result = contexts.get(uuid);
         if (result == null) {
-            result = new PlayerContext(player.getUniqueId());
-            contexts.put(player.getUniqueId(), result);
+            result = new PlayerContext(uuid);
+            contexts.put(uuid, result);
         }
         return result;
     }
