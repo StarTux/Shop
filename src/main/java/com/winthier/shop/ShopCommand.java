@@ -125,7 +125,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
 
     private boolean sell(RemotePlayer player, String[] args) {
         if (args.length == 0) return false;
-        return search(player, ShopType.BUY, String.join(" ", args));
+        return search(player, ShopType.SELL, String.join(" ", args));
     }
 
     private boolean search(RemotePlayer player, final ShopType shopType, final String term) {
