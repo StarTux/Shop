@@ -1,5 +1,6 @@
 package com.winthier.shop.sql;
 
+import com.cavetale.core.item.ItemKinds;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -66,7 +67,7 @@ public final class SQLOffer implements SQLRow {
         this.z = location.getZ();
         this.material = item.getType().getKey().getKey();
         this.itemAmount = item.getAmount();
-        Component itemComponent = Item.getItemDisplayName(item);
+        Component itemComponent = ItemKinds.chatDescription(item);
         this.itemDisplayName = GsonComponentSerializer.gson().serialize(itemComponent);
         this.itemDescription = Item.getItemDescription(item);
         this.price = chestData.getPrice();

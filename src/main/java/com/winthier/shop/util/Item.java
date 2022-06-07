@@ -1,12 +1,9 @@
 package com.winthier.shop.util;
 
+import com.cavetale.core.item.ItemKinds;
 import com.cavetale.mytems.Mytems;
-import com.cavetale.mytems.util.Text;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import java.util.Map;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -37,19 +34,6 @@ public final class Item {
         return sb.toString();
     }
 
-    public static String getItemName(ItemStack item) {
-        Mytems mytems = Mytems.forItem(item);
-        if (mytems != null) {
-            Component displayName = mytems.getMytem().getDisplayName();
-            String result = LegacyComponentSerializer.legacySection().serialize(displayName);
-            return ChatColor.stripColor(result);
-        }
-        String result = item.getI18NDisplayName();
-        return result != null
-            ? result
-            : Text.toCamelCase(item.getType(), " ");
-    }
-
     public static String getEnchantmentName(Enchantment enchantment) {
         return niceEnumName(enchantment.getKey().getKey());
     }
@@ -57,11 +41,9 @@ public final class Item {
     public static String getItemDescription(ItemStack item) {
         Mytems mytems = Mytems.forItem(item);
         if (mytems != null) {
-            Component displayName = mytems.getMytem().getDisplayName();
-            String result = LegacyComponentSerializer.legacySection().serialize(displayName);
-            return ChatColor.stripColor(result);
+            return mytems.name(item);
         }
-        StringBuilder desc = new StringBuilder(getItemName(item));
+        StringBuilder desc = new StringBuilder(ItemKinds.name(item));
         if (!item.hasItemMeta()) return desc.toString();
         ItemMeta meta = item.getItemMeta();
         if (!meta.hasItemFlag(ItemFlag.HIDE_ENCHANTS)) {
@@ -124,13 +106,5 @@ public final class Item {
             }
         }
         return desc.toString();
-    }
-
-    public static Component getItemDisplayName(ItemStack item) {
-        Mytems mytems = Mytems.forItem(item);
-        Component result = mytems != null
-            ? mytems.getMytem().getDisplayName()
-            : Component.text(getItemDescription(item), NamedTextColor.WHITE);
-        return result.hoverEvent(item.asHoverEvent());
     }
 }

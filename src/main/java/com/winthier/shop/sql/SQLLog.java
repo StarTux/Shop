@@ -1,5 +1,6 @@
 package com.winthier.shop.sql;
 
+import com.cavetale.core.item.ItemKinds;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -58,7 +59,7 @@ public class SQLLog implements SQLRow {
         this.z = location.getZ();
         this.material = item.getType().name().toLowerCase();
         this.itemAmount = amount;
-        this.itemName = Item.getItemName(item);
+        this.itemName = ItemKinds.name(item);
         this.itemDescription = Item.getItemDescription(item);
         this.price = price;
     }

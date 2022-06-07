@@ -53,6 +53,7 @@ import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.format.TextDecoration.*;
 
 public final class ShopCommand extends AbstractCommand<ShopPlugin> {
+    private static final String DOT = "\u00D7";
     private final Random random = new Random(System.currentTimeMillis());
     private static final UUID CONSOLE_UUID = new UUID(0L, 0L);
     private final Map<UUID, PlayerContext> contexts = new HashMap<>();
@@ -88,8 +89,8 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             .remoteServer(targetServer)
             .remotePlayerCaller(this::list);
         rootNode.addChild("port").arguments("[name]")
-            .denyTabCompletion()
             .description("Port to a market plot")
+            .completers(CommandArgCompleter.NULL)
             .remoteServer(targetServer)
             .remotePlayerCaller(this::port);
         rootNode.addChild("market").denyTabCompletion()
@@ -182,10 +183,6 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             cb.append(space());
             cb.append(Coin.format(offer.getPrice()));
             cb.append(space());
-            if (offer.getItemAmount() > 1) {
-                cb.append(text(offer.getItemAmount(), WHITE));
-                cb.append(text("x", DARK_GRAY));
-            }
             cb.append(offer.parseItemDisplayName());
             cb.append(space());
             cb.append(text("by", DARK_GRAY));
@@ -308,7 +305,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             }
             cb.append(space());
             cb.append(text("" + log.getItemAmount(), WHITE));
-            cb.append(text("x", DARK_GRAY));
+            cb.append(text(DOT, DARK_GRAY));
             cb.append(text(log.getItemDescription(), WHITE));
             cb.append(space());
             cb.append(text("for", DARK_GRAY));
