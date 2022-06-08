@@ -3,10 +3,10 @@ package com.winthier.shop.sql;
 import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.connect.Connect;
 import com.cavetale.mytems.item.coin.Coin;
+import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
-import com.winthier.shop.Shopper;
 import com.winthier.sql.SQLRow;
 import java.util.UUID;
 import javax.persistence.Column;
@@ -39,7 +39,6 @@ public final class SQLChest implements SQLRow {
     @Column(nullable = false) private boolean adminShop;
     private transient boolean soldOut = false;
     private transient BlockLocation location;
-    private transient Shopper shopper;
 
     public enum Type {
         SIGN,
@@ -49,7 +48,7 @@ public final class SQLChest implements SQLRow {
     public SQLChest() { }
 
     public SQLChest(final Type type, final ShopType shopType, final BlockLocation location,
-                    final Shopper shopper, final double price, final boolean adminShop) {
+                    final UUID owner, final double price, final boolean adminShop) {
         this.type = type;
         this.shopType = shopType;
         this.location = location;
@@ -57,19 +56,9 @@ public final class SQLChest implements SQLRow {
         this.x = location.getX();
         this.y = location.getY();
         this.z = location.getZ();
-        this.shopper = shopper;
-        if (shopper != null) {
-            this.owner = shopper.getUuid();
-        }
+        this.owner = owner;
         this.price = price;
         this.adminShop = adminShop;
-    }
-
-    public Shopper getShopper() {
-        if (shopper == null) {
-            shopper = ShopPlugin.getInstance().findShopper(owner);
-        }
-        return shopper;
     }
 
     public BlockLocation getLocation() {
@@ -99,7 +88,7 @@ public final class SQLChest implements SQLRow {
     public String getOwnerName() {
         if (adminShop) return "The Bank";
         if (owner == null) return "N/A";
-        return getShopper().getName();
+        return PlayerCache.nameForUuid(owner);
     }
 
     // Real world
@@ -141,7 +130,7 @@ public final class SQLChest implements SQLRow {
             sign.line(3, text(tiny("the bank"), AQUA));
         } else {
             sign.line(2, empty());
-            sign.line(3, text(getShopper().getName(), DARK_GRAY));
+            sign.line(3, text(getOwnerName(), DARK_GRAY));
         }
         sign.update();
         return true;

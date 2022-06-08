@@ -4,7 +4,6 @@ import com.cavetale.core.item.ItemKinds;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
-import com.winthier.shop.Shopper;
 import com.winthier.shop.util.Item;
 import com.winthier.sql.SQLRow;
 import java.util.Date;
@@ -18,6 +17,7 @@ import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 @Getter @Setter @NoArgsConstructor
@@ -40,7 +40,7 @@ public class SQLLog implements SQLRow {
     @Column(nullable = false) private String itemDescription;
     @Column(nullable = false) private Double price;
 
-    SQLLog(final Date time, final SQLChest chestData, final Shopper customer, final ItemStack item, final double price, final int amount) {
+    SQLLog(final Date time, final SQLChest chestData, final Player customer, final ItemStack item, final double price, final int amount) {
         this.time = time;
         this.shopType = chestData.getShopType();
         if (chestData.isAdminShop()) {
@@ -48,9 +48,9 @@ public class SQLLog implements SQLRow {
             this.ownerName = "The Bank";
         } else {
             this.owner = chestData.getOwner();
-            this.ownerName = chestData.getShopper().getName();
+            this.ownerName = chestData.getOwnerName();
         }
-        this.customer = customer.getUuid();
+        this.customer = customer.getUniqueId();
         this.customerName = customer.getName();
         BlockLocation location = chestData.getLocation();
         this.world = location.getWorld();
@@ -64,7 +64,7 @@ public class SQLLog implements SQLRow {
         this.price = price;
     }
 
-    public static void store(SQLChest chestData, Shopper customer, ItemStack item, double price, int amount) {
+    public static void store(SQLChest chestData, Player customer, ItemStack item, double price, int amount) {
         if (price == 0.0) return;
         SQLLog log = new SQLLog(new Date(), chestData, customer, item, price, amount);
         ShopPlugin.getInstance().getDb().save(log);

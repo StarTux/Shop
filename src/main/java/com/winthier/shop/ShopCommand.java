@@ -354,17 +354,15 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             throw new CommandWarn("There is no plot here");
         }
         if (plot.getOwner() != null) {
-            throw new CommandWarn("This plot is already claimed by " + plot.getOwner().getName());
+            throw new CommandWarn("This plot is already claimed by " + plot.getOwnerName());
         }
-        Shopper shopper = Shopper.of(player);
         double price = plugin.getMarket().getPlotPrice();
         if (args.length == 1 && args[0].equals("confirm")) {
             // Clicked confirm.
-            if (!Money.get().take(shopper.getUuid(), price, plugin, "Claim market plot")) {
+            if (!Money.get().take(player.getUniqueId(), price, plugin, "Claim market plot")) {
                 throw new CommandWarn("You cannot afford the " + Money.get().format(price));
             } else {
-                plot.setOwner(Shopper.of(player));
-                plugin.getMarket().save();
+                plot.setOwner(player.getUniqueId());
                 player.sendMessage(join(noSeparators(),
                                         text("You paid "),
                                         Coin.format(price),
@@ -404,63 +402,45 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             throw new CommandWarn("You do not own a plot");
         }
         if (args.length == 0) {
-            if (plot.getTrusted().isEmpty()) {
+            if (plot.getTrustedSet().isEmpty()) {
                 throw new CommandWarn("Nobody is trusted in your plot");
             }
+            List<PlayerCache> caches = new ArrayList<>(plot.getTrustedSet().size());
+            for (UUID uuid : plot.getTrustedSet()) {
+                caches.add(PlayerCache.forUuid(uuid));
+            }
+            caches.sort((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.name, b.name));
             List<Component> components = new ArrayList<>();
-            components.add(text("Trusted (" + plot.getTrusted().size() + ")", GREEN));
-            for (Shopper shopper: plot.getTrusted()) {
-                String cmd = "/shop untrust " + shopper.getName();
-                components.add(text(shopper.getName())
+            components.add(text("Trusted (" + caches.size() + ")", GREEN));
+            for (PlayerCache cache : caches) {
+                String cmd = "/shop untrust " + cache.name;
+                components.add(text(cache.name)
                                .hoverEvent(showText(text(cmd, GREEN)))
                                .clickEvent(suggestCommand(cmd)));
             }
             player.sendMessage(join(separator(space()), components));
             return true;
         }
-        String targetName = args[1];
         if (trust) {
-            Shopper alreadyTrusted = null;
-            for (Shopper shopper: plot.getTrusted()) {
-                if (shopper.getName().equalsIgnoreCase(targetName)) {
-                    alreadyTrusted = shopper;
-                    break;
-                }
-            }
-            if (alreadyTrusted != null) {
-                throw new CommandWarn("Player already trusted: " + alreadyTrusted.getName());
+            PlayerCache target = PlayerCache.requireForName(args[0]);
+            if (plot.isTrusted(target.uuid)) {
+                throw new CommandWarn("Player already trusted: " + target.name);
             } else {
-                Player target = Bukkit.getServer().getPlayer(targetName);
-                if (target == null) {
-                    throw new CommandWarn("Player not online: " + targetName);
-                } else {
-                    Shopper shopper = Shopper.of(target);
-                    plot.getTrusted().add(shopper);
-                    plugin.getMarket().save();
-                    player.sendMessage(text("Trusted player in your plot: " + shopper.getName(), GREEN));
-                }
+                plot.addTrust(target.uuid);
+                player.sendMessage(text("Trusted player in your plot: " + target.name, GREEN));
             }
         } else {
-            if (targetName.equals("*")) {
-                plot.getTrusted().clear();
-                plugin.getMarket().save();
+            if (args[0].equals("*")) {
+                plot.removeAllTrust();
                 player.sendMessage(text("Trusted players cleared", GREEN));
-            } else {
-                Shopper target = null;
-                for (Shopper shopper: plot.getTrusted()) {
-                    if (shopper.getName().equalsIgnoreCase(targetName)) {
-                        target = shopper;
-                        break;
-                    }
-                }
-                if (target == null) {
-                    throw new CommandWarn("Player not trusted: " + targetName);
-                } else {
-                    plot.getTrusted().remove(target);
-                    plugin.getMarket().save();
-                    player.sendMessage(text("Player untrusted: " + target.getName(), GREEN));
-                }
+                return true;
             }
+            PlayerCache target = PlayerCache.requireForName(args[0]);
+            if (!plot.isTrusted(target.uuid)) {
+                throw new CommandWarn("Player not trusted: " + target.name);
+            }
+            plot.removeTrust(target.uuid);
+            player.sendMessage(text("Player untrusted: " + target.name, GREEN));
         }
         return true;
     }
@@ -475,7 +455,6 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             throw new CommandWarn("The spawn location must be inside your plot");
         }
         plot.setSpawnLocation(loc);
-        plugin.getMarket().save();
         player.sendMessage(text("Spawn location of your plot was set", GREEN));
     }
 

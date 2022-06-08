@@ -59,7 +59,7 @@ public final class SQLOffer implements SQLRow {
             this.ownerName = "The Bank";
         } else {
             this.owner = chestData.getOwner();
-            this.ownerName = chestData.getShopper().getName();
+            this.ownerName = chestData.getOwnerName();
         }
         this.world = location.getWorld();
         this.x = location.getX();

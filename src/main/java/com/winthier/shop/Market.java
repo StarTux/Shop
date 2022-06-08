@@ -1,15 +1,19 @@
 package com.winthier.shop;
 
+import com.winthier.shop.sql.SQLPlot;
+import com.winthier.shop.sql.SQLPlotTrust;
+import com.winthier.shop.util.Cuboid;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -19,17 +23,22 @@ import org.bukkit.entity.Player;
  * Protection controls most global market protections. Even if
  * disabled, plots will still be mostly protected.
  */
-@Getter @Setter
+@RequiredArgsConstructor
 public final class Market {
-    private String world;
-    private int skyLimit;
-    private int bottomLimit;
-    private final List<Plot> plots = new ArrayList<>();
-    private double plotPrice;
-    private boolean protect;
+    @Getter private final ShopPlugin plugin;
+    @Getter private String world;
+    @Getter private int skyLimit;
+    @Getter private int bottomLimit;
+    @Getter private final List<Plot> plots = new ArrayList<>();
+    @Getter private double plotPrice;
+    @Getter private boolean protect;
 
-    public Plot makePlot() {
-        return new Plot(this);
+    /**
+     * Create a new plot but do not add it to the list of plots, nor
+     * save it to the database.
+     */
+    public Plot makePlot(Cuboid cuboid) {
+        return new Plot(this, cuboid);
     }
 
     public Plot plotAt(Block block) {
@@ -46,6 +55,31 @@ public final class Market {
         return Objects.equals((String) bukkitWorld.getName(), (String) this.world);
     }
 
+    public boolean isWorld(World bworld) {
+        return bworld.getName().equals(world);
+    }
+
+    public void addPlot(Plot plot) {
+        if (plot.getRow().getId() != null) {
+            throw new IllegalStateException("Attempting to add plot with id: " + plot.getRow());
+        }
+        plugin.getDb().insert(plot.getRow());
+        plots.add(plot);
+        // One time migration only:
+        for (UUID uuid : plot.getTrustedSet()) {
+            plugin.getDb().insert(new SQLPlotTrust(plot.getRow(), uuid));
+        }
+    }
+
+    public void removePlot(Plot plot) {
+        if (plot.getRow().getId() == null || !plots.remove(plot)) {
+            throw new IllegalStateException("Attempting to remove unknown plot: " + plot.getRow());
+        }
+        int plotId = plot.getRow().getId();
+        plugin.getDb().delete(plot.getRow());
+        plugin.getDb().find(SQLPlotTrust.class).eq("plotId", plotId).delete();
+    }
+
     public boolean isAllowedAt(Player player, Block block) {
         if (block == null) return false;
         if (!isMarketWorld(block.getWorld())) return false;
@@ -54,18 +88,9 @@ public final class Market {
         return plot.isAllowed(player);
     }
 
-    public Plot findPlayerPlot(UUID player) {
-        for (Plot plot: plots) {
-            if (plot.getOwner() != null && plot.getOwner().getUuid().equals(player)) {
-                return plot;
-            }
-        }
-        return null;
-    }
-
-    public Plot findPlayerPlotByName(String name) {
-        for (Plot plot: plots) {
-            if (plot.getOwner() != null && plot.getOwner().getName().equalsIgnoreCase(name)) {
+    public Plot findPlayerPlot(UUID uuid) {
+        for (Plot plot : plots) {
+            if (plot.isOwner(uuid)) {
                 return plot;
             }
         }
@@ -78,8 +103,7 @@ public final class Market {
             if (plot.getOwner() == null) emptyPlots.add(plot);
         }
         if (emptyPlots.isEmpty()) return null;
-        Collections.shuffle(emptyPlots);
-        return emptyPlots.get(0);
+        return emptyPlots.get(ThreadLocalRandom.current().nextInt(emptyPlots.size()));
     }
 
     public boolean collides(Plot plot) {
@@ -89,7 +113,15 @@ public final class Market {
         return false;
     }
 
+    private File getSaveFile() {
+        return new File(plugin.getDataFolder(), "market.yml");
+    }
+
     public void load() {
+        if (!getSaveFile().exists()) {
+            plugin.getDataFolder().mkdirs();
+            plugin.saveResource("market.yml", false);
+        }
         plots.clear();
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(getSaveFile());
         world = yaml.getString("World", "Market");
@@ -102,35 +134,38 @@ public final class Market {
             Map<String, Object> map = (Map<String, Object>) m;
             Plot plot = new Plot(this);
             plot.deserialize(map);
-            plots.add(plot);
+            addPlot(plot);
         }
+        Map<Integer, Plot> plotIdMap = new TreeMap<>();
+        for (SQLPlot row : plugin.getDb().find(SQLPlot.class).eq("world", world).findList()) {
+            Plot plot = new Plot(this, row);
+            plots.add(plot);
+            plotIdMap.put(plot.getRow().getId(), plot);
+        }
+        for (SQLPlotTrust row : plugin.getDb().find(SQLPlotTrust.class).findList()) {
+            Plot plot = plotIdMap.get(row.getPlotId());
+            if (plot == null) continue;
+            plot.getTrustedSet().add(row.getPlayer());
+        }
+        saveNow();
     }
 
-    public void save() {
+    public void saveNow() {
         YamlConfiguration yaml = new YamlConfiguration();
         yaml.set("World", world);
         yaml.set("SkyLimit", skyLimit);
         yaml.set("BottomLimit", bottomLimit);
         yaml.set("PlotPrice", plotPrice);
         yaml.set("Protect", protect);
-        List<Object> list = new ArrayList<>();
-        for (Plot plot: plots) {
-            list.add(plot.serialize());
-        }
-        yaml.set("plots", list);
+        // List<Object> list = new ArrayList<>();
+        // for (Plot plot: plots) {
+        //     list.add(plot.serialize());
+        // }
+        // yaml.set("plots", list);
         try {
             yaml.save(getSaveFile());
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-    }
-
-    File getSaveFile() {
-        ShopPlugin.getInstance().getDataFolder().mkdirs();
-        return new File(ShopPlugin.getInstance().getDataFolder(), "market.yml");
-    }
-
-    boolean isWorld(World bworld) {
-        return bworld.getName().equals(world);
     }
 }

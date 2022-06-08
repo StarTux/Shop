@@ -1,35 +1,61 @@
 package com.winthier.shop;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import com.winthier.playercache.PlayerCache;
+import com.winthier.shop.sql.SQLPlot;
+import com.winthier.shop.sql.SQLPlotTrust;
+import com.winthier.shop.util.Cuboid;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-@Getter @Setter @RequiredArgsConstructor
+@Getter
 public final class Plot {
     private final Market market;
-    private int west;
-    private int east;
-    private int north;
-    private int south;
-    private Shopper owner = null;
-    private final List<Shopper> trusted = new ArrayList<>();
-    private Location spawnLocation = null;
+    private final SQLPlot row;
+    private final Set<UUID> trustedSet = new HashSet<>();
+
+    /**
+     * New plot constructor.
+     */
+    protected Plot(final Market market) {
+        this.market = market;
+        this.row = new SQLPlot();
+        row.setWorld(market.getWorld());
+        row.setCreationTime(new Date());
+        row.setClaimTime(new Date());
+    }
+
+    protected Plot(final Market market, final Cuboid cuboid) {
+        this.market = market;
+        this.row = new SQLPlot();
+        row.setWorld(market.getWorld());
+        row.setWest(cuboid.a.x);
+        row.setEast(cuboid.b.x);
+        row.setNorth(cuboid.a.z);
+        row.setSouth(cuboid.b.z);
+        row.setCreationTime(new Date());
+        row.setClaimTime(new Date());
+    }
+
+    /**
+     * Loaded from database constructor.
+     */
+    protected Plot(final Market market, final SQLPlot row) {
+        this.market = market;
+        this.row = row;
+    }
 
     public boolean isInside(int x, int y, int z) {
-        return
-            x >= west
-            && x <= east
-            && z >= north
-            && z <= south
+        return row.isInside(x, z)
             && y >= market.getBottomLimit()
             && y <= market.getSkyLimit();
     }
@@ -46,81 +72,139 @@ public final class Plot {
         return isWorld(l.getWorld()) && isInside(l.getBlockX(), l.getBlockY(), l.getBlockZ());
     }
 
-    public Map<String, Object> serialize() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("west", west);
-        map.put("east", east);
-        map.put("south", south);
-        map.put("north", north);
-        if (owner != null) map.put("owner", owner.serialize());
-        List<Map<String, Object>> trustedList = new ArrayList<>();
-        for (Shopper shopper: this.trusted) trustedList.add(shopper.serialize());
-        map.put("trusted", trustedList);
-        if (spawnLocation != null) {
-            Map<String, Object> section = new HashMap<>();
-            section.put("x", spawnLocation.getX());
-            section.put("y", spawnLocation.getY());
-            section.put("z", spawnLocation.getZ());
-            section.put("pitch", spawnLocation.getPitch());
-            section.put("yaw", spawnLocation.getYaw());
-            map.put("spawnLocation", section);
-        }
-        return map;
-    }
-
     @SuppressWarnings("unchecked")
     public void deserialize(Map<String, Object> map) {
-        this.west = (Integer) map.get("west");
-        this.east = (Integer) map.get("east");
-        this.south = (Integer) map.get("south");
-        this.north = (Integer) map.get("north");
+        row.setWest((Integer) map.get("west"));
+        row.setEast((Integer) map.get("east"));
+        row.setSouth((Integer) map.get("south"));
+        row.setNorth((Integer) map.get("north"));
         if (map.containsKey("owner")) {
-            this.owner = Shopper.deserialize((Map<String, Object>) map.get("owner"));
+            Shopper shopper = Shopper.deserialize((Map<String, Object>) map.get("owner"));
+            row.setOwner(shopper.getUuid());
         }
         List<Object> trustedList = (List<Object>) map.get("trusted");
         for (Object o : trustedList) {
-            this.trusted.add(Shopper.deserialize((Map<String, Object>) o));
+            Shopper shopper = Shopper.deserialize((Map<String, Object>) o);
+            trustedSet.add(shopper.getUuid());
         }
         if (map.containsKey("spawnLocation")) {
             try {
                 Map<String, Object> section = (Map<String, Object>) map.get("spawnLocation");
-                double x = ((Number) section.get("x")).doubleValue();
-                double y = ((Number) section.get("y")).doubleValue();
-                double z = ((Number) section.get("z")).doubleValue();
-                float yaw = ((Number) section.get("yaw")).floatValue();
-                float pitch = ((Number) section.get("pitch")).floatValue();
-                this.spawnLocation = new Location(Bukkit.getWorld(market.getWorld()), x, y, z, yaw, pitch);
+                row.setSpawnX(((Number) section.get("x")).doubleValue());
+                row.setSpawnY(((Number) section.get("y")).doubleValue());
+                row.setSpawnZ(((Number) section.get("z")).doubleValue());
+                row.setSpawnYaw(((Number) section.get("yaw")).floatValue());
+                row.setSpawnPitch(((Number) section.get("pitch")).floatValue());
+                row.setHasSpawn(true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
+    public boolean isOwner(UUID uuid) {
+        return row.isOwner(uuid);
+    }
+
+    public boolean isOwner(Player player) {
+        return row.isOwner(player.getUniqueId());
+    }
+
+    public boolean isTrusted(UUID uuid) {
+        return trustedSet.contains(uuid);
+    }
+
+    public void addTrust(UUID uuid) {
+        if (trustedSet.contains(uuid)) return;
+        trustedSet.add(uuid);
+        market.getPlugin().getDb().insertAsync(new SQLPlotTrust(row, uuid), null);
+    }
+
+    public void removeTrust(UUID uuid) {
+        if (!trustedSet.remove(uuid)) return;
+        market.getPlugin().getDb().find(SQLPlotTrust.class)
+            .eq("plotId", row.getId())
+            .eq("player", uuid)
+            .deleteAsync(null);
+    }
+
+    public void removeAllTrust() {
+        if (trustedSet.isEmpty()) return;
+        market.getPlugin().getDb().find(SQLPlotTrust.class)
+            .eq("plotId", row.getId())
+            .in("player", Set.copyOf(trustedSet))
+            .deleteAsync(null);
+        trustedSet.clear();
+    }
+
+    public boolean isAllowed(UUID uuid) {
+        return row.isOwner(uuid) || isTrusted(uuid);
+    }
+
     public boolean isAllowed(Player player) {
-        if (owner != null && owner.getUuid().equals(player.getUniqueId())) return true;
-        for (Shopper shopper: trusted) {
-            if (shopper.getUuid().equals(player.getUniqueId())) return true;
-        }
-        return false;
+        return isAllowed(player.getUniqueId());
     }
 
     public boolean collides(Plot other) {
-        boolean hor =
-            (west >= other.west && west <= other.east)
-            || (east >= other.west && east <= other.east)
-            || (west < other.west && east > other.east);
-        if (!hor) return false;
-        boolean ver =
-            (north >= other.north && north <= other.south)
-            || (south >= other.north && south <= other.south)
-            || (north < other.north && south > other.south);
-        if (!ver) return false;
-        return true;
+        return row.collidesWith(other.row);
     }
 
     public String getOwnerName() {
-        return owner != null
-            ? owner.getName()
+        return hasOwner()
+            ? PlayerCache.nameForUuid(getOwner())
             : "The Bank";
+    }
+
+    public UUID getOwner() {
+        return row.getOwner();
+    }
+
+    public boolean hasOwner() {
+        return row.getOwner() != null;
+    }
+
+    public void setOwner(UUID owner) {
+        row.setOwner(owner);
+        row.setClaimTime(new Date());
+        market.getPlugin().getDb().updateAsync(row, Set.of("owner", "claimTime"), null);
+    }
+
+    public int getWest() {
+        return row.getWest();
+    }
+
+    public int getNorth() {
+        return row.getNorth();
+    }
+
+    public int getEast() {
+        return row.getEast();
+    }
+
+    public int getSouth() {
+        return row.getSouth();
+    }
+
+    public Location getSpawnLocation() {
+        if (!row.isHasSpawn()) return null;
+        return new Location(Bukkit.getWorld(market.getWorld()),
+                            row.getSpawnX(), row.getSpawnY(), row.getSpawnZ(),
+                            row.getSpawnYaw(), row.getSpawnPitch());
+    }
+
+    public void setSpawnLocation(Location location) {
+        if (location == null) {
+            row.setHasSpawn(false);
+            market.getPlugin().getDb().updateAsync(row, Set.of("hasSpawn"), null);
+            return;
+        }
+        row.setSpawnX(location.getX());
+        row.setSpawnY(location.getY());
+        row.setSpawnZ(location.getZ());
+        row.setSpawnYaw(location.getYaw());
+        row.setSpawnPitch(location.getPitch());
+        row.setHasSpawn(true);
+        market.getPlugin().getDb().updateAsync(row, Set.of("spawnX", "spawnY", "spawnZ",
+                                                           "spawnYaw", "spawnPitch", "hasSpawn"), null);
     }
 }

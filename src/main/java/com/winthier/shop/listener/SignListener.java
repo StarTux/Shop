@@ -7,7 +7,6 @@ import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
-import com.winthier.shop.Shopper;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.sql.SQLChest;
 import java.util.UUID;
@@ -69,7 +68,7 @@ public final class SignListener implements Listener {
         } catch (NumberFormatException nfe) {
         }
         String nameLine = PlainTextComponentSerializer.plainText().serialize(event.line(3));
-        Shopper owner;
+        final UUID owner;
         if ("admin".equalsIgnoreCase(nameLine)) {
             if (!player.hasPermission("shop.create.admin")) {
                 player.sendMessage(text("You do not have permission", RED));
@@ -83,15 +82,14 @@ public final class SignListener implements Listener {
                 event.setCancelled(true);
                 return;
             }
-            UUID uuid = PlayerCache.uuidForName(nameLine);
-            if (uuid == null) {
+            owner = PlayerCache.uuidForName(nameLine);
+            if (owner == null) {
                 event.setCancelled(true);
                 player.sendMessage(text("Not found: " + nameLine, RED));
                 return;
             }
-            owner = new Shopper(uuid, nameLine);
         } else {
-            owner = Shopper.of(player);
+            owner = player.getUniqueId();
         }
         BlockLocation location = BlockLocation.of(event.getBlock());
         final SQLChest chestData = new SQLChest(SQLChest.Type.SIGN, shopType, location, owner, price, owner == null);
@@ -141,7 +139,7 @@ public final class SignListener implements Listener {
             return;
         }
         BlockLocation location = BlockLocation.of(event.getBlock());
-        Shopper owner = Shopper.of(event.getPlayer());
+        UUID owner = event.getPlayer().getUniqueId();
         SQLChest chestData = new SQLChest(SQLChest.Type.NAMED_CHEST, shopType, location, owner, price, false);
         plugin.getChestDataStore().store(chestData);
         player.sendMessage(join(noSeparators(),

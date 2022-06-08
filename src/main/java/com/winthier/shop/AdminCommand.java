@@ -10,7 +10,6 @@ import com.winthier.shop.util.Cuboid;
 import com.winthier.shop.util.WorldEdit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -62,7 +61,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
 
     protected void reload(CommandSender sender) {
         plugin.reloadConf();
-        plugin.reloadMarket();
+        plugin.getMarket().load();
         plugin.reloadChests();
         sender.sendMessage(text("Shop configuration reloaded", AQUA));
     }
@@ -72,10 +71,11 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         if (plot == null) {
             throw new CommandWarn("There is no plot here");
         }
-        if (plot.getOwner() != null) {
-            player.sendMessage(text("Plot belongs to " + plot.getOwner().getName(), AQUA));
+        int id = plot.getRow().getId();
+        if (plot.hasOwner()) {
+            player.sendMessage(text("Plot #" + id + " belongs to " + plot.getOwnerName(), AQUA));
         } else {
-            player.sendMessage(text("Plot without an owner", AQUA));
+            player.sendMessage(text("Plot #" + id + " without an owner", AQUA));
         }
     }
 
@@ -85,7 +85,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         int total = 0;
         for (Plot plot : plugin.getMarket().getPlots()) {
             total += 1;
-            if (plot.getOwner() == null) {
+            if (!plot.hasOwner()) {
                 unowned += 1;
             } else {
                 owned += 1;
@@ -102,17 +102,11 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         if (cuboid == null) {
             throw new CommandWarn("Make a selection first");
         }
-        Plot plot = plugin.getMarket().makePlot();
-        plot.setWest(cuboid.a.x);
-        plot.setEast(cuboid.b.x);
-        plot.setNorth(cuboid.a.z);
-        plot.setSouth(cuboid.b.z);
-        plot.setOwner(null);
+        Plot plot = plugin.getMarket().makePlot(cuboid);
         if (plugin.getMarket().collides(plot)) {
             throw new CommandWarn("This plot would collide with another one");
         }
-        plugin.getMarket().getPlots().add(plot);
-        plugin.getMarket().save();
+        plugin.getMarket().addPlot(plot);
         player.sendMessage(text("Plot created", AQUA));
     }
 
@@ -121,10 +115,9 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         if (plot == null) {
             throw new CommandWarn("There is no plot here!");
         }
-        plugin.getMarket().getPlots().remove(plot);
-        plugin.getMarket().save();
+        plugin.getMarket().removePlot(plot);
         if (plot.getOwner() != null) {
-            player.sendMessage(text("Plot of " + plot.getOwner().getName() + " removed", AQUA));
+            player.sendMessage(text("Plot of " + plot.getOwnerName() + " removed", AQUA));
         } else {
             player.sendMessage(text("Unowned plot removed", AQUA));
         }
@@ -136,7 +129,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         int y = player.getLocation().getBlockY();
         final Material mat = Material.GLOWSTONE;
         int count = 0;
-        for (Plot plot: plugin.getMarket().getPlots()) {
+        for (Plot plot : plugin.getMarket().getPlots()) {
             count += 1;
             for (int x = plot.getWest(); x <= plot.getEast(); ++x) {
                 player.sendBlockChange(new Location(world, (double) x, (double) y, (double) plot.getNorth()), mat.createBlockData());
@@ -156,19 +149,15 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         if (plot == null) {
             throw new CommandWarn("There is no plot here!");
         }
-        String name = args[0];
-        UUID uuid = PlayerCache.uuidForName(name);
-        if (uuid == null) {
-            throw new CommandWarn("Unknown player: " + name);
-        }
-        Shopper oldOwner = plot.getOwner();
-        name = PlayerCache.nameForUuid(uuid);
-        plot.setOwner(new Shopper(uuid, name));
-        plugin.getMarket().save();
+        PlayerCache newOwner = PlayerCache.require(args[0]);
+        PlayerCache oldOwner = plot.getOwner() != null
+            ? PlayerCache.forUuid(plot.getOwner())
+            : null;
+        plot.setOwner(newOwner.uuid);
         if (oldOwner == null) {
-            player.sendMessage(text("Plot transferred to " + name, AQUA));
+            player.sendMessage(text("Plot transferred to " + newOwner.name, AQUA));
         } else {
-            player.sendMessage(text("Plot transferred: " + oldOwner.getName() + " => " + name, AQUA));
+            player.sendMessage(text("Plot transferred: " + oldOwner.name + " => " + newOwner.name, AQUA));
         }
         return true;
     }
@@ -203,13 +192,15 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         }
         int plotCount = 0;
         for (Plot plot : plugin.getMarket().getPlots()) {
-            if (plot.getOwner() == null) continue;
-            if (!from.uuid.equals(plot.getOwner().getUuid())) continue;
-            plot.setOwner(new Shopper(to.uuid, to.name));
+            if (plot.isOwner(from.uuid)) {
+                plot.setOwner(to.uuid);
+                plot.removeTrust(to.uuid);
+            }
+            if (plot.isTrusted(from.uuid)) {
+                plot.removeTrust(from.uuid);
+                plot.addTrust(to.uuid);
+            }
             plotCount += 1;
-        }
-        if (plotCount != 0) {
-            plugin.getMarket().save();
         }
         if (chestCount == 0 && plotCount == 0) {
             throw new CommandWarn(from.name + " does not have any shops");

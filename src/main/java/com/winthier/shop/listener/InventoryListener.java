@@ -6,7 +6,6 @@ import com.cavetale.core.money.Money;
 import com.cavetale.mytems.item.coin.Coin;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
-import com.winthier.shop.Shopper;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLLog;
@@ -183,7 +182,7 @@ public final class InventoryListener implements Listener {
                     player.sendMessage(join(noSeparators(),
                                             text("Sold for ", GREEN),
                                             Coin.format(fullPrice)));
-                    SQLLog.store(chestData, Shopper.of(player), soldItem, fullPrice, soldItem.getAmount());
+                    SQLLog.store(chestData, player, soldItem, fullPrice, soldItem.getAmount());
                     if (chestShop.isFull()) {
                         chestData.setSoldOut(true);
                         chestData.updateInWorld();
@@ -274,7 +273,7 @@ public final class InventoryListener implements Listener {
                     chestData.updateInWorld();
                 }
                 purchase.task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        SQLLog.store(chestData, Shopper.of(player), item, purchase.price, purchase.amount);
+                        SQLLog.store(chestData, player, item, purchase.price, purchase.amount);
                         Money.get().log(player.getUniqueId(), -purchase.price, plugin,
                                         "Buy " + purchase.amount + DOT + ItemKinds.name(purchase.item) + " from " + chestData.getOwnerName());
                         player.sendMessage(join(noSeparators(),
