@@ -6,8 +6,6 @@ import com.winthier.shop.sql.SQLPlotTrust;
 import com.winthier.shop.util.Cuboid;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
@@ -70,36 +68,6 @@ public final class Plot {
 
     public boolean isInside(Location l) {
         return isWorld(l.getWorld()) && isInside(l.getBlockX(), l.getBlockY(), l.getBlockZ());
-    }
-
-    @SuppressWarnings("unchecked")
-    public void deserialize(Map<String, Object> map) {
-        row.setWest((Integer) map.get("west"));
-        row.setEast((Integer) map.get("east"));
-        row.setSouth((Integer) map.get("south"));
-        row.setNorth((Integer) map.get("north"));
-        if (map.containsKey("owner")) {
-            Shopper shopper = Shopper.deserialize((Map<String, Object>) map.get("owner"));
-            row.setOwner(shopper.getUuid());
-        }
-        List<Object> trustedList = (List<Object>) map.get("trusted");
-        for (Object o : trustedList) {
-            Shopper shopper = Shopper.deserialize((Map<String, Object>) o);
-            trustedSet.add(shopper.getUuid());
-        }
-        if (map.containsKey("spawnLocation")) {
-            try {
-                Map<String, Object> section = (Map<String, Object>) map.get("spawnLocation");
-                row.setSpawnX(((Number) section.get("x")).doubleValue());
-                row.setSpawnY(((Number) section.get("y")).doubleValue());
-                row.setSpawnZ(((Number) section.get("z")).doubleValue());
-                row.setSpawnYaw(((Number) section.get("yaw")).floatValue());
-                row.setSpawnPitch(((Number) section.get("pitch")).floatValue());
-                row.setHasSpawn(true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     public boolean isOwner(UUID uuid) {

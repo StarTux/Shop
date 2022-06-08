@@ -4,7 +4,6 @@ import com.winthier.shop.sql.SQLPlot;
 import com.winthier.shop.sql.SQLPlotTrust;
 import com.winthier.shop.util.Cuboid;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,10 +52,6 @@ public final class Market {
 
     public boolean isMarketWorld(World bukkitWorld) {
         return Objects.equals((String) bukkitWorld.getName(), (String) this.world);
-    }
-
-    public boolean isWorld(World bworld) {
-        return bworld.getName().equals(world);
     }
 
     public void addPlot(Plot plot) {
@@ -113,59 +108,31 @@ public final class Market {
         return false;
     }
 
-    private File getSaveFile() {
-        return new File(plugin.getDataFolder(), "market.yml");
-    }
-
     public void load() {
-        if (!getSaveFile().exists()) {
+        File saveFile = new File(plugin.getDataFolder(), "market.yml");
+        if (!saveFile.exists()) {
             plugin.getDataFolder().mkdirs();
             plugin.saveResource("market.yml", false);
         }
         plots.clear();
-        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(getSaveFile());
-        world = yaml.getString("World", "Market");
+        YamlConfiguration yaml = YamlConfiguration.loadConfiguration(saveFile);
+        world = yaml.getString("World", "market");
         skyLimit = yaml.getInt("SkyLimit", 95);
         plotPrice = yaml.getDouble("PlotPrice", 2000.0);
         bottomLimit = yaml.getInt("BottomLimit", 1);
         protect = yaml.getBoolean("Protect", true);
-        for (Map<?, ?> m: yaml.getMapList("plots")) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>) m;
-            Plot plot = new Plot(this);
-            plot.deserialize(map);
-            addPlot(plot);
-        }
         Map<Integer, Plot> plotIdMap = new TreeMap<>();
         for (SQLPlot row : plugin.getDb().find(SQLPlot.class).eq("world", world).findList()) {
             Plot plot = new Plot(this, row);
             plots.add(plot);
             plotIdMap.put(plot.getRow().getId(), plot);
         }
-        for (SQLPlotTrust row : plugin.getDb().find(SQLPlotTrust.class).findList()) {
-            Plot plot = plotIdMap.get(row.getPlotId());
-            if (plot == null) continue;
-            plot.getTrustedSet().add(row.getPlayer());
-        }
-        saveNow();
-    }
-
-    public void saveNow() {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.set("World", world);
-        yaml.set("SkyLimit", skyLimit);
-        yaml.set("BottomLimit", bottomLimit);
-        yaml.set("PlotPrice", plotPrice);
-        yaml.set("Protect", protect);
-        // List<Object> list = new ArrayList<>();
-        // for (Plot plot: plots) {
-        //     list.add(plot.serialize());
-        // }
-        // yaml.set("plots", list);
-        try {
-            yaml.save(getSaveFile());
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+        if (!plotIdMap.isEmpty()) {
+            for (SQLPlotTrust row : plugin.getDb().find(SQLPlotTrust.class).findList()) {
+                Plot plot = plotIdMap.get(row.getPlotId());
+                if (plot == null) continue;
+                plot.getTrustedSet().add(row.getPlayer());
+            }
         }
     }
 }

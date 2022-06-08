@@ -15,7 +15,6 @@ import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.sql.SQLLog;
 import com.winthier.shop.sql.SQLOffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -50,7 +49,7 @@ import static net.kyori.adventure.text.event.ClickEvent.runCommand;
 import static net.kyori.adventure.text.event.ClickEvent.suggestCommand;
 import static net.kyori.adventure.text.event.HoverEvent.showText;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
-import static net.kyori.adventure.text.format.TextDecoration.*;
+import static net.kyori.adventure.text.format.TextDecoration.BOLD;
 
 public final class ShopCommand extends AbstractCommand<ShopPlugin> {
     private static final String DOT = "\u00D7";
@@ -509,7 +508,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         if (blockData instanceof org.bukkit.block.data.Directional) {
             firstFace = ((org.bukkit.block.data.Directional) blockData).getFacing();
         }
-        FACES: for (BlockFace face: Arrays.<BlockFace>asList(firstFace, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST)) {
+        FACES: for (BlockFace face : List.of(firstFace, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST)) {
             Block block = location.getBlock().getRelative(face);
             int count = 0;
             while (block.getType() == Material.CHEST || block.getType() == Material.TRAPPED_CHEST) {
