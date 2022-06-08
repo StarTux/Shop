@@ -105,10 +105,10 @@ public final class SQLOffer implements SQLRow {
     public static BlockLocation findExpiredLocation() {
         long now = System.currentTimeMillis();
         List<Offers> list = new ArrayList<>(getCache().values());
-        long timeDiff = Math.max(1000 * 60 * 60 * 12, list.size() * 1000);
         if (list.isEmpty()) return null;
+        long timeDiff = Math.max(1000 * 60 * 60 * 12, list.size() * 1000);
         Offers oldest = list.get(0);
-        for (Offers offers: list) {
+        for (Offers offers : list) {
             if (offers.time < oldest.time) oldest = offers;
         }
         if (oldest.time + timeDiff < now) {

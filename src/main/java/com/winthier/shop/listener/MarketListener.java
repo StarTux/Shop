@@ -4,7 +4,7 @@ import com.cavetale.core.event.block.PlayerBlockAbilityQuery;
 import com.cavetale.core.event.block.PlayerBreakBlockEvent;
 import com.cavetale.core.event.entity.PlayerEntityAbilityQuery;
 import com.destroystokyo.paper.event.entity.PreCreatureSpawnEvent;
-import com.winthier.shop.Market;
+import com.winthier.shop.Plot;
 import com.winthier.shop.ShopPlugin;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
@@ -57,7 +57,7 @@ public final class MarketListener implements Listener {
         if (block == null) return;
         if (!block.getWorld().getName().equals(plugin.getMarket().getWorld())) return;
         if (player.hasPermission("shop.market.override")) return;
-        Market.Plot plot = plugin.getMarket().plotAt(block);
+        Plot plot = plugin.getMarket().plotAt(block);
         if (plot != null && plot.isAllowed(player)) return;
         // plot == null
         if (!plugin.getMarket().isProtect()) return;
@@ -235,8 +235,8 @@ public final class MarketListener implements Listener {
         if (!plugin.getMarket().isProtect()) return;
         Block block = event.getBlock();
         if (!block.getWorld().getName().equals(plugin.getMarket().getWorld())) return;
-        Market.Plot fromPlot = plugin.getMarket().plotAt(block);
-        Market.Plot toPlot = plugin.getMarket().plotAt(event.getToBlock());
+        Plot fromPlot = plugin.getMarket().plotAt(block);
+        Plot toPlot = plugin.getMarket().plotAt(event.getToBlock());
         if (fromPlot != toPlot) {
             event.setCancelled(true);
         }

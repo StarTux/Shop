@@ -68,7 +68,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
     }
 
     protected void plotInfo(Player player) {
-        Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
+        Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
         if (plot == null) {
             throw new CommandWarn("There is no plot here");
         }
@@ -83,7 +83,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         int owned = 0;
         int unowned = 0;
         int total = 0;
-        for (Market.Plot plot : plugin.getMarket().getPlots()) {
+        for (Plot plot : plugin.getMarket().getPlots()) {
             total += 1;
             if (plot.getOwner() == null) {
                 unowned += 1;
@@ -102,7 +102,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         if (cuboid == null) {
             throw new CommandWarn("Make a selection first");
         }
-        Market.Plot plot = plugin.getMarket().makePlot();
+        Plot plot = plugin.getMarket().makePlot();
         plot.setWest(cuboid.a.x);
         plot.setEast(cuboid.b.x);
         plot.setNorth(cuboid.a.z);
@@ -117,7 +117,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
     }
 
     protected void deletePlot(Player player) {
-        Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
+        Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
         if (plot == null) {
             throw new CommandWarn("There is no plot here!");
         }
@@ -136,7 +136,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
         int y = player.getLocation().getBlockY();
         final Material mat = Material.GLOWSTONE;
         int count = 0;
-        for (Market.Plot plot: plugin.getMarket().getPlots()) {
+        for (Plot plot: plugin.getMarket().getPlots()) {
             count += 1;
             for (int x = plot.getWest(); x <= plot.getEast(); ++x) {
                 player.sendBlockChange(new Location(world, (double) x, (double) y, (double) plot.getNorth()), mat.createBlockData());
@@ -152,7 +152,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
 
     protected boolean transfer(Player player, String[] args) {
         if (args.length != 1) return false;
-        Market.Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
+        Plot plot = plugin.getMarket().plotAt(player.getLocation().getBlock());
         if (plot == null) {
             throw new CommandWarn("There is no plot here!");
         }
@@ -202,7 +202,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
             plugin.reloadChests();
         }
         int plotCount = 0;
-        for (Market.Plot plot : plugin.getMarket().getPlots()) {
+        for (Plot plot : plugin.getMarket().getPlots()) {
             if (plot.getOwner() == null) continue;
             if (!from.uuid.equals(plot.getOwner().getUuid())) continue;
             plot.setOwner(new Shopper(to.uuid, to.name));

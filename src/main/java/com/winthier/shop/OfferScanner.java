@@ -33,7 +33,7 @@ public final class OfferScanner {
         }
     }
 
-    void start() {
+    protected void start() {
         task = new BukkitRunnable() {
             @Override public void run() {
                 tick();
@@ -42,7 +42,7 @@ public final class OfferScanner {
         task.runTaskTimer(ShopPlugin.getInstance(), 20, 20);
     }
 
-    void stop() {
+    protected void stop() {
         if (task == null) return;
         try {
             task.cancel();
@@ -51,7 +51,7 @@ public final class OfferScanner {
         task = null;
     }
 
-    void tick() {
+    private void tick() {
         if (dirties.isEmpty()) {
             BlockLocation loc = SQLOffer.findExpiredLocation();
             if (loc != null) setDirty(loc);
@@ -70,14 +70,14 @@ public final class OfferScanner {
         }
     }
 
-    void scan(BlockLocation location) {
+    private void scan(BlockLocation location) {
         World world = location.getBukkitWorld();
         if (world == null) return;
         world.getChunkAtAsync(location.getX() >> 4, location.getZ() >> 4,
                               (Consumer<Chunk>) c -> callback(location));
     }
 
-    void callback(BlockLocation location) {
+    private void callback(BlockLocation location) {
         ChestShop chestShop = ChestShop.getByChest(location.getBlock());
         if (chestShop == null) {
             SQLOffer.deleteAt(location);

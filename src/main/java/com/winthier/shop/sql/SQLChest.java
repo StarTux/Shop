@@ -105,41 +105,45 @@ public final class SQLChest implements SQLRow {
     // Real world
 
     public Sign getSign() {
-        Block block = location.getBlock();
+        Block block = getLocation().getBlock();
+        if (block == null) return null;
         BlockState blockState = block.getState();
         if (!(blockState instanceof Sign)) return null;
         return (Sign) blockState;
     }
 
     public boolean updateInWorld() {
-        if (type == Type.SIGN) {
-            Sign sign = getSign();
-            if (sign == null) return false;
-            if (getShopType() == ShopType.BUY) {
-                String firstLine = PlainTextComponentSerializer.plainText().serialize(sign.line(0));
-                if (firstLine.toLowerCase().contains("buy")) {
-                    sign.line(0, text("[Buy]", AQUA));
-                } else {
-                    sign.line(0, text("[Shop]", AQUA));
-                }
-            } else if (getShopType() == ShopType.SELL) {
-                sign.line(0, text("[Sell]", AQUA));
+        if (type != Type.SIGN) return false;
+        Sign sign = getSign();
+        if (sign == null) {
+            if (ShopPlugin.getInstance().isDebugMode()) {
+                ShopPlugin.getInstance().getLogger().warning("SQLChest#updateInWorld: Sign not found: " + location);
             }
-            if (soldOut) {
-                sign.line(1, text(tiny("sold out"), DARK_RED));
-            } else {
-                sign.line(1, Coin.format(price));
-            }
-            if (adminShop) {
-                sign.line(2, empty());
-                sign.line(3, text(tiny("the bank"), AQUA));
-            } else {
-                sign.line(2, empty());
-                sign.line(3, text(getShopper().getName(), WHITE));
-            }
-            sign.update();
-            return true;
+            return false;
         }
-        return false;
+        if (getShopType() == ShopType.BUY) {
+            String firstLine = PlainTextComponentSerializer.plainText().serialize(sign.line(0));
+            if (firstLine.toLowerCase().contains("buy")) {
+                sign.line(0, text("[Buy]", BLUE));
+            } else {
+                sign.line(0, text("[Shop]", BLUE));
+            }
+        } else if (getShopType() == ShopType.SELL) {
+            sign.line(0, text("[Sell]", BLUE));
+        }
+        if (soldOut) {
+            sign.line(1, text(tiny("sold out"), DARK_RED));
+        } else {
+            sign.line(1, Coin.format(price));
+        }
+        if (adminShop) {
+            sign.line(2, empty());
+            sign.line(3, text(tiny("the bank"), AQUA));
+        } else {
+            sign.line(2, empty());
+            sign.line(3, text(getShopper().getName(), DARK_GRAY));
+        }
+        sign.update();
+        return true;
     }
 }

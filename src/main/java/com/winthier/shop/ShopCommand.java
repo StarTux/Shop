@@ -232,7 +232,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
     private boolean port(RemotePlayer player, String[] args) {
         if (args.length > 1) return false;
         if (args.length == 0) {
-            Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
+            Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
             if (plot == null) {
                 throw new CommandWarn("You do not have a market plot");
             }
@@ -258,7 +258,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             return true;
         } catch (NumberFormatException nfe) { }
         PlayerCache target = PlayerCache.require(args[0]);
-        Market.Plot plot = plugin.getMarket().findPlayerPlot(target.uuid);
+        Plot plot = plugin.getMarket().findPlayerPlot(target.uuid);
         if (plot == null) {
             throw new CommandWarn("Market plot not found: " + target.name);
         }
@@ -327,7 +327,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             && plugin.getMarket().findPlayerPlot(player.getUniqueId()) != null) {
             throw new CommandWarn("You already have a plot");
         }
-        Market.Plot plot = plugin.getMarket().randomEmptyPlot();
+        Plot plot = plugin.getMarket().randomEmptyPlot();
         if (plot == null) {
             throw new CommandWarn("All plots are occupied. Please make a ticket");
         }
@@ -349,7 +349,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         if (plugin.getMarket().findPlayerPlot(player.getUniqueId()) != null) {
             throw new CommandWarn("You already have a plot");
         }
-        Market.Plot plot = plugin.getMarket().plotAt(block);
+        Plot plot = plugin.getMarket().plotAt(block);
         if (plot == null) {
             throw new CommandWarn("There is no plot here");
         }
@@ -399,7 +399,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
 
     private boolean trustEdit(Player player, boolean trust, String[] args) {
         if (args.length > 1) return false;
-        Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
+        Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
         if (plot == null) {
             throw new CommandWarn("You do not own a plot");
         }
@@ -466,7 +466,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
     }
 
     private void setspawn(Player player) {
-        Market.Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
+        Plot plot = plugin.getMarket().findPlayerPlot(player.getUniqueId());
         if (plot == null) {
             throw new CommandWarn("You do not have a market plot");
         }
@@ -487,7 +487,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
         return true;
     }
 
-    private boolean portToPlot(RemotePlayer player, Market.Plot plot, Consumer<Player> callback) {
+    private boolean portToPlot(RemotePlayer player, Plot plot, Consumer<Player> callback) {
         Location loc;
         if (plot.getSpawnLocation() == null) {
             int x;

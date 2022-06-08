@@ -38,7 +38,6 @@ public final class ShopPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
-        saveDefaultConfig();
         reloadConf();
         if (!new File(getDataFolder(), "market.yml").exists()) {
             saveResource("market.yml", false);
