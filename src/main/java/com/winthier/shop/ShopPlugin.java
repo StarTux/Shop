@@ -1,6 +1,5 @@
 package com.winthier.shop;
 
-import com.cavetale.core.connect.NetworkServer;
 import com.winthier.shop.chest.ChestDataStore;
 import com.winthier.shop.chest.ChestShop;
 import com.winthier.shop.listener.ChestListener;
@@ -80,13 +79,5 @@ public final class ShopPlugin extends JavaPlugin {
         reloadConfig();
         debugMode = getConfig().getBoolean("Debug");
         if (debugMode) getLogger().info("Debug mode enabled");
-    }
-
-    protected NetworkServer getMasterServer() {
-        return switch (NetworkServer.current()) {
-        case ALPHA -> NetworkServer.BETA;
-        case BETA, CAVETALE -> null;
-        default -> NetworkServer.CAVETALE;
-        };
     }
 }

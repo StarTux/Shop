@@ -67,7 +67,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
     }
 
     protected void onEnable() {
-        final NetworkServer targetServer = plugin.getMasterServer();
+        final NetworkServer targetServer = NetworkServer.current().getManager();
         rootNode.addChild("search").arguments("[item]")
             .denyTabCompletion()
             .description("Search for shop chests")
