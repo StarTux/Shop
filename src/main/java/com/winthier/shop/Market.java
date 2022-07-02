@@ -118,7 +118,7 @@ public final class Market {
         YamlConfiguration yaml = YamlConfiguration.loadConfiguration(saveFile);
         world = yaml.getString("World", "market");
         skyLimit = yaml.getInt("SkyLimit", 95);
-        plotPrice = yaml.getDouble("PlotPrice", 2000.0);
+        plotPrice = yaml.getDouble("PlotPrice", 10000.0);
         bottomLimit = yaml.getInt("BottomLimit", 1);
         protect = yaml.getBoolean("Protect", true);
         Map<Integer, Plot> plotIdMap = new TreeMap<>();

@@ -116,7 +116,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             .permission("shop.market.claim")
             .playerCaller(this::untrust);
         rootNode.addChild("setspawn").denyTabCompletion()
-            .description("Untrust someone in your plot")
+            .description("Set the spawn of your plot")
             .permission("shop.market.claim")
             .playerCaller(this::setspawn);
     }
