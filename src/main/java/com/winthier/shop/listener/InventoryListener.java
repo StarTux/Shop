@@ -163,17 +163,14 @@ public final class InventoryListener implements Listener {
                     sold += 1;
                     restStack -= buyItem.getAmount();
                     if (!chestData.isAdminShop()) {
-                        String msg = player.getName() + " sold " + buyItem.getAmount() + DOT + ItemKinds.name(buyItem);
-                        Money.get().take(chestData.getOwner(), price, plugin, msg);
+                        Money.get().take(chestData.getOwner(), price, plugin, "Sell Chest");
                     }
                 }
                 if (sold > 0) {
                     double fullPrice = price * (double) sold;
                     ItemStack soldItem = buyItem.clone();
                     soldItem.setAmount(sold * buyItem.getAmount());
-                    String msg = "Sell " + soldItem.getAmount() + DOT + ItemKinds.name(soldItem)
-                        + " to " + chestData.getOwnerName();
-                    Money.get().give(player.getUniqueId(), fullPrice, plugin, msg);
+                    Money.get().give(player.getUniqueId(), fullPrice, plugin, "Sold to Chest");
                     if (restStack == 0) {
                         event.setCurrentItem(null);
                     } else {
@@ -274,8 +271,7 @@ public final class InventoryListener implements Listener {
                 }
                 purchase.task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         SQLLog.store(chestData, player, item, purchase.price, purchase.amount);
-                        Money.get().log(player.getUniqueId(), -purchase.price, plugin,
-                                        "Buy " + purchase.amount + DOT + ItemKinds.name(purchase.item) + " from " + chestData.getOwnerName());
+                        Money.get().log(player.getUniqueId(), -purchase.price, plugin, "Buy from Chest");
                         player.sendMessage(join(noSeparators(),
                                                 Component.text("Bought "),
                                                 text(purchase.amount, YELLOW),
@@ -284,8 +280,7 @@ public final class InventoryListener implements Listener {
                                                 Component.text(" for "),
                                                 Coin.format(purchase.price)));
                         if (chestData.isAdminShop()) return;
-                        Money.get().log(chestData.getOwner(), purchase.price, plugin,
-                                        player.getName() + " bought " + purchase.amount + DOT + ItemKinds.name(purchase.item));
+                        Money.get().log(chestData.getOwner(), purchase.price, plugin, "Sold via Chest");
                         if (purchase == lastPurchase) {
                             lastPurchase = null;
                         }
