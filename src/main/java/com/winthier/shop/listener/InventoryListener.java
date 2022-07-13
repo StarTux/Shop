@@ -240,7 +240,7 @@ public final class InventoryListener implements Listener {
                     return;
                 }
                 if (!chestData.isAdminShop()) {
-                    if (!Money.get().give(chestData.getOwner(), price)) {
+                    if (price >= 0.01 && !Money.get().give(chestData.getOwner(), price)) {
                         plugin.getLogger().info("Could not give " + price + " to " + chestData.getOwnerName());
                     }
                 }
