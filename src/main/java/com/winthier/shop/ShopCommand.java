@@ -156,7 +156,8 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             offers.add(offer);
         }
         if (offers.isEmpty()) {
-            throw new CommandWarn("Nothing found");
+            sender.sendMessage(text("Nothing found", RED));
+            return;
         }
         offers.sort(SQL_OFFER_COMPARATOR);
         if (shopType == ShopType.SELL) Collections.reverse(offers);
@@ -313,7 +314,8 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             lines.add(cb.build());
         }
         if (lines.isEmpty()) {
-            throw new CommandWarn("Nothing found");
+            player.sendMessage(text("Nothing found", RED));
+            return;
         }
         getPlayerContext(player).clear();
         getPlayerContext(player).pages.addAll(pagesOf(lines));
