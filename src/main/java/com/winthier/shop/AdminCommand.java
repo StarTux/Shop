@@ -3,7 +3,7 @@ package com.winthier.shop;
 import com.cavetale.core.command.AbstractCommand;
 import com.cavetale.core.command.CommandArgCompleter;
 import com.cavetale.core.command.CommandWarn;
-import com.winthier.playercache.PlayerCache;
+import com.cavetale.core.playercache.PlayerCache;
 import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLOffer;
 import com.winthier.shop.util.Cuboid;

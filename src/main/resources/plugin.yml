@@ -8,7 +8,7 @@ description: Make shop chests
 author: StarTux
 website: https://cavetale.com
 
-depend: [Core, SQL, Mytems, PlayerCache, WorldEdit]
+depend: [Core, SQL, Mytems, WorldEdit]
 softdepend: []
 
 commands:

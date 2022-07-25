@@ -1,6 +1,6 @@
 package com.winthier.shop;
 
-import com.winthier.playercache.PlayerCache;
+import com.cavetale.core.playercache.PlayerCache;
 import com.winthier.shop.sql.SQLPlot;
 import com.winthier.shop.sql.SQLPlotTrust;
 import com.winthier.shop.util.Cuboid;

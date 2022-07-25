@@ -2,8 +2,8 @@ package com.winthier.shop.listener;
 
 import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.cavetale.core.playercache.PlayerCache;
 import com.cavetale.mytems.item.coin.Coin;
-import com.winthier.playercache.PlayerCache;
 import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
