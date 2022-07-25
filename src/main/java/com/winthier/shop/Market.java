@@ -135,4 +135,14 @@ public final class Market {
             }
         }
     }
+
+    public List<String> getPlotOwnerNames() {
+        List<String> result = new ArrayList<>();
+        for (Plot plot : plots) {
+            if (plot.hasOwner()) {
+                result.add(plot.getOwnerName());
+            }
+        }
+        return result;
+    }
 }

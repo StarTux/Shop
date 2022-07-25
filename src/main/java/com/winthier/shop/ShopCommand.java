@@ -89,7 +89,7 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             .remotePlayerCaller(this::list);
         rootNode.addChild("port").arguments("[name]")
             .description("Port to a market plot")
-            .completers(CommandArgCompleter.NULL)
+            .completers(CommandArgCompleter.supplyList(() -> plugin.getMarket().getPlotOwnerNames()))
             .remoteServer(targetServer)
             .remotePlayerCaller(this::port);
         rootNode.addChild("market").denyTabCompletion()
