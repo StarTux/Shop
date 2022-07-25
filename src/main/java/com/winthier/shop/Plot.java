@@ -1,9 +1,9 @@
 package com.winthier.shop;
 
 import com.cavetale.core.playercache.PlayerCache;
+import com.cavetale.core.struct.Cuboid;
 import com.winthier.shop.sql.SQLPlot;
 import com.winthier.shop.sql.SQLPlotTrust;
-import com.winthier.shop.util.Cuboid;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,10 +36,10 @@ public final class Plot {
         this.market = market;
         this.row = new SQLPlot();
         row.setWorld(market.getWorld());
-        row.setWest(cuboid.a.x);
-        row.setEast(cuboid.b.x);
-        row.setNorth(cuboid.a.z);
-        row.setSouth(cuboid.b.z);
+        row.setWest(cuboid.ax);
+        row.setEast(cuboid.bx);
+        row.setNorth(cuboid.az);
+        row.setSouth(cuboid.bz);
         row.setCreationTime(new Date());
         row.setClaimTime(new Date());
     }

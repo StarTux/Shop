@@ -1,8 +1,8 @@
 package com.winthier.shop;
 
+import com.cavetale.core.struct.Cuboid;
 import com.winthier.shop.sql.SQLPlot;
 import com.winthier.shop.sql.SQLPlotTrust;
-import com.winthier.shop.util.Cuboid;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;

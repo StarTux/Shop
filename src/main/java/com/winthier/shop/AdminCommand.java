@@ -4,10 +4,9 @@ import com.cavetale.core.command.AbstractCommand;
 import com.cavetale.core.command.CommandArgCompleter;
 import com.cavetale.core.command.CommandWarn;
 import com.cavetale.core.playercache.PlayerCache;
+import com.cavetale.core.struct.Cuboid;
 import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLOffer;
-import com.winthier.shop.util.Cuboid;
-import com.winthier.shop.util.WorldEdit;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Location;
@@ -98,10 +97,7 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
     }
 
     protected void makePlot(Player player) {
-        Cuboid cuboid = WorldEdit.getSelection(player);
-        if (cuboid == null) {
-            throw new CommandWarn("Make a selection first");
-        }
+        Cuboid cuboid = Cuboid.requireSelectionOf(player);
         Plot plot = plugin.getMarket().makePlot(cuboid);
         if (plugin.getMarket().collides(plot)) {
             throw new CommandWarn("This plot would collide with another one");
