@@ -11,7 +11,7 @@ import org.bukkit.block.Block;
 @RequiredArgsConstructor
 public final class ChestDataStore {
     private final ShopPlugin plugin;
-    final Map<BlockLocation, SQLChest> store = new HashMap<>();
+    private final Map<BlockLocation, SQLChest> store = new HashMap<>();
 
     public SQLChest getByChest(Block left, Block right) {
         SQLChest result;

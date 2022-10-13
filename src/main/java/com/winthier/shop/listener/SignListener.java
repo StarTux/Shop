@@ -174,7 +174,7 @@ public final class SignListener implements Listener {
         }
     }
 
-    boolean checkBrokenBlock(Block block) {
+    private boolean checkBrokenBlock(Block block) {
         SQLChest data = plugin.getChestDataStore().remove(block);
         if (data == null) return false;
         ChestShop shop = ChestShop.getByBlock(block);
