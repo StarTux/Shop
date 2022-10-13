@@ -1,5 +1,6 @@
 package com.winthier.shop.listener;
 
+import com.cavetale.core.event.block.PlayerBlockAbilityQuery;
 import com.cavetale.mytems.item.coin.Coin;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
@@ -72,6 +73,23 @@ public final class ChestListener implements Listener {
         if (allowEvent) {
             allowEvent = false;
             event.setCancelled(false);
+        }
+    }
+
+    /**
+     * Deny OPEN to guard against MassStorage drain.
+     * Include INVENTORY for potential future uses.  Right now, it
+     * only covers lecterns.
+     */
+    @EventHandler(ignoreCancelled = true)
+    void onPlayerBlockAbility(PlayerBlockAbilityQuery query) {
+        switch (query.getAction()) {
+        case OPEN: case INVENTORY:
+            ChestShop chestShop = ChestShop.getByChest(query.getBlock());
+            if (chestShop != null && !chestShop.getChestData().isOwner(query.getPlayer())) {
+                query.setCancelled(true);
+            }
+        default: break;
         }
     }
 }
