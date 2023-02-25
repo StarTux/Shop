@@ -71,6 +71,7 @@ public final class MarketListener implements Listener {
                 switch (mat) {
                 case ENCHANTING_TABLE:
                 case ENDER_CHEST:
+                case CRAFTING_TABLE:
                     return;
                 default:
                     pie.setUseInteractedBlock(Event.Result.DENY);
@@ -252,11 +253,10 @@ public final class MarketListener implements Listener {
         if (!(event.getPlayer() instanceof Player)) return;
         Player player = (Player) event.getPlayer();
         InventoryHolder holder = event.getInventory().getHolder();
-        if (holder instanceof BlockInventoryHolder) {
-            BlockInventoryHolder bih = (BlockInventoryHolder) holder;
+        if (holder instanceof BlockInventoryHolder bih) {
             onMarketEvent(player, bih.getBlock(), event);
-        } else if (holder instanceof Entity) {
-            Entity entity = (Entity) holder;
+        } else if (holder instanceof Entity entity) {
+            if (player.equals(entity)) return;
             onMarketEvent(player, entity.getLocation().getBlock(), event);
         }
     }
