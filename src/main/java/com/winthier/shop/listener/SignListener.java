@@ -62,7 +62,7 @@ public final class SignListener implements Listener {
         try {
             String priceLine = PlainTextComponentSerializer.plainText().serialize(event.line(1));
             price = Double.parseDouble(priceLine);
-            if (price < 0.0) {
+            if (price < 0.0 || Double.isNaN(price) || Double.isInfinite(price)) {
                 price = 10.0;
             }
         } catch (NumberFormatException nfe) {
@@ -131,7 +131,9 @@ public final class SignListener implements Listener {
         } catch (NumberFormatException nfe) {
             return;
         }
-        if (price < 0.0) return;
+        if (price < 0.0 || Double.isNaN(price) || Double.isInfinite(price)) {
+            return;
+        }
         // Permission
         if (!player.hasPermission("shop.create")) {
             player.sendMessage(text("You do not have permission to create a shop", RED));
