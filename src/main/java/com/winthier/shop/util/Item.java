@@ -4,7 +4,6 @@ import com.cavetale.core.item.ItemKinds;
 import com.cavetale.mytems.Mytems;
 import com.destroystokyo.paper.profile.PlayerProfile;
 import java.util.Map;
-import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -12,9 +11,10 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
+import static net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 
 public final class Item {
     private Item() { }
@@ -61,15 +61,15 @@ public final class Item {
                 }
             }
         }
-        if (meta instanceof PotionMeta && !meta.hasItemFlag(ItemFlag.HIDE_POTION_EFFECTS)) {
+        if (meta instanceof PotionMeta && !meta.hasItemFlag(ItemFlag.HIDE_ITEM_SPECIFICS)) {
             PotionMeta potions = (PotionMeta) meta;
             try {
-                PotionData data = potions.getBasePotionData();
-                if (data != null && data.getType() != PotionType.UNCRAFTABLE) {
+                PotionType potionType = potions.getBasePotionType();
+                if (potionType != null && potionType != PotionType.UNCRAFTABLE) {
                     desc.append(", ");
-                    desc.append(niceEnumName(data.getType().name()));
-                    if (data.isExtended()) desc.append(" Ext");
-                    if (data.isUpgraded()) desc.append(" II");
+                    desc.append(niceEnumName(potionType.name()));
+                    if (potionType.name().startsWith("LONG_")) desc.append(" Ext");
+                    if (potionType.name().startsWith("STRONG_")) desc.append(" II");
                 }
             } catch (IllegalArgumentException iae) {
                 if (!warnedAboutPotionData) {
@@ -79,9 +79,9 @@ public final class Item {
                 }
             }
             if (potions.hasCustomEffects()) {
-                for (PotionEffect effect: potions.getCustomEffects()) {
+                for (PotionEffect effect : potions.getCustomEffects()) {
                     desc.append(", ");
-                    desc.append(niceEnumName(effect.getType().getName()));
+                    desc.append(niceEnumName(effect.getType().getKey().getKey()));
                     int amp = effect.getAmplifier();
                     if (amp > 0) {
                         desc.append(" ").append((amp + 1));
@@ -101,7 +101,9 @@ public final class Item {
             }
             if (name != null) {
                 desc.append(" <");
-                desc.append(ChatColor.stripColor(name));
+                // This nightmare is the replacement for ChatColor.stripColor()
+                // See https://docs.advntr.dev/migration/bungeecord-chat-api.html
+                desc.append(plainText().serialize(legacySection().deserialize(name)));
                 desc.append(">");
             }
         }

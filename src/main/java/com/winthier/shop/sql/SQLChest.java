@@ -14,16 +14,17 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 import static com.cavetale.core.font.Unicode.tiny;
 import static net.kyori.adventure.text.Component.empty;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
+import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 
 @Getter @Setter @Table(name = "chests")
 public final class SQLChest implements SQLRow {
@@ -111,26 +112,26 @@ public final class SQLChest implements SQLRow {
             return false;
         }
         if (getShopType() == ShopType.BUY) {
-            String firstLine = PlainTextComponentSerializer.plainText().serialize(sign.line(0));
+            String firstLine = plainText().serialize(sign.getSide(Side.FRONT).line(0));
             if (firstLine.toLowerCase().contains("buy")) {
-                sign.line(0, text("[Buy]", BLUE));
+                sign.getSide(Side.FRONT).line(0, text("[Buy]", BLUE));
             } else {
-                sign.line(0, text("[Shop]", BLUE));
+                sign.getSide(Side.FRONT).line(0, text("[Shop]", BLUE));
             }
         } else if (getShopType() == ShopType.SELL) {
-            sign.line(0, text("[Sell]", BLUE));
+            sign.getSide(Side.FRONT).line(0, text("[Sell]", BLUE));
         }
         if (soldOut) {
-            sign.line(1, text(tiny("sold out"), DARK_RED));
+            sign.getSide(Side.FRONT).line(1, text(tiny("sold out"), DARK_RED));
         } else {
-            sign.line(1, Coin.format(price));
+            sign.getSide(Side.FRONT).line(1, Coin.format(price));
         }
         if (adminShop) {
-            sign.line(2, empty());
-            sign.line(3, text(tiny("the bank"), AQUA));
+            sign.getSide(Side.FRONT).line(2, empty());
+            sign.getSide(Side.FRONT).line(3, text(tiny("the bank"), AQUA));
         } else {
-            sign.line(2, empty());
-            sign.line(3, text(getOwnerName(), DARK_GRAY));
+            sign.getSide(Side.FRONT).line(2, empty());
+            sign.getSide(Side.FRONT).line(3, text(getOwnerName(), DARK_GRAY));
         }
         sign.update();
         return true;
