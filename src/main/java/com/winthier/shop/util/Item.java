@@ -61,11 +61,11 @@ public final class Item {
                 }
             }
         }
-        if (meta instanceof PotionMeta && !meta.hasItemFlag(ItemFlag.HIDE_ITEM_SPECIFICS)) {
+        if (meta instanceof PotionMeta && !meta.hasItemFlag(ItemFlag.HIDE_ADDITIONAL_TOOLTIP)) {
             PotionMeta potions = (PotionMeta) meta;
             try {
                 PotionType potionType = potions.getBasePotionType();
-                if (potionType != null && potionType != PotionType.UNCRAFTABLE) {
+                if (potionType != null && potionType != PotionType.AWKWARD) {
                     desc.append(", ");
                     desc.append(niceEnumName(potionType.name()));
                     if (potionType.name().startsWith("LONG_")) desc.append(" Ext");
