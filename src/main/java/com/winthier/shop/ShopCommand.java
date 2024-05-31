@@ -6,8 +6,8 @@ import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
 import com.cavetale.core.command.RemotePlayer;
 import com.cavetale.core.connect.NetworkServer;
-import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.cavetale.core.event.player.PluginPlayerEvent;
+import com.cavetale.core.event.player.PluginPlayerEvent.Detail;
 import com.cavetale.core.font.DefaultFont;
 import com.cavetale.core.money.Money;
 import com.cavetale.core.playercache.PlayerCache;
@@ -151,20 +151,20 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
             if (offer.getShopType() != shopType) continue;
             String desc = offer.getItemDescription().toLowerCase();
             for (String pattern : patterns) {
-                if (!desc.contains(pattern)) continue OFFERS;
+                if (!desc.contains(pattern.toLowerCase())) continue OFFERS;
             }
             offers.add(offer);
         }
         if (offers.isEmpty()) {
-            sender.sendMessage(text("Nothing found", RED));
+            sender.sendMessage(text("Nothing found: " + String.join(" ", patterns), RED));
             return;
         }
         offers.sort(SQL_OFFER_COMPARATOR);
         if (shopType == ShopType.SELL) Collections.reverse(offers);
         getPlayerContext(sender).clear();
         int offerIndex = 0;
-        Set<DoneItem> doneItems = new HashSet<>();
-        List<Component> lines = new ArrayList<>();
+        final Set<DoneItem> doneItems = new HashSet<>();
+        final List<Component> lines = new ArrayList<>();
         for (SQLOffer offer : offers) {
             // Only one mention per player
             UUID owner = offer.getOwner();
@@ -176,19 +176,19 @@ public final class ShopCommand extends AbstractCommand<ShopPlugin> {
                     doneItems.add(doneItem);
                 }
             }
-            TextComponent.Builder cb = text()
-                .hoverEvent(showText(text("Port to " + offer.getOwnerName() + "'s shop chest", GRAY)))
-                .clickEvent(runCommand("/shop port " + offerIndex));
-            cb.append(text("[Port]", BLUE));
-            cb.append(space());
-            cb.append(Coin.format(offer.getPrice()));
-            cb.append(space());
-            cb.append(offer.parseItemDisplayName());
-            cb.append(space());
-            cb.append(text("by", DARK_GRAY));
-            cb.append(space());
-            cb.append(text(offer.getOwnerName(), WHITE));
-            lines.add(cb.build());
+            final List<Component> line = new ArrayList<>();
+            line.add(text("[Port]", BLUE));
+            line.add(space());
+            line.add(Coin.format(offer.getPrice()));
+            line.add(space());
+            line.add(offer.parseItemDisplayName());
+            line.add(space());
+            line.add(text("by", DARK_GRAY));
+            line.add(space());
+            line.add(text(offer.getOwnerName(), WHITE));
+            lines.add(join(noSeparators(), line)
+                      .hoverEvent(showText(text("Port to " + offer.getOwnerName() + "'s shop chest", GRAY)))
+                      .clickEvent(runCommand("/shop port " + offerIndex)));
             getPlayerContext(sender).locations.add(offer.getBlockLocation());
             getPlayerContext(sender).searchType = shopType;
             offerIndex += 1;
