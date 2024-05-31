@@ -14,10 +14,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.ItemStack;
+import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson;
 
 @Data
@@ -66,8 +68,13 @@ public final class SQLOffer implements SQLRow {
         this.z = location.getZ();
         this.material = item.getType().getKey().getKey();
         this.itemAmount = item.getAmount();
-        Component itemComponent = ItemKinds.chatDescription(item);
-        this.itemDisplayName = gson().serialize(itemComponent);
+        final Component itemComponent = ItemKinds.chatDescription(item);
+        try {
+            this.itemDisplayName = gson().serialize(itemComponent);
+        } catch (IllegalStateException iae) {
+            ShopPlugin.getInstance().getLogger().log(Level.SEVERE, "item:" + item.getType() + " component:" + itemComponent, iae);
+            this.itemDisplayName = gson().serialize(text(Item.getItemDescription(item)));
+        }
         this.itemDescription = Item.getItemDescription(item);
         this.price = chestData.getPrice();
     }
