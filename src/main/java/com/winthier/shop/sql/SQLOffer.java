@@ -6,26 +6,23 @@ import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.shop.util.Item;
 import com.winthier.sql.SQLRow;
+import com.winthier.sql.SQLRow.Name;
+import com.winthier.sql.SQLRow.NotNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.Table;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.inventory.ItemStack;
+import static net.kyori.adventure.text.serializer.gson.GsonComponentSerializer.gson;
 
-@Getter @Setter @NoArgsConstructor
-@Table(name = "offers", indexes = @Index(name = "world", columnList = "world"))
+@Data
+@Name("offers")
+@NotNull
 public final class SQLOffer implements SQLRow {
     // Cache
     @RequiredArgsConstructor
@@ -37,21 +34,23 @@ public final class SQLOffer implements SQLRow {
     private static Map<BlockLocation, Offers> cache = null;
     // Payload
     @Id private Integer id;
-    @Column(nullable = false) private Date time;
-    @Column(nullable = false) private ShopType shopType;
+    private Date time;
+    private ShopType shopType;
     private UUID owner;
-    @Column(nullable = false) private String ownerName;
-    @Column(nullable = false) private String world;
-    @Column(nullable = false) private Integer x;
-    @Column(nullable = false) private Integer y;
-    @Column(nullable = false) private Integer z;
-    @Column(nullable = false) private String material;
-    @Column(nullable = false) private Integer itemAmount;
-    @Column(nullable = false, length = 4096) private String itemDisplayName; // Component
-    @Column(nullable = false) private String itemDescription;
-    @Column(nullable = false) private Double price;
+    private String ownerName;
+    @Keyed private String world;
+    private Integer x;
+    private Integer y;
+    private Integer z;
+    private String material;
+    private Integer itemAmount;
+    @Text private String itemDisplayName; // Component
+    private String itemDescription;
+    private Double price;
 
-    SQLOffer(final Date time, final BlockLocation location, final SQLChest chestData, final ItemStack item) {
+    public SQLOffer() { }
+
+    public SQLOffer(final Date time, final BlockLocation location, final SQLChest chestData, final ItemStack item) {
         this.time = time;
         this.shopType = chestData.getShopType();
         if (chestData.isAdminShop()) {
@@ -68,7 +67,7 @@ public final class SQLOffer implements SQLRow {
         this.material = item.getType().getKey().getKey();
         this.itemAmount = item.getAmount();
         Component itemComponent = ItemKinds.chatDescription(item);
-        this.itemDisplayName = GsonComponentSerializer.gson().serialize(itemComponent);
+        this.itemDisplayName = gson().serialize(itemComponent);
         this.itemDescription = Item.getItemDescription(item);
         this.price = chestData.getPrice();
     }
@@ -158,7 +157,7 @@ public final class SQLOffer implements SQLRow {
 
     public Component parseItemDisplayName() {
         return itemDisplayName != null && !itemDisplayName.isEmpty()
-            ? GsonComponentSerializer.gson().deserialize(itemDisplayName)
+            ? gson().deserialize(itemDisplayName)
             : Component.empty();
     }
 }

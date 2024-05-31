@@ -1,12 +1,12 @@
 package com.winthier.shop.sql;
 
+import com.winthier.sql.SQLRow;
 import com.winthier.sql.SQLRow.Default;
 import com.winthier.sql.SQLRow.Keyed;
 import com.winthier.sql.SQLRow.Name;
 import com.winthier.sql.SQLRow.NotNull;
 import com.winthier.sql.SQLRow.Nullable;
 import com.winthier.sql.SQLRow.VarChar;
-import com.winthier.sql.SQLRow;
 import java.util.Date;
 import java.util.UUID;
 import lombok.Data;

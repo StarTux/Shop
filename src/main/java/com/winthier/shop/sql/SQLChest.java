@@ -8,12 +8,10 @@ import com.winthier.shop.BlockLocation;
 import com.winthier.shop.ShopPlugin;
 import com.winthier.shop.ShopType;
 import com.winthier.sql.SQLRow;
+import com.winthier.sql.SQLRow.Name;
+import com.winthier.sql.SQLRow.NotNull;
 import java.util.UUID;
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -26,18 +24,20 @@ import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 import static net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText;
 
-@Getter @Setter @Table(name = "chests")
+@Data
+@Name("chests")
+@NotNull
 public final class SQLChest implements SQLRow {
     @Id private Integer id;
-    @Column(nullable = false) private Type type;
-    @Column(nullable = false) private ShopType shopType;
-    @Column(nullable = false) private String world;
-    @Column(nullable = false) private int x;
-    @Column(nullable = false) private int y;
-    @Column(nullable = false) private int z;
-    @Column(nullable = true) private UUID owner;
-    @Column(nullable = false) private double price;
-    @Column(nullable = false) private boolean adminShop;
+    private Type type;
+    private ShopType shopType;
+    private String world;
+    private int x;
+    private int y;
+    private int z;
+    @Nullable private UUID owner;
+    private double price;
+    private boolean adminShop;
     private transient boolean soldOut = false;
     private transient BlockLocation location;
 
