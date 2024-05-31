@@ -2,11 +2,13 @@ package com.winthier.shop;
 
 import com.cavetale.core.command.AbstractCommand;
 import com.cavetale.core.command.CommandArgCompleter;
+import com.cavetale.core.command.CommandNode;
 import com.cavetale.core.command.CommandWarn;
 import com.cavetale.core.playercache.PlayerCache;
 import com.cavetale.core.struct.Cuboid;
 import com.winthier.shop.sql.SQLChest;
 import com.winthier.shop.sql.SQLOffer;
+import com.winthier.shop.util.Item;
 import java.util.ArrayList;
 import java.util.List;
 import org.bukkit.Location;
@@ -14,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import static net.kyori.adventure.text.Component.text;
 import static net.kyori.adventure.text.format.NamedTextColor.*;
 
@@ -56,6 +59,11 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
             .description("Account transfer")
             .completers(PlayerCache.NAME_COMPLETER, PlayerCache.NAME_COMPLETER)
             .senderCaller(this::transferAll);
+        CommandNode debugNode = rootNode.addChild("debug")
+            .description("Debug commands");
+        debugNode.addChild("itemdescription").denyTabCompletion()
+            .description("Show item description of item in hand.")
+            .playerCaller(this::debugItemDescription);
     }
 
     protected void reload(CommandSender sender) {
@@ -206,5 +214,13 @@ public final class AdminCommand extends AbstractCommand<ShopPlugin> {
                                 + " plots=" + plotCount,
                                 AQUA));
         return true;
+    }
+
+    private void debugItemDescription(Player player) {
+        final ItemStack item = player.getInventory().getItemInMainHand();
+        if (item == null || item.isEmpty()) {
+            throw new CommandWarn("No item in hand");
+        }
+        player.sendMessage(Item.getItemDescription(item));
     }
 }
