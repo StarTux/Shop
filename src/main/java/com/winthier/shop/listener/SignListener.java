@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
@@ -174,6 +175,11 @@ public final class SignListener implements Listener {
         for (Block block: event.blockList()) {
             checkBrokenBlock(block);
         }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onBlockDropItem(BlockDropItemEvent event) {
+        checkBrokenBlock(event.getBlock());
     }
 
     private boolean checkBrokenBlock(Block block) {

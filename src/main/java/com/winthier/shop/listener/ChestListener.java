@@ -82,7 +82,7 @@ public final class ChestListener implements Listener {
      * only covers lecterns.
      */
     @EventHandler(ignoreCancelled = true)
-    void onPlayerBlockAbility(PlayerBlockAbilityQuery query) {
+    private void onPlayerBlockAbility(PlayerBlockAbilityQuery query) {
         switch (query.getAction()) {
         case OPEN: case INVENTORY:
             ChestShop chestShop = ChestShop.getByChest(query.getBlock());
