@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -16,11 +17,12 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 public final class OfferScanner {
     @Getter private final Map<BlockLocation, Long> dirties = new HashMap<>();
-    private BukkitRunnable task = null;
+    private BukkitTask task = null;
+    private boolean scanning = false;
 
     public void setDirty(BlockLocation location) {
         dirties.put(location, System.currentTimeMillis());
@@ -34,25 +36,22 @@ public final class OfferScanner {
     }
 
     protected void start() {
-        task = new BukkitRunnable() {
-            @Override public void run() {
-                tick();
-            }
-        };
-        task.runTaskTimer(ShopPlugin.getInstance(), 20, 20);
+        task = Bukkit.getScheduler().runTaskTimer(ShopPlugin.getInstance(), this::tick, 20L, 20L);
     }
 
     protected void stop() {
-        if (task == null) return;
-        try {
-            task.cancel();
-        } catch (IllegalStateException ise) {
+        if (task != null) {
+            try {
+                task.cancel();
+            } catch (IllegalStateException ise) { }
+            task = null;
         }
-        task = null;
     }
 
     private void tick() {
-        if (dirties.isEmpty()) {
+        if (scanning) {
+            return;
+        } else if (dirties.isEmpty()) {
             BlockLocation loc = SQLOffer.findExpiredLocation();
             if (loc != null) setDirty(loc);
         } else {
@@ -72,12 +71,17 @@ public final class OfferScanner {
 
     private void scan(BlockLocation location) {
         World world = location.getBukkitWorld();
-        if (world == null) return;
+        if (world == null) {
+            ShopPlugin.getInstance().getLogger().severe("[OfferScanner] World not found: " + location);
+            return;
+        }
+        scanning = true;
         world.getChunkAtAsync(location.getX() >> 4, location.getZ() >> 4,
                               (Consumer<Chunk>) c -> callback(location));
     }
 
     private void callback(BlockLocation location) {
+        scanning = false;
         ChestShop chestShop = ChestShop.getByChest(location.getBlock());
         if (chestShop == null) {
             SQLOffer.deleteAt(location);
