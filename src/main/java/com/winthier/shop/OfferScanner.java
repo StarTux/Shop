@@ -59,12 +59,17 @@ public final class OfferScanner {
             int count = 0;
             while (it.hasNext()) {
                 Map.Entry<BlockLocation, Long> e = it.next();
-                if (e.getValue() + 10000 < System.currentTimeMillis()) {
-                    it.remove();
-                    scan(e.getKey());
-                    count += 1;
-                    if (count >= 20) break;
+                if (e.getKey().getBukkitWorld() == null) {
+                    // TODO: Add a "server" column to SQLOffer and SQLChest
+                    continue;
                 }
+                if (e.getValue() + 10000 >= System.currentTimeMillis()) {
+                    continue;
+                }
+                it.remove();
+                scan(e.getKey());
+                count += 1;
+                if (count >= 20) break;
             }
         }
     }
