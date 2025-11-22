@@ -96,7 +96,7 @@ public final class Item {
             if (playerProfile != null) {
                 name = playerProfile.getName();
             }
-            if (name == null && skull.hasOwner()) {
+            if (name == null && skull.hasOwner() && skull.getOwningPlayer() != null) {
                 name = skull.getOwningPlayer().getName();
             }
             if (name != null) {
