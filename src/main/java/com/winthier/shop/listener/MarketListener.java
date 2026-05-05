@@ -3,9 +3,11 @@ package com.winthier.shop.listener;
 import com.cavetale.core.event.block.PlayerBlockAbilityQuery;
 import com.cavetale.core.event.block.PlayerBreakBlockEvent;
 import com.cavetale.core.event.entity.PlayerEntityAbilityQuery;
+import com.destroystokyo.paper.event.entity.EntityKnockbackByEntityEvent;
 import com.destroystokyo.paper.event.entity.PreCreatureSpawnEvent;
 import com.winthier.shop.Plot;
 import com.winthier.shop.ShopPlugin;
+import io.papermc.paper.event.entity.EntityPushedByEntityAttackEvent;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -169,14 +171,22 @@ public final class MarketListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        Player player;
-        if (event.getDamager() instanceof Player) {
-            player = (Player) event.getDamager();
-        } else if (event.getDamager() instanceof Projectile && ((Projectile) event.getDamager()).getShooter() instanceof Player) {
-            player = (Player) ((Projectile) event.getDamager()).getShooter();
-        } else {
-            return;
-        }
+        final Player player = getPlayerDamager(event.getDamager());
+        if (player == null) return;
+        onMarketEvent(player, event.getEntity().getLocation(), event);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    private void onEntityKnockbackByEntity(EntityKnockbackByEntityEvent event) {
+        final Player player = getPlayerDamager(event.getHitBy());
+        if (player == null) return;
+        onMarketEvent(player, event.getEntity().getLocation(), event);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    private void onEntityPushedByEntityAttack(EntityPushedByEntityAttackEvent event) {
+        final Player player = getPlayerDamager(event.getPushedBy());
+        if (player == null) return;
         onMarketEvent(player, event.getEntity().getLocation(), event);
     }
 
@@ -339,5 +349,17 @@ public final class MarketListener implements Listener {
             if (!isMarketWorld(event.getBlock().getWorld())) return;
             event.setCancelled(true);
         }
+    }
+
+    private Player getPlayerDamager(Entity damager) {
+        if (damager instanceof Player) {
+            return (Player) damager;
+        }
+        if (damager instanceof Projectile) {
+            Projectile proj = (Projectile) damager;
+            if (!(proj.getShooter() instanceof Player)) return null;
+            return (Player) proj.getShooter();
+        }
+        return null;
     }
 }
